@@ -1,0 +1,44 @@
+
+> khotl@ test /home/runner/work/khotl/khotl
+> pnpm -r test
+
+Scope: 6 of 7 workspace projects
+packages/adapters test$ vitest run
+packages/core test$ vitest run
+packages/adapters test:  RUN  v3.2.7 /home/runner/work/khotl/khotl/packages/adapters
+packages/core test:  RUN  v3.2.7 /home/runner/work/khotl/khotl/packages/core
+packages/core test:  ✓ src/permissions.test.ts (6 tests) 7ms
+packages/core test:  ✓ src/vn.test.ts (11 tests) 38ms
+packages/adapters test:  ✓ src/adapters.test.ts (4 tests) 7ms
+packages/adapters test:  Test Files  1 passed (1)
+packages/adapters test:       Tests  4 passed (4)
+packages/adapters test:    Start at  08:51:18
+packages/adapters test:    Duration  682ms (transform 127ms, setup 0ms, collect 299ms, tests 7ms, environment 0ms, prepare 113ms)
+packages/adapters test: Done
+packages/core test:  ✓ src/risk.test.ts (6 tests) 12ms
+packages/core test:  ✓ src/misc.test.ts (13 tests) 43ms
+packages/core test:  ✓ src/term.test.ts (5 tests) 5ms
+packages/core test:  ✓ src/quota.test.ts (4 tests) 2ms
+packages/core test:  Test Files  6 passed (6)
+packages/core test:       Tests  45 passed (45)
+packages/core test:    Start at  08:51:18
+packages/core test:    Duration  1.13s (transform 316ms, setup 0ms, collect 557ms, tests 107ms, environment 1ms, prepare 733ms)
+packages/core test: Done
+apps/web test$ vitest run
+apps/worker test$ vitest run
+apps/worker test:  RUN  v3.2.7 /home/runner/work/khotl/khotl/apps/worker
+apps/web test:  RUN  v3.2.7 /home/runner/work/khotl/khotl/apps/web
+apps/worker test:  ✓ src/worker.test.ts (7 tests) 33ms
+apps/web test:  ✓ src/lib/upload-token.test.ts (3 tests) 4ms
+apps/worker test:  Test Files  1 passed (1)
+apps/worker test:       Tests  7 passed (7)
+apps/worker test:    Start at  08:51:20
+apps/worker test:    Duration  555ms (transform 97ms, setup 0ms, collect 89ms, tests 33ms, environment 0ms, prepare 125ms)
+apps/web test:  ✓ src/messages.test.ts (2 tests) 6ms
+apps/worker test: Done
+apps/web test:  ✓ src/lib/highlight.test.ts (4 tests) 3ms
+apps/web test:  Test Files  3 passed (3)
+apps/web test:       Tests  9 passed (9)
+apps/web test:    Start at  08:51:20
+apps/web test:    Duration  796ms (transform 304ms, setup 0ms, collect 537ms, tests 13ms, environment 5ms, prepare 457ms)
+apps/web test: Done

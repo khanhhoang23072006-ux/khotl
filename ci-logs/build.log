@@ -1,0 +1,67 @@
+
+> @khotl/web@ prebuild /home/runner/work/khotl/khotl/apps/web
+> node scripts/copy-pdf-worker.mjs
+
+Đã chép pdf.worker.min.mjs vào public/
+
+> @khotl/web@ build /home/runner/work/khotl/khotl/apps/web
+> next build
+
+▲ Next.js 16.4.3 (Turbopack)
+✓ Running next.config.ts took 48ms
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+- Experiments (use with caution):
+  · serverActions
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.1s
+  Running TypeScript ...
+  Finished TypeScript in 5.8s ...
+  Collecting page data using 3 workers ...
+  Generating static pages using 3 workers (0/22) ...
+  Generating static pages using 3 workers (5/22) 
+  Generating static pages using 3 workers (10/22) 
+  Generating static pages using 3 workers (16/22) 
+✓ Generating static pages using 3 workers (22/22) in 182ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/[...all]
+├ ƒ /api/goi-y
+├ ƒ /api/health
+├ ƒ /api/tai-lieu/[id]/anh/[index]
+├ ƒ /api/tai-lieu/[id]/tai-xuong
+├ ƒ /api/tai-lieu/[id]/xem
+├ ƒ /dang-nhap
+├ ƒ /dieu-khoan
+├ ƒ /go-tai-lieu
+├ ƒ /hoan-thien-ho-so
+├ ƒ /hoc-phan/[code]
+├ ○ /icon.svg
+├ ƒ /kiem-duyet
+├ ƒ /kiem-duyet/[id]
+├ ƒ /kiem-duyet/bao-cao
+├ ○ /manifest.webmanifest
+├ ƒ /quan-tri
+├ ƒ /quan-tri/hoc-phan
+├ ƒ /quan-tri/nguoi-dung
+├ ƒ /quyen-rieng-tu
+├ ○ /robots.txt
+├ ƒ /sitemap.xml
+├ ƒ /tai-len
+├ ƒ /tai-lieu-cua-toi
+├ ƒ /tai-lieu-cua-toi/[id]/sua
+├ ƒ /tai-lieu/[slug]
+├ ƒ /thong-bao
+├ ƒ /tim-kiem
+├ ƒ /vien
+└ ƒ /vien/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

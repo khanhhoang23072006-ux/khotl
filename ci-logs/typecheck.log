@@ -1,0 +1,19 @@
+
+> khotl@ typecheck /home/runner/work/khotl/khotl
+> pnpm -r typecheck
+
+Scope: 6 of 7 workspace projects
+e2e typecheck$ tsc --noEmit -p tsconfig.json
+packages/adapters typecheck$ tsc --noEmit -p tsconfig.json
+packages/core typecheck$ tsc --noEmit -p tsconfig.json
+packages/core typecheck: Done
+e2e typecheck: Done
+packages/adapters typecheck: Done
+packages/db typecheck$ tsc --noEmit -p tsconfig.json
+packages/db typecheck: Done
+apps/web typecheck$ next typegen && tsc --noEmit -p tsconfig.json
+apps/worker typecheck$ tsc --noEmit -p tsconfig.json
+apps/web typecheck: Generating route types...
+apps/web typecheck: ✓ Types generated successfully
+apps/worker typecheck: Done
+apps/web typecheck: Done

@@ -1,0 +1,48 @@
+
+> khotl@ lint /home/runner/work/khotl/khotl
+> biome lint . "--max-diagnostics=300"
+
+/home/runner/work/khotl/khotl/biome.json:27:13 deserialize  DEPRECATED  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  i The use of the recommended field has been deprecated, and will removed in the next major version of Biome. Use preset instead.
+  
+    25 │     }
+    26 │   },
+  > 27 │   "linter": {
+       │             ^
+  > 28 │     "enabled": true,
+        ...
+  > 58 │     }
+  > 59 │   },
+       │   ^
+    60 │   "css": {
+    61 │     "parser": {
+  
+  i Migrate the configuration with the proper command
+  
+  $ biome migrate
+  
+
+biome.json:27:13 deserialize  DEPRECATED  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  i The use of the recommended field has been deprecated, and will removed in the next major version of Biome. Use preset instead.
+  
+    25 │     }
+    26 │   },
+  > 27 │   "linter": {
+       │             ^
+  > 28 │     "enabled": true,
+        ...
+  > 58 │     }
+  > 59 │   },
+       │   ^
+    60 │   "css": {
+    61 │     "parser": {
+  
+  i Migrate the configuration with the proper command
+  
+  $ biome migrate
+  
+
+Checked 155 files in 71ms. No fixes applied.
+Found 1 info.
