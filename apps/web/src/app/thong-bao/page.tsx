@@ -17,6 +17,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function NotificationsPage() {
   const user = await requireUser("/thong-bao");
   const t = await getTranslations("notifications");
+  const tc = await getTranslations("credits");
   const locale = await currentLocale();
   const items = await prisma.notification.findMany({
     where: { userId: user.id },
@@ -34,7 +35,7 @@ export default async function NotificationsPage() {
         ) : (
           <ul className="tb grid-cols-1">
             {items.map((item) => {
-              const data = (item.data ?? {}) as { title?: string; reason?: string };
+              const data = (item.data ?? {}) as { title?: string; reason?: string; credits?: number; amount?: number };
               const body = (
                 <>
                   <span className="flex items-baseline justify-between gap-3">
@@ -44,6 +45,12 @@ export default async function NotificationsPage() {
                     <span className="shrink-0 text-[12px] text-pencil">{formatDateTime(item.createdAt, locale)}</span>
                   </span>
                   {data.reason ? <span className="text-sm">{t("reason", { reason: data.reason })}</span> : null}
+                  {data.credits ? (
+                    <span className="font-code text-base text-stamp">{tc("approvedCredits", { amount: data.credits })}</span>
+                  ) : null}
+                  {typeof data.amount === "number" ? (
+                    <span className="font-code text-base">{tc("changedAmount", { amount: data.amount })}</span>
+                  ) : null}
                 </>
               );
               const className = cn(

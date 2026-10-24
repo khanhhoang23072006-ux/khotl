@@ -1,34 +1,50 @@
-import { getRateLimiter, getStorage } from "@khotl/adapters";
-import { can, PERMISSIONS, vietnamDay } from "@khotl/core";
+import { getRateLimiter } from "@khotl/adapters";
+import { can, PERMISSIONS } from "@khotl/core";
 import { prisma } from "@khotl/db";
-import { after, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { deviceHash } from "@/lib/device";
 import { documentAccess } from "@/lib/policies";
 import { hashedIp } from "@/lib/request";
 import { getCurrentUser } from "@/lib/session";
+import { chargeDownload, createDownloadToken, getCreditSettings, recordDevice } from "@/server/credits/ledger";
+
+function tooMany(resetIn: number) {
+  return new NextResponse("Bạn tải quá nhiều trong một giờ, thử lại sau.", {
+    status: 429,
+    headers: { "Retry-After": String(resetIn), "Content-Type": "text/plain; charset=utf-8" },
+  });
+}
 
 /**
- * Tải file gốc: bắt buộc đăng nhập, giới hạn 60 lượt/giờ mỗi người, ghi DownloadLog.
- * Trả về chuyển hướng tới URL ký sẵn 5 phút với tên file đẹp.
+ * Tải file gốc:
+ * 1. bắt buộc đăng nhập (khách chỉ xem bản xem trước);
+ * 2. giới hạn số lần gọi mỗi giờ theo tài khoản, IP và thiết bị;
+ * 3. trừ lượt trong một transaction (miễn phí trong ngày trước, rồi lượt thưởng; tải lại trong 24 giờ không trừ);
+ * 4. cấp link dùng một lần /api/tai-xuong/<token>, hết hạn sau vài chục giây.
+ * Hết lượt thì chuyển tới trang /het-luot giải thích cách kiếm thêm.
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const user = await getCurrentUser();
+  const back = new URL(request.url).searchParams.get("tu") ?? "/";
+  const safeBack = back.startsWith("/") && !back.startsWith("//") ? back : "/";
   if (!user) {
-    const back = new URL(request.url).searchParams.get("tu") ?? "/";
-    return NextResponse.redirect(
-      new URL(`/dang-nhap?next=${encodeURIComponent(back.startsWith("/") ? back : "/")}`, request.url),
-    );
+    return NextResponse.redirect(new URL(`/dang-nhap?next=${encodeURIComponent(safeBack)}`, request.url));
   }
   if (!can(user, PERMISSIONS.documentDownload)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const rate = await getRateLimiter().hit(`download:${user.id}`, 60, 3600);
-  if (!rate.ok) {
-    return new NextResponse("Bạn tải quá nhiều trong một giờ, thử lại sau.", {
-      status: 429,
-      headers: { "Retry-After": String(rate.resetIn), "Content-Type": "text/plain; charset=utf-8" },
-    });
+  const settings = await getCreditSettings();
+  const [ipHash, device] = await Promise.all([hashedIp(), deviceHash()]);
+  const limiter = getRateLimiter();
+  for (const [key, limit] of [
+    [`download:user:${user.id}`, settings.rateLimitPerHourUser],
+    [`download:ip:${ipHash}`, settings.rateLimitPerHourIp],
+    [`download:device:${device}`, settings.rateLimitPerHourDevice],
+  ] as const) {
+    const rate = await limiter.hit(key, limit, 3600);
+    if (!rate.ok) return tooMany(rate.resetIn);
   }
 
   const doc = await prisma.document.findUnique({
@@ -41,37 +57,40 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       uploaderId: true,
       deletedAt: true,
       course: { select: { facultyId: true, code: true } },
-      currentVersion: { select: { id: true, storageKey: true, originalName: true, processingStatus: true } },
+      currentVersion: { select: { id: true } },
     },
   });
   const version = doc?.currentVersion;
-  if (!doc || !version || !documentAccess(doc, user)) {
+  const access = doc ? documentAccess(doc, user) : null;
+  if (!doc || !version || !access) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const ext = version.originalName.includes(".") ? version.originalName.split(".").pop() : "pdf";
-  const url = await getStorage().presignGet(version.storageKey, {
-    expiresIn: 300,
-    downloadName: `${doc.course.code}-${doc.slug}.${ext}`,
+  // Người đăng, kiểm duyệt viên và tài liệu chưa công khai không tính lượt
+  const exempt = access !== "public" || doc.uploaderId === user.id || doc.status !== "APPROVED";
+  await recordDevice({ userId: user.id, deviceHash: device, ipHash });
+  const result = await chargeDownload({
+    userId: user.id,
+    documentId: doc.id,
+    versionId: version.id,
+    exempt,
+    ipHash,
+    deviceHash: device,
   });
-
-  if (doc.status === "APPROVED") {
-    const ipHash = await hashedIp();
-    after(async () => {
-      const day = vietnamDay();
-      await prisma.$transaction([
-        prisma.downloadLog.create({
-          data: { userId: user.id, documentId: doc.id, versionId: version.id, ipHash },
-        }),
-        prisma.document.update({ where: { id: doc.id }, data: { downloadCount: { increment: 1 } } }),
-        prisma.documentDailyStat.upsert({
-          where: { documentId_date: { documentId: doc.id, date: day } },
-          create: { documentId: doc.id, date: day, downloads: 1 },
-          update: { downloads: { increment: 1 } },
-        }),
-      ]);
+  if (!result.ok) {
+    return NextResponse.redirect(new URL(`/het-luot?tai-lieu=${encodeURIComponent(doc.slug)}`, request.url), {
+      status: 303,
     });
   }
 
-  return NextResponse.redirect(url, { status: 302, headers: { "Cache-Control": "private, no-store" } });
+  const token = await createDownloadToken({
+    userId: user.id,
+    documentId: doc.id,
+    versionId: version.id,
+    ttlSeconds: settings.linkTtlSeconds,
+  });
+  return NextResponse.redirect(new URL(`/api/tai-xuong/${token}`, request.url), {
+    status: 303,
+    headers: { "Cache-Control": "private, no-store" },
+  });
 }

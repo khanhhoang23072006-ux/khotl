@@ -74,6 +74,18 @@ jobs:
       - name: Kết luận
         if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.test.outcome == 'failure' || steps.build.outcome == 'failure'
         run: exit 1
+      - name: Đưa lỗi vào chú thích (đọc được qua API khi không tải được log)
+        if: failure()
+        run: |
+          for f in ci-logs/*.log; do
+            [ -s "$f" ] || continue
+            grep -q -E "$PATTERN" "$f" || continue
+            hits=$(grep -n -E "$PATTERN" "$f" | head -n 80 | cut -c1-400 | sed 's/%/%25/g;s/\r//g' | awk 'BEGIN{ORS="%0A"}{print}')
+            tail=$(grep -v '^\s*$' "$f" | tail -n 25 | cut -c1-400 | sed 's/%/%25/g;s/\r//g' | awk 'BEGIN{ORS="%0A"}{print}')
+            echo "::error title=$(basename "$f")::${hits}%0A----- cuối log -----%0A${tail}"
+          done
+        env:
+          PATTERN: "error|Error|FAIL|✗|×|AssertionError|expected|lệch|ERR_|failed"
 
   migration:
     name: Migration trên Postgres thật
@@ -115,8 +127,22 @@ jobs:
           # Index GIN/trigram và index unique một phần nằm trong SQL viết tay nên Prisma muốn xoá; bỏ qua chúng
           grep -v -E '^\s*$|^--|DROP INDEX "(documents_search_idx|documents_title_trgm_idx|courses_search_idx|courses_name_trgm_idx|courses_code_trgm_idx|tags_name_trgm_idx|user_roles_global_uniq)"' drift.sql > drift-rest.sql || true
           cp drift.sql ../../ci-logs/drift.sql
-          if [ -s drift-rest.sql ]; then echo "Schema lệch với migration:"; cat drift-rest.sql; exit 1; fi
+          if [ -s drift-rest.sql ]; then echo "Schema lệch với migration:" | tee ../../ci-logs/drift-check.log; cat drift-rest.sql | tee -a ../../ci-logs/drift-check.log; exit 1; fi
           echo "Schema khớp migration"
+      - name: Test tích hợp sổ lượt tải (Postgres thật)
+        run: set -o pipefail; pnpm --filter @khotl/web test:int 2>&1 | tee ci-logs/int.log
+      - name: Đưa lỗi vào chú thích (đọc được qua API khi không tải được log)
+        if: failure()
+        run: |
+          for f in ci-logs/*.log; do
+            [ -s "$f" ] || continue
+            grep -q -E "$PATTERN" "$f" || continue
+            hits=$(grep -n -E "$PATTERN" "$f" | head -n 80 | cut -c1-400 | sed 's/%/%25/g;s/\r//g' | awk 'BEGIN{ORS="%0A"}{print}')
+            tail=$(grep -v '^\s*$' "$f" | tail -n 25 | cut -c1-400 | sed 's/%/%25/g;s/\r//g' | awk 'BEGIN{ORS="%0A"}{print}')
+            echo "::error title=$(basename "$f")::${hits}%0A----- cuối log -----%0A${tail}"
+          done
+        env:
+          PATTERN: "error|Error|FAIL|✗|×|AssertionError|expected|lệch|ERR_|failed"
 
   e2e:
     name: E2E (web + worker + Postgres + S3 + Mailpit)
@@ -196,3 +222,15 @@ jobs:
         id: e2e
         if: steps.pre.outputs.ready == 'true'
         run: set -o pipefail; pnpm e2e 2>&1 | tee ci-logs/e2e.log
+      - name: Đưa lỗi vào chú thích (đọc được qua API khi không tải được log)
+        if: failure() && steps.pre.outputs.ready == 'true'
+        run: |
+          for f in ci-logs/*.log; do
+            [ -s "$f" ] || continue
+            grep -q -E "$PATTERN" "$f" || continue
+            hits=$(grep -n -E "$PATTERN" "$f" | head -n 80 | cut -c1-400 | sed 's/%/%25/g;s/\r//g' | awk 'BEGIN{ORS="%0A"}{print}')
+            tail=$(grep -v '^\s*$' "$f" | tail -n 25 | cut -c1-400 | sed 's/%/%25/g;s/\r//g' | awk 'BEGIN{ORS="%0A"}{print}')
+            echo "::error title=$(basename "$f")::${hits}%0A----- cuối log -----%0A${tail}"
+          done
+        env:
+          PATTERN: "error|Error|FAIL|✗|×|AssertionError|expected|lệch|ERR_|failed"

@@ -113,10 +113,27 @@ Chạy toàn bộ bằng Docker (không cần Node trên máy): `docker compose 
 pnpm typecheck
 pnpm lint
 pnpm test            # unit test: core, adapters, worker, web
+pnpm --filter @khotl/web test:int   # test tích hợp sổ lượt tải, cần DATABASE_URL đã migrate
 pnpm e2e             # cần web + worker + hạ tầng đang chạy, dữ liệu đã seed
 ```
 
 CI (GitHub Actions) chạy cả ba job: kiểm tra mã, migration trên Postgres thật, và e2e với web, worker, Postgres, SeaweedFS, Mailpit thật.
+
+## Hạn mức tải xuống và lượt thưởng
+
+- Mỗi sinh viên có 10 lượt tải miễn phí mỗi ngày, làm mới lúc 00:00 giờ Việt Nam. Khách chỉ xem bản xem trước, không tải được.
+- Hết lượt miễn phí thì dùng lượt thưởng. Lượt thưởng có được khi tài liệu mình đăng được **duyệt** (+5), khi tài liệu đạt mỗi mốc 20 lượt tải (+1), khi đăng cho học phần có dưới 5 tài liệu (+3), và khi bình luận được 5 lượt thích (+1). Mỗi ngày kiếm tối đa 30 lượt thưởng. Lượt thưởng cộng dồn và hết hạn sau 90 ngày, lô sắp hết hạn được dùng trước.
+- Tài liệu bị gỡ thì lượt đã nhận nhờ nó bị thu hồi. Nếu đã tiêu hết thì ghi nợ, lần thưởng sau trừ nợ trước.
+- Tải lại cùng tài liệu trong 24 giờ không bị trừ. Xem trực tuyến không bị trừ. Tài liệu nhiều file (ZIP) tính 1 lượt. Người đăng tải tài liệu của mình và kiểm duyệt viên tải để duyệt đều không bị trừ.
+- Kiểm tra và trừ lượt nằm trong một transaction, có khóa dòng `download_quotas` của người dùng (`SELECT … FOR UPDATE`), nên bấm tải nhiều lần cùng lúc không trừ trùng.
+- Chống gian lận:
+  - chặn file trùng SHA-256 và nội dung gần giống (SimHash, lệch ≤ 3 bit), từ chối tài liệu trống;
+  - một thiết bị dùng từ 3 tài khoản trong 30 ngày thì khóa nhận thưởng các tài khoản đó;
+  - bị gỡ vì vi phạm 3 lần thì khóa nhận thưởng;
+  - giới hạn số lần gọi API tải mỗi giờ theo tài khoản, IP và thiết bị;
+  - link tải dùng một lần, hết hạn sau 60 giây.
+- Bảng: `download_quotas`, `credit_ledger` (sổ cái, mọi lần cộng hoặc trừ), `download_tokens`, `device_sightings`. Cấu hình nằm trong `system_settings` (khóa `downloads.credits`), sửa ở **Quản trị → Lượt tải**, có hiệu lực ngay, không cần deploy lại.
+- Trang cho người dùng: thanh lượt ở header, hộp thoại khi hết lượt, trang **Lịch sử lượt tải** (`/luot-tai`).
 
 ## Triển khai
 

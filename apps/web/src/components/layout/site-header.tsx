@@ -2,8 +2,10 @@ import { can, PERMISSIONS } from "@khotl/core";
 import { prisma } from "@khotl/db";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { CreditMeter } from "@/components/credits/credit-meter";
 import { BellIcon } from "@/components/icons";
 import { getCurrentUser } from "@/lib/session";
+import { getCreditStatus } from "@/server/credits/ledger";
 import { initials } from "@/lib/utils";
 import { LocaleSwitch } from "./locale-switch";
 import { LogoMark } from "./logo";
@@ -18,6 +20,7 @@ export async function SiteHeader() {
   const unread = user
     ? await prisma.notification.count({ where: { userId: user.id, readAt: null } })
     : 0;
+  const credits = user ? await getCreditStatus(user.id) : null;
   const isModerator = user ? can(user, PERMISSIONS.documentModerate) : false;
   const isAdmin = user ? can(user, PERMISSIONS.adminCatalog) : false;
 
@@ -26,6 +29,7 @@ export async function SiteHeader() {
 
   const menuLinks = [
     { href: "/tai-lieu-cua-toi", label: t("myDocuments") },
+    { href: "/luot-tai", label: t("credits") },
     { href: "/thong-bao", label: t("notifications") },
     { href: "/hoan-thien-ho-so", label: t("profile") },
     ...(isModerator ? [{ href: "/kiem-duyet", label: t("moderation") }] : []),
@@ -81,6 +85,7 @@ export async function SiteHeader() {
           </div>
           {user ? (
             <>
+              {credits ? <CreditMeter status={credits} /> : null}
               <Link
                 href="/thong-bao"
                 className="relative flex h-11 w-11 items-center justify-center hover:bg-wash hover:text-ink"

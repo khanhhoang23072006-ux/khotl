@@ -20,10 +20,13 @@ import { type Prisma, prisma } from "@khotl/db";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
+import { deviceHash } from "@/lib/device";
 import { serverEnv } from "@/lib/env";
+import { hashedIp } from "@/lib/request";
 import { activeSanction, uploadQuota } from "@/lib/policies";
 import { type CurrentUser, getCurrentUser } from "@/lib/session";
 import { createUploadToken, type UploadTokenPayload, verifyUploadToken } from "@/lib/upload-token";
+import { recordDevice } from "./credits/ledger";
 
 export type ActionResult<T = object> =
   | ({ ok: true } & T)
@@ -167,6 +170,9 @@ export async function submitUpload(
 
   const quota = await uploadQuota(user);
   if (quota.remaining <= 0) return { ok: false, error: t("quotaExceeded", { limit: quota.limit }) };
+
+  // Ghi nhận thiết bị đăng tài liệu, để phát hiện một người dùng nhiều tài khoản lấy thưởng
+  await recordDevice({ userId: user.id, deviceHash: await deviceHash(), ipHash: await hashedIp() });
 
   const tags = cleanTags(data.tags);
   const document = await prisma.$transaction(async (tx) => {

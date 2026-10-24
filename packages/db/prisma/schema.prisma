@@ -151,6 +151,7 @@ enum NotificationType {
   REPORT_RESOLVED
   GROUP_INVITE
   SYSTEM
+  CREDITS_CHANGED
 }
 
 enum ReputationReason {
@@ -162,6 +163,24 @@ enum ReputationReason {
   CONTENT_REMOVED
   REPORT_UPHELD_AGAINST
   ADMIN_ADJUSTMENT
+}
+
+// Sổ lượt tải: mỗi dòng là một lần cộng hoặc trừ
+enum CreditType {
+  DAILY // dùng 1 lượt miễn phí trong ngày (chỉ ghi nhận, không đổi số dư thưởng)
+  SPEND // dùng 1 lượt thưởng
+  UPLOAD_REWARD // tài liệu được duyệt
+  BONUS // mốc lượt tải, học phần thiếu tài liệu, bình luận hữu ích
+  REVOKE // thu hồi khi tài liệu bị gỡ
+  ADJUSTMENT // quản trị viên điều chỉnh tay
+}
+
+// Cách tính một lần tải
+enum DownloadCharge {
+  FREE // trừ lượt miễn phí trong ngày
+  BONUS // trừ lượt thưởng
+  REPEAT // tải lại trong 24 giờ, không trừ
+  EXEMPT // người đăng tải tài liệu của mình, kiểm duyệt viên tải để duyệt
 }
 
 enum ChatRoomType {
@@ -217,6 +236,10 @@ model User {
   trustLevel            Int       @default(0)
   approvedDocumentCount Int       @default(0)
   notificationPrefs     Json      @default("{}")
+  // Lượt thưởng: số dư là tổng CreditLedger.remaining còn hạn trừ đi creditDebt (nợ do bị thu hồi khi đã tiêu)
+  creditDebt            Int       @default(0)
+  rewardsLockedAt       DateTime? // khóa cộng thưởng (nghi nhiều tài khoản, vi phạm nhiều lần)
+  rewardsLockReason     String?
   lastActiveAt          DateTime?
   deletedAt             DateTime?
 
@@ -252,6 +275,9 @@ model User {
   sanctionsIssued        UserSanction[]       @relation("SanctionsIssued")
   blocksMade             UserBlock[]          @relation("BlocksMade")
   blocksReceived         UserBlock[]          @relation("BlocksReceived")
+  creditEntries          CreditLedger[]       @relation("CreditOwner")
+  creditActions          CreditLedger[]       @relation("CreditActor")
+  downloadQuotas         DownloadQuota[]
   groupsOwned            StudyGroup[]
   groupMemberships       StudyGroupMember[]
   searchHistory          SearchHistory[]
@@ -521,6 +547,7 @@ model Document {
   reputationEvents ReputationEvent[]
   downloads        DownloadLog[]
   dailyStats       DocumentDailyStat[]
+  creditEntries    CreditLedger[]
 
   @@index([status, courseId, type, publishedAt(sort: Desc)])
   @@index([status, hotScore(sort: Desc)])
@@ -543,6 +570,7 @@ model DocumentVersion {
   detectedMime     String? // MIME thật đọc từ magic bytes
   sizeBytes        BigInt
   sha256           String? // phát hiện trùng lặp
+  simhash          BigInt? // SimHash nội dung chữ, phát hiện bản gần giống
   pageCount        Int?
   previewPdfKey    String? // PDF để xem (Office được LibreOffice chuyển sang)
   previewImageKeys String[] // ảnh WebP các trang đầu, dành cho khách
@@ -1082,9 +1110,11 @@ model DownloadLog {
   userId      String
   documentId  String
   versionId   String
-  watermarked Boolean  @default(false)
+  watermarked Boolean        @default(false)
   ipHash      String?
-  createdAt   DateTime @default(now())
+  deviceHash  String?
+  charge      DownloadCharge @default(FREE)
+  createdAt   DateTime       @default(now())
 
   user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   document Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
@@ -1092,7 +1122,74 @@ model DownloadLog {
 
   @@index([userId, createdAt])
   @@index([documentId, createdAt])
+  @@index([userId, documentId, createdAt])
   @@map("download_logs")
+}
+
+// Số lượt miễn phí đã dùng trong một ngày (giờ Việt Nam). Dòng này cũng là khóa của người dùng
+// khi trừ lượt: SELECT ... FOR UPDATE để hai lần bấm tải cùng lúc không trừ trùng.
+model DownloadQuota {
+  userId    String
+  date      DateTime @db.Date
+  used      Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, date])
+  @@map("download_quotas")
+}
+
+// Sổ cái lượt tải. Khoản cộng là một "lô" có hạn dùng; remaining giảm dần khi tiêu.
+// dedupeKey chống cộng hai lần cho cùng một sự kiện (vd "upload:<documentId>").
+model CreditLedger {
+  id         BigInt     @id @default(autoincrement())
+  userId     String
+  type       CreditType
+  amount     Int // dương là cộng, âm là trừ
+  remaining  Int        @default(0)
+  documentId String?
+  expiresAt  DateTime?
+  note       String?
+  actorId    String?
+  dedupeKey  String?    @unique
+  createdAt  DateTime   @default(now())
+
+  user     User      @relation("CreditOwner", fields: [userId], references: [id], onDelete: Cascade)
+  actor    User?     @relation("CreditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, expiresAt])
+  @@index([documentId])
+  @@map("credit_ledger")
+}
+
+// Link tải dùng một lần: chỉ lưu băm của token, đánh dấu usedAt khi dùng.
+model DownloadToken {
+  tokenHash  String    @id
+  userId     String
+  documentId String
+  versionId  String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@map("download_tokens")
+}
+
+// Thiết bị (cookie ngẫu nhiên, đã băm) từng dùng với tài khoản nào, để phát hiện nhiều tài khoản của một người.
+model DeviceSighting {
+  deviceHash  String
+  userId      String
+  ipHash      String?
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @default(now())
+
+  @@id([deviceHash, userId])
+  @@index([userId])
+  @@map("device_sightings")
 }
 
 // Số liệu theo ngày cho biểu đồ của từng tài liệu và dashboard admin.

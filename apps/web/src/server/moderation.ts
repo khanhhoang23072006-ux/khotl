@@ -14,6 +14,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { type CurrentUser, getCurrentUser } from "@/lib/session";
+import { lockIfRepeatedViolations, revokeDocumentCredits, rewardApproval } from "./credits/ledger";
 import type { ActionResult } from "./upload";
 
 /** Điểm uy tín bị trừ khi tài liệu đã công khai bị gỡ vì vi phạm. */
@@ -77,6 +78,7 @@ export async function decideDocuments(
         },
       });
       if (updated.count === 0) return false;
+      let credits = 0;
 
       await tx.moderationLog.create({
         data: {
@@ -91,9 +93,18 @@ export async function decideDocuments(
       });
 
       if (decision === "APPROVE") {
-        await tx.course.update({
+        const course = await tx.course.update({
           where: { id: doc.courseId },
           data: { documentCount: { increment: 1 } },
+          select: { documentCount: true },
+        });
+        // Lượt thưởng chỉ cộng lúc DUYỆT (không cộng lúc upload) để chống đăng tài liệu rác
+        credits = await rewardApproval(tx, {
+          documentId: doc.id,
+          uploaderId: doc.uploaderId,
+          courseApprovedBefore: course.documentCount - 1,
+          actorId: user.id,
+          title: doc.title,
         });
         const uploader = await tx.user.update({
           where: { id: doc.uploaderId },
@@ -129,7 +140,7 @@ export async function decideDocuments(
               : decision === "REJECT"
                 ? "DOCUMENT_REJECTED"
                 : "DOCUMENT_CHANGES_REQUESTED",
-          data: { title: doc.title, ...(reason ? { reason } : {}) },
+          data: { title: doc.title, ...(reason ? { reason } : {}), ...(credits > 0 ? { credits } : {}) },
           link:
             decision === "APPROVE"
               ? `/tai-lieu/${doc.slug}`
@@ -225,7 +236,29 @@ export async function removeDocument(
         link: "/tai-lieu-cua-toi",
       },
     });
+    // Thu hồi lượt thưởng đã nhận nhờ tài liệu này (đã tiêu thì ghi nợ)
+    const amount = await revokeDocumentCredits(tx, {
+      documentId: doc.id,
+      uploaderId: doc.uploaderId,
+      actorId: user.id,
+      reason,
+    });
+    if (amount > 0) {
+      await tx.notification.create({
+        data: {
+          userId: doc.uploaderId,
+          actorId: user.id,
+          documentId: doc.id,
+          type: "CREDITS_CHANGED",
+          data: { title: doc.title, amount: -amount, reason },
+          link: "/luot-tai",
+        },
+      });
+    }
+    return amount;
   });
+  // Vi phạm nhiều lần thì khóa cơ chế thưởng
+  await lockIfRepeatedViolations(prisma, doc.uploaderId);
 
   // Bậc uy tín có thể giảm sau khi bị gỡ
   const uploader = await prisma.user.findUnique({

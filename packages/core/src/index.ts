@@ -1,3 +1,4 @@
+export * from "./credits";
 export * from "./document-types";
 export * from "./email";
 export * from "./format";

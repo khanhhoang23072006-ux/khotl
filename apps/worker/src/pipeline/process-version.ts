@@ -5,6 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getStorage } from "@khotl/adapters";
 import {
+  isTooShort,
+  NEAR_DUPLICATE_MAX_DISTANCE,
+  simhash,
   assessContentRisk,
   detectedTypeMatches,
   type FileKindKey,
@@ -233,11 +236,37 @@ export async function processVersion(versionId: string, ctx: PipelineContext): P
       }
     }
 
+    // 6a. Tài liệu trống/quá ngắn và bản gần giống tài liệu đã có (chống lách luật thưởng bằng cách đăng lại)
+    const hasTextLayer = pdfPath !== null && ctx.tools.poppler;
+    if (version.document.status === "PROCESSING" && isTooShort({ text, pageCount, hasTextLayer })) {
+      checks.content = { status: "fail", detail: "Gần như không có nội dung chữ" };
+      return await reject("Tài liệu trống hoặc quá ngắn", { sha256 });
+    }
+    const contentHash = simhash(text);
+    if (contentHash !== null && version.document.status === "PROCESSING") {
+      const near = await prisma.$queryRaw<{ slug: string; title: string }[]>`
+        SELECT d.slug, d.title FROM document_versions v
+        JOIN documents d ON d.id = v."documentId"
+        WHERE v.simhash IS NOT NULL
+          AND v."documentId" <> ${version.documentId}
+          AND d.status::text IN ('PROCESSING', 'PENDING_REVIEW', 'APPROVED')
+          AND bit_count((v.simhash # ${contentHash})::bit(64)) <= ${NEAR_DUPLICATE_MAX_DISTANCE}::int
+        LIMIT 1`;
+      const match = near[0];
+      if (match) {
+        checks.duplicate = { status: "fail", detail: `Gần giống: ${match.title}`, slug: match.slug };
+        return await reject(
+          `Nội dung gần giống tài liệu đã có: “${match.title}” (/tai-lieu/${match.slug})`,
+          { sha256 },
+        );
+      }
+    }
+
     // 6. Chấm điểm rủi ro nội dung và gợi ý tag
     const risk = assessContentRisk({
       text,
       pageCount,
-      hasTextLayer: pdfPath !== null && ctx.tools.poppler,
+      hasTextLayer,
       bannedWords: ctx.bannedWords,
     });
     checks.content = {
@@ -251,6 +280,7 @@ export async function processVersion(versionId: string, ctx: PipelineContext): P
     await finalizeSuccess(version, {
       checks,
       sha256,
+      simhash: contentHash,
       detectedMime: detected?.mime ?? null,
       pageCount,
       previewPdfKey,
@@ -269,6 +299,7 @@ export async function processVersion(versionId: string, ctx: PipelineContext): P
 interface SuccessData {
   checks: Checks;
   sha256: string;
+  simhash: bigint | null;
   detectedMime: string | null;
   pageCount: number | null;
   previewPdfKey: string | null;
@@ -295,6 +326,7 @@ async function finalizeSuccess(version: VersionWithDocument, data: SuccessData):
         lockedAt: null,
         processingError: null,
         sha256: data.sha256,
+        simhash: data.simhash,
         detectedMime: data.detectedMime,
         pageCount: data.pageCount,
         previewPdfKey: data.previewPdfKey,

@@ -6,6 +6,7 @@ import {
   formatBytes,
   formatCount,
   formatDate,
+  formatDateTime,
   formatRating,
   PERMISSIONS,
   vietnamDay,
@@ -22,6 +23,7 @@ import { PdfViewer } from "@/components/documents/pdf-viewer";
 import { RemoveForm } from "@/components/documents/remove-form";
 import { ReportForm } from "@/components/documents/report-form";
 import { StatusBadge } from "@/components/documents/status-badge";
+import { OutOfCreditsDialog } from "@/components/credits/out-of-credits";
 import { DownloadIcon } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
 import { Cell } from "@/components/ui/title-block";
@@ -31,6 +33,7 @@ import { documentAccess } from "@/lib/policies";
 import { documentRowSelect, PUBLIC_DOCUMENT, toRow } from "@/lib/queries";
 import { getCurrentUser } from "@/lib/session";
 import { initials } from "@/lib/utils";
+import { previewCharge } from "@/server/credits/ledger";
 
 type Params = Promise<{ slug: string }>;
 
@@ -93,6 +96,21 @@ export default async function DocumentPage({ params }: { params: Params }) {
     });
   }
 
+  // Lần tải tới sẽ tính lượt thế nào (người đăng, kiểm duyệt viên, tài liệu chưa công khai: không tính)
+  const exempt = access !== "public" || user?.id === doc.uploaderId || doc.status !== "APPROVED";
+  const charge = user && version && !exempt ? await previewCharge(user.id, doc.id) : null;
+  const tc = await getTranslations("credits");
+  const downloadNote = !user
+    ? null
+    : exempt
+      ? tc("exemptFree")
+      : charge?.decision === "REPEAT"
+        ? tc("repeatFree", { hours: charge.settings.redownloadWindowHours })
+        : charge?.decision === "FREE"
+          ? tc("willUseFree", { free: charge.status.freeLeft, daily: charge.status.dailyFree })
+          : charge?.decision === "BONUS"
+            ? tc("willUseBonus", { bonus: charge.status.bonus })
+            : null;
   const previewPages = version ? version.previewImageKeys.length : 0;
   const guestPages = Math.min(previewPages, serverEnv.guestPreviewPages);
   const rating = doc.ratingCount > 0 ? `${formatRating(doc.ratingSum / doc.ratingCount, locale)}/5 (${doc.ratingCount})` : "–";
@@ -221,7 +239,21 @@ export default async function DocumentPage({ params }: { params: Params }) {
             </div>
           </div>
 
-          {version ? (
+          {version && charge?.decision === "DENIED" ? (
+            <OutOfCreditsDialog
+              label={
+                <>
+                  <DownloadIcon />
+                  {t("download", { size: formatBytes(Number(version.sizeBytes), locale) })}
+                </>
+              }
+              body={tc("outBody", {
+                daily: charge.status.dailyFree,
+                reset: formatDateTime(charge.status.nextReset, locale),
+                reward: charge.settings.uploadReward,
+              })}
+            />
+          ) : version ? (
             <a
               href={`/api/tai-lieu/${doc.id}/tai-xuong?tu=${encodeURIComponent(`/tai-lieu/${doc.slug}`)}`}
               className={buttonVariants({ variant: "primary", size: "lg", className: "w-full" })}
@@ -231,6 +263,7 @@ export default async function DocumentPage({ params }: { params: Params }) {
               {user ? t("download", { size: formatBytes(Number(version.sizeBytes), locale) }) : t("signInToDownload")}
             </a>
           ) : null}
+          {version && downloadNote ? <p className="-mt-1 text-[12px] text-pencil">{downloadNote}</p> : null}
 
           {doc.description ? (
             <section className="border-2 border-ink bg-sheet px-3 py-2">

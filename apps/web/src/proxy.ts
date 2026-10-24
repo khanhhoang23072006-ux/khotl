@@ -22,5 +22,7 @@ export const config = {
     "/kiem-duyet/:path*",
     "/quan-tri/:path*",
     "/hoan-thien-ho-so/:path*",
+    "/luot-tai/:path*",
+    "/het-luot/:path*",
   ],
 };
