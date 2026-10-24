@@ -102,7 +102,7 @@ header.site .wrap{display:flex;align-items:stretch;height:56px;padding-left:0}
 .mark>span>i{background:var(--stamp);border-left:2px solid var(--line)}
 .logo b{font-variation-settings:"wdth" 75;font-weight:800;font-size:19px;letter-spacing:-.01em}
 nav.main{display:none;align-items:stretch;border-left:2px solid var(--line)}
-nav.main a{display:flex;align-items:center;padding:0 16px;text-decoration:none;font-variation-settings:"wdth" 75;font-weight:700}
+nav.main a{display:flex;align-items:center;white-space:nowrap;padding:0 16px;text-decoration:none;font-variation-settings:"wdth" 75;font-weight:700}
 nav.main a:hover{background:var(--wash);color:var(--ink)}
 nav.main a[aria-current]{background:var(--fill);color:var(--on-fill)}
 .tools{margin-left:auto;display:flex;align-items:center;padding-right:6px}
@@ -263,6 +263,15 @@ table.t thead th{font-size:11px;color:var(--pencil);font-weight:500}
 .composer textarea{min-height:44px;max-height:160px;resize:none}
 @media (max-width:767px){.chat{grid-template-columns:1fr;height:calc(100dvh - 92px - 62px)}.rooms{border-right:0}.hide-m{display:none}.hide-m-empty{display:none}.pane-head .back{display:inline-flex}}
 @media (hover:none){.msg .tools{display:flex}}
+.ai-thread{gap:10px}
+.ai-q{align-self:flex-end;max-width:85%;border:2px solid var(--line);background:var(--fill);color:var(--on-fill);padding:8px 12px}
+.ai-box{border:2px solid var(--line);background:var(--sheet);padding:10px 12px;font-size:14px;max-width:100%;overflow-wrap:anywhere}
+.ai-busy{color:var(--pencil);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.5}}
+.cite{font-weight:700;color:var(--stamp);text-decoration:none}
+.srcs{margin:8px 0 0;padding:8px 0 0 18px;border-top:1px solid var(--grid);font-size:13px}
+.srcs a{text-decoration:none}
+@media (min-width:768px) and (max-width:1199px){nav.main a{padding:0 9px;font-size:14px}.logo b{display:none}.logo{padding-right:10px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -476,14 +485,14 @@ function renderHeader(){
   const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
   document.getElementById("header").innerHTML=`<div class="wrap">
    <a class="logo" href="#/"><span class="mark" aria-hidden="true"><span></span><span><span></span><i></i></span></span><b>HUSTDOCU</b></a>
-   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/bang-xep-hang"${cur("/bang-xep-hang")}>Xếp hạng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
+   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/bang-xep-hang"${cur("/bang-xep-hang")}>Xếp hạng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
    <div class="tools">
     <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>
     <button class="icon-btn" type="button" data-action="theme" aria-label="${isDark()?"Chuyển sang nền sáng":"Chuyển sang nền tối"}">${isDark()?icon.sun:icon.moon}</button>
     ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
     <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
      <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
-      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/da-luu">Đã lưu</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Sửa hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
+      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/bang-xep-hang">Bảng xếp hạng</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/da-luu">Đã lưu</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Sửa hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
     :`<a class="btn ghost sm" href="#/dang-nhap">Đăng nhập</a>`}
    </div></div>`;
   document.getElementById("bottomnav").innerHTML=`<a href="#/"${cur("/",true)}>${icon.home}Trang chủ</a><a href="#/tim-kiem"${cur("/tim-kiem")}>${icon.search}Tìm kiếm</a><a class="up" href="#/tai-len">${icon.plus}Tải lên</a><a href="#/chat"${cur("/chat")} style="position:relative">${CHAT_ICON}Chat${u&&totalUnread(u)?'<span class="dot" style="top:8px;right:calc(50% - 18px)"></span>':""}</a><a href="${u?"#/tai-lieu-cua-toi":"#/dang-nhap"}"${cur(u?"/tai-lieu-cua-toi":"/dang-nhap")}>${icon.user}${u?"Cá nhân":"Đăng nhập"}</a>`;
@@ -519,7 +528,7 @@ views["/"]=()=>{
   const most=[...docs].sort((a,b)=>b.downloads-a.downloads).slice(0,5);
   return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap hero" style="padding-block:24px 32px">
    <div class="stack" style="gap:16px"><p class="small muted" style="margin:0">${u?`Chào ${esc(displayName(u))}${u.cohort&&fac?`, K${u.cohort} ${esc(fac.shortName)}`:""}`:"Tài liệu học tập do sinh viên Bách khoa chia sẻ, đã qua kiểm duyệt."}</p>
-    <h1>Hôm nay ôn môn gì?</h1>${searchBox()}<p class="small muted" style="margin:0">Gõ mã học phần (IT3011) hoặc tên tài liệu, không dấu cũng được.</p></div>
+    <h1>Hôm nay ôn môn gì?</h1>${searchBox()}<p class="small muted" style="margin:0">Gõ mã học phần (IT3011) hoặc tên tài liệu, không dấu cũng được. Hoặc <a href="#/tro-ly"><b>hỏi Trợ lý AI</b></a>.</p></div>
    <dl class="tb" style="grid-template-columns:repeat(3,1fr);margin:0">${[["Tài liệu đã duyệt",docs.length],["Học phần",S.courses.length],["Viện, Trường",DATA.faculties.length]].map(([l,v])=>`<div class="cell" style="flex-direction:column-reverse"><dt class="tiny muted">${l}</dt><dd class="code" style="margin:0;font-size:36px;line-height:1">${fmtCount(v)}</dd></div>`).join("")}</dl>
   </div></section>
   <div class="wrap home-grid" style="padding-block:32px">
@@ -644,12 +653,13 @@ views["/tai-lieu/:slug"]=({slug})=>{
     </aside>
    </div>
    ${d.status==="APPROVED"?commentsSection(d,u):""}
+   ${d.status==="APPROVED"?docAiHtml(d,u):""}
    ${related.length?`<section class="stack" style="margin-top:32px"><h2 class="h2">Cùng học phần</h2><div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${related.map(x=>docRow(x,[],{course:false})).join("")}</div></section>`:""}
   </div>`,mount(root){
    if(uploaded)mountUploadedPreview(root,d);
    root.querySelectorAll("[data-rate]").forEach(b=>b.addEventListener("click",()=>{rate(u,d,+b.dataset.rate);toast(`Bạn chấm ${b.dataset.rate}/5.`);render()}));
    root.querySelector("[data-save]")?.addEventListener("click",()=>{if(!u)return go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);const l=S.saved[u.email]=S.saved[u.email]||[];const i=l.indexOf(d.id);if(i>=0){l.splice(i,1);toast("Đã bỏ lưu.")}else{l.push(d.id);toast("Đã lưu vào mục Đã lưu.")}save();render()});
-   mountComments(root,d,u);
+   mountComments(root,d,u);mountDocAi(root,d,u);
    const pages=root.querySelector("[data-pages]");
    if(pages){let z=1;const sc=root.querySelector("[data-scale]"),lab=root.querySelector("[data-zoom-label]"),ind=root.querySelector("[data-page-ind]");
     root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.zoom;z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));sc.style.width=`${z*100}%`;lab.textContent=`${Math.round(z*100)}%`}));
@@ -1062,11 +1072,93 @@ function mountChatReports(root){root.querySelectorAll("[data-cmdel]").forEach(b=
 /* Đồng bộ tức thời giữa các tab cùng trình duyệt (bản thật dùng WebSocket) */
 window.addEventListener("storage",(e)=>{if(e.key!==KEY)return;const sess=S.session;load();S.session=sess;if(currentPath().startsWith("/chat"))renderChatOnly();else renderHeader()});
 
+/* ===================== Giai đoạn 4: trợ lý AI (RAG) ===================== */
+const AI_KEY_STORE="hustdocu-ai";
+function aiSettings(){try{return JSON.parse(localStorage.getItem(AI_KEY_STORE))||{}}catch{return{}}}
+function saveAiSettings(v){try{localStorage.setItem(AI_KEY_STORE,JSON.stringify(v))}catch{}}
+const AI_DAILY=30;
+/** Chia tài liệu đã duyệt thành đoạn (mỗi trang một đoạn, thêm đoạn tiêu đề và mô tả) để tìm kiếm ngữ nghĩa đơn giản. */
+let aiIndexCache=null;
+function aiIndex(){
+  const key=publicDocs().length+":"+S.docs.length;if(aiIndexCache?.key===key)return aiIndexCache;
+  const chunks=[];for(const d of publicDocs()){const c=course(d.course)||{};
+    chunks.push({doc:d,page:0,text:`${d.title}. ${c.code} ${c.name}. ${TYPES[d.type]}. ${d.description||""} ${(d.tags||[]).join(", ")}`});
+    docContent(d).forEach((lines,i)=>chunks.push({doc:d,page:i+1,text:lines.join(" ")}))}
+  const df=new Map();for(const ch of chunks){ch.toks=norm(ch.text).split(" ").filter(t=>t.length>1);for(const t of new Set(ch.toks))df.set(t,(df.get(t)||0)+1)}
+  const avg=chunks.reduce((s,c)=>s+c.toks.length,0)/Math.max(1,chunks.length);
+  aiIndexCache={key,chunks,df,avg,N:chunks.length};return aiIndexCache}
+/** Xếp hạng đoạn bằng BM25 trên chữ không dấu (bản thật dùng vector pgvector + BM25 kết hợp). */
+function retrieve(q,{course:cc,doc,k=5}={}){const ix=aiIndex();const qt=[...new Set(norm(q).split(" ").map(t=>t.replace(/[^a-z0-9]/g,"")).filter(t=>t.length>1&&!STOP.has(t)))];if(!qt.length)return[];
+  const res=[];for(const ch of ix.chunks){if(cc&&ch.doc.course!==cc)continue;if(doc&&ch.doc.id!==doc)continue;let s=0;const tf=new Map();for(const t of ch.toks)tf.set(t,(tf.get(t)||0)+1);
+    for(const t of qt){let f=tf.get(t)||0;if(!f){for(const [w,n] of tf)if(w.startsWith(t)&&t.length>=3){f+=n*.6}}if(!f)continue;const idf=Math.log(1+(ix.N-(ix.df.get(t)||0)+.5)/((ix.df.get(t)||0)+.5));s+=idf*(f*2.2)/(f+1.2*(.25+.75*ch.toks.length/ix.avg))}
+    if(ch.page===0)s*=1.3;if(s>0)res.push({...ch,score:s})}
+  res.sort((a,b)=>b.score-a.score);const out=[],seen=new Map();for(const r of res){const n=seen.get(r.doc.id)||0;if(n>=2)continue;seen.set(r.doc.id,n+1);out.push(r);if(out.length>=k)break}return out}
+const STOP=new Set(["la","gi","cua","va","cho","toi","minh","ban","co","khong","nao","the","nhu","nhung","cac","mot","duoc","trong","ve","voi","hay","giup","em","anh","ai","sao","bao","nhieu","de","thi","o","tai","lieu"]);
+function sourcesHtml(srcs){return srcs.length?`<ol class="srcs">${srcs.map((s,i)=>`<li><a href="#/tai-lieu/${esc(s.doc.slug)}"><b>[${i+1}]</b> ${esc(s.doc.title)}</a> <span class="tiny muted">${s.doc.course}${s.page?`, trang ${s.page}`:", phần mô tả"}</span></li>`).join("")}</ol>`:""}
+function cite(text,srcs){return esc(text).replace(/\[(\d+)\]/g,(m,n)=>{const s=srcs[+n-1];return s?`<a href="#/tai-lieu/${esc(s.doc.slug)}" class="cite" title="${esc(s.doc.title)}">[${n}]</a>`:m}).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/\n/g,"<br>")}
+/** Trả lời không cần mô hình: trích đoạn liên quan nhất, tô từ khóa. */
+function extractiveAnswer(q,srcs){if(!srcs.length)return"Mình chưa tìm thấy nội dung liên quan trong kho. Thử hỏi cụ thể hơn (mã học phần, tên chủ đề), hoặc tìm ở mục Tìm kiếm.";
+  const terms=queryTerms(q);const parts=srcs.slice(0,3).map((s,i)=>{const sent=s.text.split(/(?<=\.)\s+/);const best=sent.map(x=>({x,n:terms.filter(t=>norm(x).includes(t)).length})).sort((a,b)=>b.n-a.n).slice(0,2).map(o=>o.x).join(" ");return `• ${best} [${i+1}]`});
+  return `Các đoạn liên quan nhất mình tìm được trong kho:\n${parts.join("\n")}\n\nMở nguồn để đọc đầy đủ. (Chế độ không dùng mô hình ngôn ngữ: câu trả lời là trích dẫn nguyên văn.)`}
+async function callClaude(system,user,maxTokens=900){const st=aiSettings();const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":st.key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:st.model||"claude-haiku-5-5",max_tokens:maxTokens,system,messages:[{role:"user",content:user}]})});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j?.error?.message||`Lỗi ${r.status}`);return (j.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("")}
+const AI_SYSTEM="Bạn là trợ lý học tập của HUSTDOCU, kho tài liệu của sinh viên Đại học Bách khoa Hà Nội. Chỉ trả lời dựa trên các NGUỒN được cung cấp, trích dẫn bằng [số] sau mỗi ý. Nếu nguồn không đủ, nói rõ là kho chưa có thông tin và gợi ý cách tìm. Trả lời bằng tiếng Việt, ngắn gọn, rõ ràng. Không làm hộ bài thi đang diễn ra; với đề thi, giải thích cách làm thay vì chỉ đưa đáp án.";
+function aiUsage(u){const day=vnDay();S.aiUsage=S.aiUsage||{};const x=S.aiUsage[u.email];return x&&x.day===day?x.n:0}
+function aiCount(u){const day=vnDay();S.aiUsage=S.aiUsage||{};const x=S.aiUsage[u.email];S.aiUsage[u.email]={day,n:(x&&x.day===day?x.n:0)+1}}
+async function askAI(u,q,scope){
+  if(aiUsage(u)>=AI_DAILY)return{text:`Bạn đã dùng hết ${AI_DAILY} lượt hỏi hôm nay.`,srcs:[]};
+  const bad=DATA.bannedWords.find(w=>norm(q).includes(norm(w)));if(bad)return{text:"Câu hỏi có nội dung không phù hợp.",srcs:[]};
+  aiCount(u);const srcs=retrieve(q,scope);const st=aiSettings();
+  if(!st.key||!srcs.length)return{text:extractiveAnswer(q,srcs),srcs,mode:"offline"};
+  const ctx=srcs.map((s,i)=>`[${i+1}] ${s.doc.title} (${s.doc.course}${s.page?`, trang ${s.page}`:""}):\n${s.text}`).join("\n\n");
+  try{const text=await callClaude(AI_SYSTEM,`NGUỒN:\n${ctx}\n\nCÂU HỎI: ${q}`);return{text,srcs,mode:"claude"}}
+  catch(e){return{text:`Không gọi được Claude (${e.message}). Dưới đây là kết quả tìm trong kho:\n\n`+extractiveAnswer(q,srcs),srcs,mode:"offline"}}}
+/** Tóm tắt: không có khóa thì tóm tắt trích xuất (chủ đề chính theo tần suất). */
+async function summarize(d){const pages=docContent(d);const c=course(d.course);const st=aiSettings();
+  if(st.key){try{return await callClaude(AI_SYSTEM,`Tóm tắt tài liệu sau trong 5-7 gạch đầu dòng, nêu chủ đề chính và gợi ý cách ôn. Ghi [trang n] khi nhắc nội dung trang nào.\n\nTÀI LIỆU: ${d.title} (${c.code} ${c.name})\n${pages.map((p,i)=>`[trang ${i+1}] ${p.join(" ")}`).join("\n")}`,700)}catch(e){toast(`Không gọi được Claude: ${e.message}`)}}
+  const freq=new Map();pages.flat().forEach(l=>{const m=l.match(/về (.+?) và áp dụng/);if(m)freq.set(m[1],(freq.get(m[1])||0)+1)});const topics=[...freq.entries()].sort((a,b)=>b[1]-a[1]).map(x=>x[0]);
+  return `**${TYPES[d.type]} ${c.code} ${c.name}**, ${d.pages} trang${d.term?`, kỳ ${d.term}`:""}.\n• Chủ đề chính: ${topics.slice(0,4).join("; ")||"chưa xác định"}.\n• Mỗi trang gồm các câu hỏi lý thuyết kèm bài tập áp dụng cho ${c.code}.\n• Gợi ý ôn: đọc lý thuyết từng chủ đề, làm lại bài tập trang 1 đến ${Math.min(2,d.pages)} trước khi xem đáp án.\n(Tóm tắt tự động không dùng mô hình ngôn ngữ.)`}
+/** Câu hỏi trắc nghiệm ôn tập. Có khóa: Claude sinh JSON; không có: sinh từ cấu trúc nội dung. */
+async function makeQuiz(d){const pages=docContent(d);const c=course(d.course);const st=aiSettings();
+  if(st.key){try{const raw=await callClaude(AI_SYSTEM+" Chỉ trả về JSON hợp lệ, không thêm chữ nào khác.",`Tạo 5 câu hỏi trắc nghiệm ôn tập từ tài liệu dưới đây. Định dạng: [{"q":"câu hỏi","options":["A","B","C","D"],"answer":0,"explain":"giải thích, ghi trang"}]\n\nTÀI LIỆU: ${d.title}\n${pages.map((p,i)=>`[trang ${i+1}] ${p.join(" ")}`).join("\n")}`,1500);const j=JSON.parse(raw.slice(raw.indexOf("["),raw.lastIndexOf("]")+1));if(Array.isArray(j)&&j.length)return j}catch(e){toast("Claude chưa tạo được câu hỏi, dùng câu hỏi tự sinh.")}}
+  const all=[...new Set(S.courses.flatMap(x=>x.keywords||[]))];const qs=[];const lines=pages.flatMap((p,i)=>p.map(l=>({l,page:i+1})));
+  for(let i=0;i<Math.min(5,lines.length);i++){const pick=lines[(i*7+3)%lines.length];const m=pick.l.match(/về (.+?) và/);if(!m)continue;const right=m[1];const wrong=all.filter(k=>k!==right&&!(c.keywords||[]).includes(k)).sort(()=>Math.random()-.5).slice(0,3);const opts=[right,...wrong].sort(()=>Math.random()-.5);
+   qs.push({q:`Theo tài liệu, ${pick.l.split(".")[0]+"."+pick.l.split(".")[1]} đề cập đến chủ đề nào?`,options:opts,answer:opts.indexOf(right),explain:`Xem trang ${pick.page}: “${pick.l}”`})}
+  return qs}
+function quizHtml(qs){return `<form class="stack" data-quiz>${qs.map((q,i)=>`<fieldset class="qz" style="border:2px solid var(--line);background:var(--sheet);padding:10px 12px;margin:0"><legend class="head small">Câu ${i+1}</legend><p style="margin:0 0 6px">${esc(q.q)}</p>${q.options.map((o,j)=>`<label class="check" style="margin:4px 0"><input type="radio" name="q${i}" value="${j}"><span>${esc(o)}</span></label>`).join("")}<p class="small" data-ex hidden style="margin:6px 0 0"></p></fieldset>`).join("")}<div class="row"><button class="btn primary" type="submit">Chấm điểm</button><span data-score class="head"></span></div></form>`}
+function mountQuiz(box,qs){const f=box.querySelector("[data-quiz]");f.addEventListener("submit",(e)=>{e.preventDefault();let ok=0;qs.forEach((q,i)=>{const v=f.querySelector(`input[name=q${i}]:checked`);const fs=f.querySelectorAll(".qz")[i];const ex=fs.querySelector("[data-ex]");const right=v&&+v.value===q.answer;if(right)ok++;fs.style.borderColor=right?"var(--line)":"var(--stamp)";ex.hidden=false;ex.innerHTML=`${right?"Đúng.":"Chưa đúng."} Đáp án: <b>${esc(q.options[q.answer])}</b>. ${esc(q.explain||"")}`});f.querySelector("[data-score]").textContent=`Bạn đúng ${ok}/${qs.length} câu`})}
+/** Hộp trợ lý ở trang tài liệu */
+function docAiHtml(d,u){return `<section class="stack" style="margin-top:32px" id="tro-ly"><div class="sechead"><h2 class="h2">Trợ lý AI cho tài liệu này</h2><a href="#/tro-ly?hp=${d.course}">Hỏi trên cả học phần</a></div>
+  ${u?`<div class="row"><button class="btn" type="button" data-ai="sum">Tóm tắt</button><button class="btn" type="button" data-ai="quiz">Tạo 5 câu hỏi ôn tập</button></div><form class="row" data-ai-ask style="flex-wrap:nowrap"><label for="aiq" class="sr">Hỏi về tài liệu này</label><input class="input" id="aiq" placeholder="Hỏi về nội dung tài liệu này…"><button class="btn ink" type="submit">Hỏi</button></form><div data-ai-out></div><p class="tiny muted" style="margin:0">${aiSettings().key?`Đang dùng Claude (${esc(aiSettings().model||"claude-haiku-5-5")}).`:'Chế độ trích dẫn trên trình duyệt. <a href="#/tro-ly">Thêm khóa API Claude</a> để có câu trả lời viết bằng AI.'} AI có thể sai, hãy đối chiếu nguồn.</p>`:`<p class="note"><a href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}"><b>Đăng nhập</b></a> để dùng trợ lý AI.</p>`}</section>`}
+function mountDocAi(root,d,u){const sec=root.querySelector("#tro-ly");if(!sec||!u)return;const out=sec.querySelector("[data-ai-out]");const busy=(m)=>{out.innerHTML=`<p class="small muted ai-busy">${m}</p>`};
+  sec.querySelector('[data-ai="sum"]').addEventListener("click",async()=>{busy("Đang tóm tắt…");const t=await summarize(d);out.innerHTML=`<div class="ai-box">${cite(t,[])}</div>`});
+  sec.querySelector('[data-ai="quiz"]').addEventListener("click",async()=>{busy("Đang tạo câu hỏi…");const qs=await makeQuiz(d);if(!qs.length){out.innerHTML='<p class="note">Không tạo được câu hỏi cho tài liệu này.</p>';return}out.innerHTML=quizHtml(qs);mountQuiz(out,qs)});
+  sec.querySelector("[data-ai-ask]").addEventListener("submit",async(e)=>{e.preventDefault();const q=sec.querySelector("#aiq").value.trim();if(q.length<3)return;busy("Đang tìm trong tài liệu…");const r=await askAI(u,q,{doc:d.id,k:4});save();out.innerHTML=`<div class="ai-box"><p class="tiny muted" style="margin:0 0 4px">Bạn hỏi: ${esc(q)}</p>${cite(r.text,r.srcs)}${sourcesHtml(r.srcs)}</div>`})}
+views["/tro-ly"]=()=>{const u=me();if(!u)return needLogin("/tro-ly");const hp=params().get("hp")||"";const st=aiSettings();S.aiChats=S.aiChats||{};const hist=S.aiChats[u.email]||[];
+  return {html:`<div class="wrap" style="padding-block:20px;max-width:960px"><div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Trợ lý AI</h1><p class="small muted" style="margin:4px 0 0">Hỏi về nội dung tài liệu trong kho. Mỗi câu trả lời kèm nguồn để bạn kiểm tra.</p></div><span class="tiny muted">Hôm nay đã hỏi ${aiUsage(u)}/${AI_DAILY}</span></div>
+   <div class="ai-thread stack" data-thread>${hist.length?hist.map(h=>`<div class="ai-q"><b class="head small">Bạn${h.hp?` (trong ${h.hp})`:""}</b><div>${esc(h.q)}</div></div><div class="ai-box">${cite(h.text,h.srcs.map(s=>({doc:S.docs.find(d=>d.id===s.doc)||{slug:"",title:"(đã gỡ)",course:""},page:s.page})))}${sourcesHtml(h.srcs.map(s=>({doc:S.docs.find(d=>d.id===s.doc)||{slug:"",title:"(đã gỡ)",course:""},page:s.page})))}<p class="tiny muted" style="margin:6px 0 0">${h.mode==="claude"?"Claude":"Trích dẫn trên trình duyệt"}, ${fmtTime(h.t)}</p></div>`).join(""):`<div class="empty">Thử hỏi: <a href="#" data-ex>Cây AVL quay như thế nào?</a>, <a href="#" data-ex>tóm tắt kiến thức tích phân suy rộng</a>, <a href="#" data-ex>tầng mạng trong IT3080 gồm gì</a></div>`}</div>
+   <form class="stack" data-ask style="border:2px solid var(--line);background:var(--sheet);padding:12px;margin-top:12px;gap:8px"><div class="row" style="flex-wrap:nowrap"><label for="askq" class="sr">Câu hỏi</label><textarea class="textarea" id="askq" style="min-height:48px" maxlength="500" placeholder="Hỏi bất cứ điều gì về tài liệu trong kho…"></textarea><button class="btn primary" type="submit" style="align-self:stretch;height:auto">Hỏi</button></div>
+    <div class="row small"><label for="askhp" class="muted">Phạm vi</label><select class="select" id="askhp" style="width:auto;height:36px"><option value="">Toàn kho</option>${S.courses.filter(c=>courseDocCount(c.code)).map(c=>`<option value="${c.code}"${c.code===hp?" selected":""}>${c.code} ${esc(c.name)}</option>`).join("")}</select>${hist.length?'<button class="btn ghost sm" type="button" data-clear>Xóa lịch sử</button>':""}</div></form>
+   <details style="margin-top:16px;border:2px solid var(--line);background:var(--sheet)"${st.key?"":" open"}><summary class="head" style="padding:10px 12px;cursor:pointer">Cài đặt AI ${st.key?"(đang dùng Claude)":"(đang dùng chế độ trích dẫn)"}</summary><form class="stack" data-aiset style="padding:12px;border-top:1px solid var(--line)">
+    <p class="small" style="margin:0">Không có khóa: trợ lý tìm và trích nguyên văn đoạn liên quan, chạy hoàn toàn trên máy bạn. Có khóa API Claude: câu trả lời được viết bằng AI, vẫn chỉ dựa trên tài liệu trong kho và trích nguồn.</p>
+    <div class="field"><label for="aik">Khóa API Claude</label><input class="input" id="aik" type="password" autocomplete="off" placeholder="sk-ant-…" value="${esc(st.key||"")}"><span class="hint">Chỉ lưu trong trình duyệt này, gửi thẳng tới api.anthropic.com. Nên dùng khóa riêng có giới hạn chi phí. Bản thật giữ khóa trên máy chủ.</span></div>
+    <div class="field"><label for="aim">Mô hình</label><select class="select" id="aim">${[["claude-haiku-5-5","Claude Haiku 5.5 (nhanh, rẻ)"],["claude-sonnet-5-5","Claude Sonnet 5.5 (tốt hơn)"]].map(([v,l])=>`<option value="${v}"${(st.model||"claude-haiku-5-5")===v?" selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="row"><button class="btn ink" type="submit">Lưu cài đặt</button>${st.key?'<button class="btn ghost" type="button" data-unset>Xóa khóa</button>':""}</div></form></details></div>`,
+   mount(root){const thread=root.querySelector("[data-thread]");window.scrollTo(0,document.body.scrollHeight);
+    root.querySelectorAll("[data-ex]").forEach(a=>a.addEventListener("click",(e)=>{e.preventDefault();root.querySelector("#askq").value=a.textContent;root.querySelector("[data-ask]").requestSubmit()}));
+    const ta=root.querySelector("#askq");ta.addEventListener("keydown",(e)=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();root.querySelector("[data-ask]").requestSubmit()}});
+    root.querySelector("[data-ask]").addEventListener("submit",async(e)=>{e.preventDefault();const q=ta.value.trim();if(q.length<3)return toast("Câu hỏi quá ngắn.");const scope=root.querySelector("#askhp").value;
+     thread.insertAdjacentHTML("beforeend",`<div class="ai-q"><b class="head small">Bạn</b><div>${esc(q)}</div></div><div class="ai-box ai-busy">Đang tìm trong kho và soạn câu trả lời…</div>`);thread.querySelector(".empty")?.remove();ta.value="";
+     const r=await askAI(u,q,{course:scope||undefined,k:5});S.aiChats[u.email]=[...(S.aiChats[u.email]||[]),{q,hp:scope,text:r.text,srcs:r.srcs.map(s=>({doc:s.doc.id,page:s.page})),mode:r.mode,t:Date.now()}].slice(-30);save();render()});
+    root.querySelector("[data-clear]")?.addEventListener("click",()=>{S.aiChats[u.email]=[];save();render()});
+    root.querySelector("[data-aiset]").addEventListener("submit",(e)=>{e.preventDefault();const key=root.querySelector("#aik").value.trim();if(key&&!key.startsWith("sk-"))return toast("Khóa API Claude thường bắt đầu bằng sk-ant-.");saveAiSettings({key,model:root.querySelector("#aim").value});toast(key?"Đã lưu: trợ lý dùng Claude.":"Đã lưu: dùng chế độ trích dẫn.");render()});
+    root.querySelector("[data-unset]")?.addEventListener("click",()=>{saveAiSettings({});toast("Đã xóa khóa API.");render()})}}};
+
 views.notfound=()=>({html:`<div class="wrap" style="max-width:640px;padding-block:64px"><div class="tb" style="grid-template-columns:96px 1fr"><div class="code" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--fill);color:var(--on-fill)">404</div><div style="padding:12px 16px"><h1 class="head" style="font-size:20px">Không tìm thấy trang</h1><p class="small muted" style="margin:0">Trang không tồn tại, đã bị gỡ hoặc bạn không có quyền xem.</p></div></div><div class="row" style="margin-top:16px"><a class="btn ink" href="#/">Về trang chủ</a><a class="btn" href="#/tim-kiem">Tìm tài liệu</a></div></div>`});
 
 /* ===================== Bộ định tuyến ===================== */
 const ROUTES=Object.keys(views).filter(k=>k.startsWith("/")).map(k=>({k,re:new RegExp("^"+k.replace(/:[a-z]+/g,"([^/]+)")+"$"),names:(k.match(/:[a-z]+/g)||[]).map(n=>n.slice(1))})).sort((a,b)=>b.k.length-a.k.length);
-const TITLES={"/chat":"Chat","/da-luu":"Đã lưu","/bang-xep-hang":"Bảng xếp hạng","/":"HUSTDOCU","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
+const TITLES={"/tro-ly":"Trợ lý AI","/chat":"Chat","/da-luu":"Đã lưu","/bang-xep-hang":"Bảng xếp hạng","/":"HUSTDOCU","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
 let lastPath=null;
 function render(){
   const path=currentPath();let view=views.notfound,args={};
