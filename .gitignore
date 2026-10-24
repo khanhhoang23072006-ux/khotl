@@ -1,0 +1,23 @@
+node_modules/
+.pnpm-store/
+.next/
+dist/
+coverage/
+*.log
+.env
+.env.local
+.env.*.local
+.DS_Store
+
+# Prisma client sinh tự động
+packages/db/src/generated/
+
+# File sinh khi build
+apps/web/public/pdf.worker.min.mjs
+apps/web/next-env.d.ts
+*.tsbuildinfo
+
+# Kiểm thử e2e
+e2e/playwright-report/
+e2e/test-results/
+e2e/.auth/

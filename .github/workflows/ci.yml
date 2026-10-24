@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "phase-*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Giá trị giả để build/typecheck; không dùng cho môi trường thật
+  DATABASE_URL: postgresql://khotl:khotl@localhost:5432/khotl
+  BETTER_AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
+  BETTER_AUTH_URL: http://localhost:3000
+  APP_URL: http://localhost:3000
+  UPLOAD_TOKEN_SECRET: ci-only-upload-token-secret-0123456789
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  check:
+    name: Kiểm tra mã (typecheck, lint, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || '' }}
+      - name: Cài phụ thuộc
+        run: |
+          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
+      - name: Lưu pnpm-lock.yaml
+        uses: actions/upload-artifact@v4
+        with:
+          name: pnpm-lock
+          path: pnpm-lock.yaml
+      - run: pnpm db:generate
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - name: Build web
+        run: pnpm --filter @khotl/web build
+        if: hashFiles('apps/web/package.json') != ''
+
+  migration:
+    name: Kiểm tra migration với Postgres thật
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: khotl
+          POSTGRES_PASSWORD: khotl
+          POSTGRES_DB: khotl
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U khotl" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || '' }}
+      - run: pnpm install --frozen-lockfile=${{ hashFiles('pnpm-lock.yaml') != '' }}
+      - name: Sinh migration khởi tạo nếu chưa có
+        run: |
+          if [ ! -f packages/db/prisma/migrations/0001_init/migration.sql ]; then
+            pnpm --filter @khotl/db migration:init
+          fi
+      - name: Kiểm tra schema khớp migration
+        working-directory: packages/db
+        run: |
+          pnpm exec prisma migrate deploy
+          pnpm exec prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script --output drift.sql
+          # Index GIN/trigram và index unique một phần nằm trong SQL viết tay nên Prisma muốn xoá; bỏ qua chúng
+          grep -v -E '^\s*$|^--|DROP INDEX "(documents_search_idx|documents_title_trgm_idx|courses_search_idx|courses_name_trgm_idx|courses_code_trgm_idx|tags_name_trgm_idx|user_roles_global_uniq)"' drift.sql > drift-rest.sql || true
+          if [ -s drift-rest.sql ]; then echo "Schema lệch với migration:"; cat drift-rest.sql; exit 1; fi
+          echo "Schema khớp migration"
+      - name: Thử truy vấn tìm kiếm tiếng Việt
+        run: |
+          sudo apt-get install -y -qq postgresql-client >/dev/null
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "SELECT vn_norm('Giải tích Đại số') = 'giai tich dai so' AS ok;"
+      - name: Lưu migration
+        uses: actions/upload-artifact@v4
+        with:
+          name: migrations
+          path: packages/db/prisma/migrations
