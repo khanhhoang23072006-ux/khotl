@@ -101,7 +101,7 @@ pnpm test            # unit test: core, adapters, worker, web
 pnpm e2e             # cần web + worker + hạ tầng đang chạy, dữ liệu đã seed
 ```
 
-CI (GitHub Actions) chạy cả ba job: kiểm tra mã, migration trên Postgres thật, và e2e với web, worker, Postgres, SeaweedFS, Mailpit thật. Log của từng job cũng được đẩy ra nhánh `ci-logs/*` để đọc nhanh.
+CI (GitHub Actions) chạy cả ba job: kiểm tra mã, migration trên Postgres thật, và e2e với web, worker, Postgres, SeaweedFS, Mailpit thật.
 
 ## Triển khai
 

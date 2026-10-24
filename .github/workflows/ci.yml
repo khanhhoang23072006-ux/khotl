@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, "phase-*"]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 defaults:
   run:
@@ -71,17 +71,6 @@ jobs:
         id: build
         continue-on-error: true
         run: set -o pipefail; pnpm --filter @khotl/web build 2>&1 | tee ci-logs/build.log
-      - name: Đẩy log lên nhánh ci-logs (để đọc khi không xem được log Actions)
-        if: always()
-        run: |
-          out=$(mktemp -d)
-          cp -r ci-logs "$out/" || true
-          [ -f pnpm-lock.yaml ] && cp pnpm-lock.yaml "$out/"
-          cd "$out"
-          echo "run ${{ github.run_id }} sha ${{ github.sha }} typecheck=${{ steps.typecheck.outcome }} lint=${{ steps.lint.outcome }} test=${{ steps.test.outcome }} build=${{ steps.build.outcome }}" > SUMMARY.txt
-          git init -q -b ci && git add -A
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI check ${{ github.run_id }}"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci:refs/heads/ci-logs/check
       - name: Kết luận
         if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.test.outcome == 'failure' || steps.build.outcome == 'failure'
         run: exit 1
@@ -128,17 +117,6 @@ jobs:
           cp drift.sql ../../ci-logs/drift.sql
           if [ -s drift-rest.sql ]; then echo "Schema lệch với migration:"; cat drift-rest.sql; exit 1; fi
           echo "Schema khớp migration"
-      - name: Đẩy migration và log lên nhánh ci-logs
-        if: always()
-        run: |
-          out=$(mktemp -d)
-          cp -r ci-logs "$out/" || true
-          [ -d packages/db/prisma/migrations ] && cp -r packages/db/prisma/migrations "$out/"
-          cd "$out"
-          echo "run ${{ github.run_id }} sha ${{ github.sha }} generate=${{ steps.generate.outcome }} drift=${{ steps.drift.outcome }}" > SUMMARY.txt
-          git init -q -b ci && git add -A
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI migration ${{ github.run_id }}"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci:refs/heads/ci-logs/migration
 
   e2e:
     name: E2E (web + worker + Postgres + S3 + Mailpit)
@@ -218,15 +196,3 @@ jobs:
         id: e2e
         if: steps.pre.outputs.ready == 'true'
         run: set -o pipefail; pnpm e2e 2>&1 | tee ci-logs/e2e.log
-      - name: Đẩy log lên nhánh ci-logs
-        if: always()
-        run: |
-          out=$(mktemp -d)
-          cp -r ci-logs "$out/" || true
-          [ -d e2e/test-results ] && cp -r e2e/test-results "$out/" || true
-          [ -d e2e/screenshots ] && cp -r e2e/screenshots "$out/" || true
-          cd "$out"
-          echo "run ${{ github.run_id }} sha ${{ github.sha }} e2e=${{ steps.e2e.outcome }}" > SUMMARY.txt
-          git init -q -b ci && git add -A
-          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI e2e ${{ github.run_id }}"
-          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci:refs/heads/ci-logs/e2e
