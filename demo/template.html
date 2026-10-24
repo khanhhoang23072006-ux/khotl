@@ -293,6 +293,29 @@ kbd{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--lin
 .crdlg::backdrop{background:rgba(0,0,0,.5)}
 @media (max-width:479px){.logo b{display:none}}
 @media (min-width:768px) and (max-width:1023px){nav.main a{padding:0 6px;font-size:13px}.meter{padding:0 6px}nav.main a[href="#/tro-ly"],nav.main a[href="#/bang-xep-hang"]{display:none}}
+.study-tabs a{height:40px;padding:0 12px;font-size:14px}
+@media (max-width:767px){.study-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none}.study-tabs a{flex:0 0 auto}}
+.wk{border:2px solid var(--line);background:var(--sheet);font-size:12px}
+.wk-head{display:grid;grid-template-columns:48px repeat(var(--days),minmax(0,1fr));border-bottom:2px solid var(--line)}
+.wk-head span{padding:6px 4px;text-align:center;font-weight:700;border-left:1px solid var(--grid)}
+.wk-body{display:grid;grid-template-columns:48px repeat(var(--days),minmax(0,1fr));position:relative}
+.wk-hours span{display:block;border-top:1px solid var(--grid);padding:2px 4px;color:var(--pencil);font-size:11px;box-sizing:border-box}
+.wk-col{position:relative;border-left:1px solid var(--grid);background-image:linear-gradient(var(--grid) 1px,transparent 1px);background-size:100% 44px}
+.wk-ev{position:absolute;left:2px;right:2px;border:2px solid;padding:2px 4px;text-align:left;overflow:hidden;font:inherit;font-size:11px;line-height:1.25;cursor:pointer;display:flex;flex-direction:column;gap:1px}
+.wk-ev b{font-weight:700;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.wk-ev span{opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-ev.conflict{outline:2px dashed var(--stamp);outline-offset:-4px}
+.agenda-ev{all:unset;cursor:pointer;display:block;padding:4px 8px;font-size:13px;background:var(--paper)}
+.agenda-ev:focus-visible{outline:2px solid var(--stamp)}
+.wk-agenda{display:none}
+@media (max-width:767px){.wk-desktop{display:none}.wk-agenda{display:block}}
+.bar{height:8px;background:var(--wash);border:1px solid var(--line)}.bar>i{display:block;height:100%;background:var(--stamp)}
+.timer{font-size:clamp(56px,14vw,112px);line-height:1;letter-spacing:-.02em}
+.fc-card{min-height:200px;border:2px solid var(--line);background:var(--sheet);padding:20px;display:flex;flex-direction:column;justify-content:center;gap:12px;box-shadow:6px 6px 0 var(--line)}
+.rec{display:flex;flex-direction:column;gap:6px;padding:12px;background:var(--sheet);text-decoration:none;color:var(--ink);min-width:0}
+.cards{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr))}.cards>.rec{border:2px solid var(--line)}
+@media (hover:hover){.cards>.rec:hover{background:var(--wash)}}
+.rec .why{display:inline-block;font-size:11px;border:1px solid var(--stamp);color:var(--stamp);padding:1px 6px;width:fit-content}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -507,7 +530,7 @@ function renderHeaderInner(){
   const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
   document.getElementById("header").innerHTML=`<div class="wrap">
    <a class="logo" href="#/"><span class="mark" aria-hidden="true"><span></span><span><span></span><i></i></span></span><b>HUSTDOCU</b></a>
-   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/bang-xep-hang"${cur("/bang-xep-hang")}>Xếp hạng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
+   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/ctdt","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/bang-xep-hang"${cur("/bang-xep-hang")}>Xếp hạng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
    <div class="tools">
     <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>
     ${installPrompt?'<button class="btn sm" type="button" data-action="install" style="margin-right:6px">Cài ứng dụng</button>':""}
@@ -517,7 +540,7 @@ function renderHeaderInner(){
     ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
     <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
      <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
-      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/bang-xep-hang">Bảng xếp hạng</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Sửa hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
+      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/bang-xep-hang">Bảng xếp hạng</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Sửa hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
     :`<a class="btn ghost sm" href="#/dang-nhap">Đăng nhập</a>`}
    </div></div>`;
   document.getElementById("bottomnav").innerHTML=`<a href="#/"${cur("/",true)}>${icon.home}Trang chủ</a><a href="#/tim-kiem"${cur("/tim-kiem")}>${icon.search}Tìm kiếm</a><a class="up" href="#/tai-len">${icon.plus}Tải lên</a><a href="#/chat"${cur("/chat")} style="position:relative">${CHAT_ICON}Chat${u&&totalUnread(u)?'<span class="dot" style="top:8px;right:calc(50% - 18px)"></span>':""}</a><a href="${u?"#/tai-lieu-cua-toi":"#/dang-nhap"}"${cur(u?"/tai-lieu-cua-toi":"/dang-nhap")}>${icon.user}${u?"Cá nhân":"Đăng nhập"}</a>`;
@@ -557,7 +580,7 @@ views["/"]=()=>{
    <dl class="tb" style="grid-template-columns:repeat(3,1fr);margin:0">${[["Tài liệu đã duyệt",docs.length],["Học phần",S.courses.length],["Viện, Trường",DATA.faculties.length]].map(([l,v])=>`<div class="cell" style="flex-direction:column-reverse"><dt class="tiny muted">${l}</dt><dd class="code" style="margin:0;font-size:36px;line-height:1">${fmtCount(v)}</dd></div>`).join("")}</dl>
   </div></section>
   <div class="wrap home-grid" style="padding-block:32px">
-   <div class="stack" style="gap:32px">
+   <div class="stack" style="gap:32px">${u&&typeof recSection==="function"?recSection(u):""}
     ${u&&(S.follows[u.email]||[]).length?`<section class="stack"><div class="sechead"><h2 class="h2">Học phần bạn theo dõi</h2><a href="#/vien">Tìm thêm</a></div><div class="tb" style="display:flex;flex-wrap:wrap">${S.follows[u.email].map(code=>{const c=course(code);return c?`<a href="#/hoc-phan/${c.code}" style="flex:1 1 160px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;text-decoration:none"><span class="code" style="font-size:26px;line-height:1">${c.code}</span><span class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span></a>`:""}).join("")}</div></section>`:""}
     ${mine.length?`<section class="stack"><div class="sechead"><h2 class="h2">Mới ở ${esc(fac.shortName)}</h2><a href="#/tim-kiem?sort=newest&faculty=${fac.code}">Xem thêm</a></div>${mine.map(d=>docRow(d)).join("")}</section>`:""}
     <section class="stack"><div class="sechead"><h2 class="h2">Mới duyệt</h2><a href="#/tim-kiem?sort=newest">Xem thêm</a></div>${latest.map(d=>docRow(d)).join("")||empty("Chưa có tài liệu nào được duyệt.")}</section>
@@ -649,7 +672,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
   const d=S.docs.find(x=>x.slug===slug);const u=me();if(!d)return views.notfound();const access=canSee(d,u);if(!access)return views.notfound();
   const c=course(d.course),f=faculty(c.faculty),up=userBy(d.uploader);const mod=u&&canModerate(u,d);
   const showUp=!d.anonymous||access!=="public"||mod;
-  if(access==="public"&&u?.email!==d.uploader){d.views++;save()}
+  if(access==="public"&&u?.email!==d.uploader){d.views++;if(u)logAct(u,d,"view");save()}
   const related=publicDocs().filter(x=>x.course===d.course&&x.id!==d.id).sort((a,b)=>b.downloads-a.downloads).slice(0,4);
   const uploaded=!!d.uploaded;
   const viewer=uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`
@@ -861,7 +884,7 @@ views["/tai-lieu-cua-toi/:id/sua"]=({id})=>{
    mount(root){if(root.querySelector('[data-form="upload"]'))mountUpload(root,{mode:"edit",doc:d,onDone:()=>{toast("Đã gửi lại. Tài liệu quay về hàng chờ kiểm duyệt.");go("#/tai-lieu-cua-toi")}})}};
 };
 
-const NOTI={MENTION:(n)=>`Bạn được nhắc tên trong ${n.title}`,COMMENT_ON_DOCUMENT:(n)=>`Bình luận mới ở “${n.title}”`,COMMENT_REPLY:(n)=>`Có người trả lời bình luận của bạn ở “${n.title}”`,NEW_DOCUMENT_IN_FOLLOWED_COURSE:(n)=>`Tài liệu mới trong học phần bạn theo dõi: “${n.title}”`,BADGE_AWARDED:(n)=>`Bạn nhận huy hiệu “${n.title}”`,DOCUMENT_APPROVED:(n)=>`“${n.title}” đã được duyệt và công khai`,DOCUMENT_REJECTED:(n)=>`“${n.title}” không được duyệt`,DOCUMENT_CHANGES_REQUESTED:(n)=>`“${n.title}” cần chỉnh sửa trước khi duyệt`,DOCUMENT_REMOVED:(n)=>`“${n.title}” đã bị gỡ khỏi kho`,CREDITS_CHANGED:(n)=>n.title?`Lượt thưởng thay đổi vì “${n.title}”`:"Quản trị viên điều chỉnh lượt thưởng của bạn"};
+const NOTI={MENTION:(n)=>`Bạn được nhắc tên trong ${n.title}`,COMMENT_ON_DOCUMENT:(n)=>`Bình luận mới ở “${n.title}”`,COMMENT_REPLY:(n)=>`Có người trả lời bình luận của bạn ở “${n.title}”`,NEW_DOCUMENT_IN_FOLLOWED_COURSE:(n)=>`Tài liệu mới trong học phần bạn theo dõi: “${n.title}”`,BADGE_AWARDED:(n)=>`Bạn nhận huy hiệu “${n.title}”`,DOCUMENT_APPROVED:(n)=>`“${n.title}” đã được duyệt và công khai`,DOCUMENT_REJECTED:(n)=>`“${n.title}” không được duyệt`,DOCUMENT_CHANGES_REQUESTED:(n)=>`“${n.title}” cần chỉnh sửa trước khi duyệt`,DOCUMENT_REMOVED:(n)=>`“${n.title}” đã bị gỡ khỏi kho`,STUDY_REMINDER:(n)=>n.title,CREDITS_CHANGED:(n)=>n.title?`Lượt thưởng thay đổi vì “${n.title}”`:"Quản trị viên điều chỉnh lượt thưởng của bạn"};
 views["/thong-bao"]=()=>{
   const u=me();if(!u)return needLogin("/thong-bao");const list=S.notifications.filter(n=>n.to===u.email);
   return {html:pageHead("Thông báo","",list.some(n=>!n.read)?'<div><button class="btn ink sm" type="button" data-mark>Đánh dấu đã đọc hết</button></div>':"")+`<div class="wrap" style="max-width:800px;padding-block:24px">${list.length?`<ul class="tb" style="list-style:none;margin:0;padding:0">${list.map(n=>`<li><a href="${n.link||"#/tai-lieu-cua-toi"}" style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;text-decoration:none;${n.read?"background:var(--paper)":"border-left:4px solid var(--stamp)"}"><span style="display:flex;justify-content:space-between;gap:12px"><b style="font-weight:600">${esc(NOTI[n.type]?.(n)||n.type)}</b><span class="tiny muted" style="flex-shrink:0">${fmtTime(n.t)}</span></span>${n.reason?`<span class="small">${/^(COMMENT|MENTION)/.test(n.type)?"":"Lý do: "}${esc(n.reason)}</span>`:""}${n.credits?`<span class="code" style="font-size:18px;color:var(--stamp)">+${n.credits} lượt thưởng</span>`:""}${typeof n.amount==="number"?`<span class="code" style="font-size:18px${n.amount>0?";color:var(--stamp)":""}">${n.amount>0?"+":""}${n.amount} lượt</span>`:""}</a></li>`).join("")}</ul>`:empty("Chưa có thông báo nào.")}<p class="small muted">Bản thật gửi kèm email tới hộp thư trường.</p></div>`,
@@ -1269,7 +1292,7 @@ function crCharge(u,d){const t=crNow(),s=crSet();
   const dec=crDecide(u,d);if(dec==="DENIED")return dec;
   if(dec==="FREE"){const k=u.email+"|"+crDay(t);S.credits.quota[k]=(S.credits.quota[k]||0)+1;crEntry({user:u.email,type:"DAILY",amount:-1,doc:d.id,note:`Lượt miễn phí ${S.credits.quota[k]}/${s.dailyFree} hôm nay`})}
   if(dec==="BONUS"){crTake(u.email,1);crEntry({user:u.email,type:"SPEND",amount:-1,doc:d.id,note:"Dùng 1 lượt thưởng"})}
-  S.credits.dl.push({user:u.email,doc:d.id,t,charge:dec});
+  S.credits.dl.push({user:u.email,doc:d.id,t,charge:dec});logAct(u,d,"download");
   if(dec==="FREE"||dec==="BONUS"){d.downloads++;
     if(d.downloads%s.milestoneEvery===0){const g=crGrant(d.uploader,"BONUS",s.milestoneReward,{dedupe:`milestone:${d.id}:${d.downloads}`,doc:d.id,note:`Tài liệu đạt ${d.downloads} lượt tải`});if(g)notify(d.uploader,"CREDITS_CHANGED",d,{amount:g,link:"#/luot-tai"})}}
   save();return dec}
@@ -1295,7 +1318,7 @@ function crButton(u,d){const dec=crDecide(u,d),s=crStatus(u.email),set=crSet();
 function crOutBody(){const s=crStatus(me().email),set=crSet();return `Mỗi ngày bạn có ${s.daily} lượt tải miễn phí, làm mới lúc 00:00 giờ Việt Nam (${fmtTime(s.reset)}). Muốn tải ngay thì đóng góp tài liệu: mỗi tài liệu được duyệt cộng ${set.uploadReward} lượt thưởng.`}
 function crDialog(){let dlg=document.getElementById("nocredit");if(dlg)dlg.remove();dlg=document.createElement("dialog");dlg.id="nocredit";dlg.className="crdlg";dlg.setAttribute("aria-labelledby","nocredit-title");
   dlg.innerHTML=`<div class="stack" style="padding:20px"><h2 id="nocredit-title" class="code" style="font-size:32px;line-height:1;margin:0">Bạn đã dùng hết lượt tải hôm nay</h2><p style="margin:0;font-size:14px">${crOutBody()}</p><p class="small muted" style="margin:0">Xem trực tuyến vẫn thoải mái, xem không tính lượt.</p><div class="row"><a class="btn primary" href="#/tai-len" data-close>Tải tài liệu lên</a><a class="btn" href="#/luot-tai" data-close>Lịch sử lượt tải</a><button class="btn ghost" type="button" data-close>Để sau</button></div></div>`;
-  document.body.appendChild(dlg);translateTree(dlg);dlg.addEventListener("click",(e)=>{if(e.target===dlg||e.target.closest("[data-close]"))dlg.close()});dlg.addEventListener("close",()=>dlg.remove());dlg.showModal()}
+  document.body.appendChild(dlg);translateTree(dlg);dlg.addEventListener("click",(e)=>{if(e.target===dlg||e.target.closest("[data-close]"))dlg.close()});dlg.addEventListener("close",()=>dlg.remove());window.addEventListener("hashchange",()=>{if(dlg.open)dlg.close()},{once:true});dlg.showModal()}
 function crRules(){const s=crSet();return `<div class="two" style="gap:16px"><section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:12px 16px;gap:8px"><h2 class="h2" style="margin:0">Cách kiếm lượt thưởng</h2><ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.6"><li>Tài liệu bạn đăng được kiểm duyệt viên duyệt: +${s.uploadReward} lượt. Không cộng lúc mới tải lên.</li><li>Tài liệu của bạn đạt mỗi ${s.milestoneEvery} lượt tải: +${s.milestoneReward} lượt.</li><li>Đăng cho học phần đang có dưới ${s.scarceCourseThreshold} tài liệu: thêm +${s.scarceCourseBonus} lượt.</li><li>Bình luận được ${s.helpfulCommentLikes} lượt thích: +${s.helpfulCommentReward} lượt.</li></ul><p class="small muted" style="margin:0">Tối đa ${s.dailyEarnCap} lượt thưởng mỗi ngày. Lượt thưởng cộng dồn và hết hạn sau ${s.creditTtlDays} ngày. Tài liệu bị gỡ vì vi phạm thì lượt đã nhận bị thu hồi.</p></section>
   <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:12px 16px;gap:8px"><h2 class="h2" style="margin:0">Cách tính lượt</h2><p style="margin:0;font-size:14px">Tải lại cùng tài liệu trong ${s.redownloadWindowHours} giờ không bị trừ. Xem trực tuyến không tính lượt. Tài liệu nhiều file (ZIP) tính 1 lượt. Dùng lượt miễn phí trước, hết mới dùng lượt thưởng.</p><p class="small muted" style="margin:0">Chống gian lận: chặn file trùng và nội dung gần giống, từ chối tài liệu trống, khóa thưởng khi một thiết bị dùng nhiều tài khoản hoặc vi phạm nhiều lần, giới hạn số lần tải mỗi giờ, link tải dùng một lần.</p></section></div>`}
 views["/luot-tai"]=()=>{const u=me();if(!u)return needLogin("/luot-tai");const s=crStatus(u.email);
@@ -1329,6 +1352,7 @@ views["/quan-tri/luot-tai"]=()=>{const u=me();if(!isAdmin(u))return needLogin("/
      S.audit.unshift({t:Date.now(),by:u.email,action:"credits.adjust",detail:`${email}: ${amount>0?"+":""}${amount} (${note})`});notify(email,"CREDITS_CHANGED",null,{amount,link:"#/luot-tai",reason:note});save();toast(`Đã điều chỉnh ${amount} lượt cho ${email}.`);render()});
     root.querySelectorAll("[data-unlock]").forEach(b=>b.addEventListener("click",()=>{delete S.credits.locked[b.dataset.unlock];S.audit.unshift({t:Date.now(),by:u.email,action:"credits.unlock",detail:b.dataset.unlock});save();toast("Đã mở khóa.");render()}))}}};
 
+/*__STUDY__*/
 views.notfound=()=>({html:`<div class="wrap" style="max-width:640px;padding-block:64px"><div class="tb" style="grid-template-columns:96px 1fr"><div class="code" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--fill);color:var(--on-fill)">404</div><div style="padding:12px 16px"><h1 class="head" style="font-size:20px">Không tìm thấy trang</h1><p class="small muted" style="margin:0">Trang không tồn tại, đã bị gỡ hoặc bạn không có quyền xem.</p></div></div><div class="row" style="margin-top:16px"><a class="btn ink" href="#/">Về trang chủ</a><a class="btn" href="#/tim-kiem">Tìm tài liệu</a></div></div>`});
 
 /* ===================== Bộ định tuyến ===================== */
@@ -1342,7 +1366,7 @@ function render(){
   const out=view(args)||{html:""};const app=document.getElementById("app");app.innerHTML=out.html;renderHeader();out.mount?.(app);bindSearch(app);
   const h1=app.querySelector("h1");document.title=(TITLES[path]||(h1?h1.textContent.trim():"HUSTDOCU"))+(path==="/"?"":" | HUSTDOCU");
   if(path!==lastPath){window.scrollTo(0,0);lastPath=path}
-  applyLang();offlineBanner();crSeeDevice(me());
+  applyLang();offlineBanner();crSeeDevice(me());if(typeof studyTick==="function"&&S.study&&studyTick())renderHeader();
 }
 /* Ô tìm kiếm có gợi ý (mã học phần, tiêu đề tài liệu), điều khiển bằng bàn phím */
 function bindSearch(root){

@@ -5,7 +5,7 @@ name: Bản demo trên GitHub Pages
 on:
   push:
     branches: [main]
-    paths: ["demo/**", "index.html", "sw.js", "manifest.webmanifest", "icons/**", ".github/workflows/pages.yml"]
+    paths: ["demo/**", "index.html", "sw.js", "manifest.webmanifest", "icons/**", "data/**", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
       - name: Chuẩn bị thư mục
-        run: mkdir -p site && cp demo/index.html site/index.html && cp -r sw.js manifest.webmanifest icons site/ && touch site/.nojekyll
+        run: mkdir -p site && cp demo/index.html site/index.html && cp -r sw.js manifest.webmanifest icons data site/ && touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

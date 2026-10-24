@@ -1,7 +1,7 @@
 // Dựng bản demo một file HTML: lấy danh mục mẫu ở packages/db/prisma/seed-data.ts,
 // sinh tài liệu mẫu (cùng cách với seed), nhúng thẳng vào demo/index.html.
 // Chạy: pnpm demo:build   (hoặc: npx tsx demo/build.ts)
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import {
   COURSES,
   COURSES_WITH_DOCUMENTS,
@@ -70,7 +70,7 @@ for (const code of COURSES_WITH_DOCUMENTS) {
       ratingSum,
       publishedAt,
       createdAt: publishedAt,
-      uploader: id % 3 === 0 ? pick(uploaders) : "Sinh viên Demo",
+      uploader: id % 4 === 0 ? "Sinh viên Demo" : pick(uploaders.slice(1)),
       anonymous: random() < 0.15,
       tags: [...course.keywords.slice(0, 2), ...(template.type === "EXAM_FINAL" ? ["đáp án"] : [])],
     });
@@ -89,11 +89,19 @@ const data = {
   })),
   documents,
   bannedWords: DEFAULT_BANNED_WORDS,
+  // Bản chụp thông báo HUST lúc dựng, dùng khi không tải được data/hust-feed.json (mở file trực tiếp)
+  hustFeed: existsSync(new URL("../data/hust-feed.json", import.meta.url))
+    ? JSON.parse(readFileSync(new URL("../data/hust-feed.json", import.meta.url), "utf8"))
+    : null,
   generatedAt: new Date().toISOString(),
 };
 
 const template = readFileSync(new URL("./template.html", import.meta.url), "utf8");
-const html = template.replace("/*__DATA__*/null", JSON.stringify(data).replace(/</g, "\\u003c"));
+// Giai đoạn 6 trở đi viết ở file riêng cho dễ đọc, nhúng vào cùng một thẻ <script>
+const study = readFileSync(new URL("./study.js", import.meta.url), "utf8");
+const html = template
+  .replace("/*__DATA__*/null", JSON.stringify(data).replace(/</g, "\\u003c"))
+  .replace("/*__STUDY__*/", () => study.replace(/<\/script/gi, "<\\/script"));
 writeFileSync(new URL("./index.html", import.meta.url), html);
 // Bản ở gốc repo để GitHub Pages (chế độ "Deploy from branch: main") mở thẳng bản demo
 writeFileSync(new URL("../index.html", import.meta.url), html);

@@ -119,6 +119,19 @@ pnpm e2e             # cần web + worker + hạ tầng đang chạy, dữ liệ
 
 CI (GitHub Actions) chạy cả ba job: kiểm tra mã, migration trên Postgres thật, và e2e với web, worker, Postgres, SeaweedFS, Mailpit thật.
 
+## Giai đoạn 6: học tập thông minh (bản demo)
+
+Mục **Học tập** trên thanh điều hướng của demo gồm:
+
+- **Lịch học, lịch thi** (`#/lich`): nhập tay hoặc nhập file `.ics`, CSV thời khóa biểu, lịch thi, hoặc dán bảng từ Excel; xuất `.ics`. Nhắc lịch thi (trước 7, 3, 1 ngày, 2 giờ), hạn nộp, buổi ôn trong mục Thông báo và trên trình duyệt. Mỗi kỳ thi sắp tới kèm tài liệu nên xem và nút lập kế hoạch ôn.
+- **Xếp lịch đăng ký lớp** (`#/xep-lich`): đọc file thời khóa biểu dự kiến (`.xlsx`, `.csv` hoặc dán bảng; cột Mã lớp, Mã lớp kèm, Mã HP, Loại lớp, Thứ, Thời gian, Tuần, Phòng). Xếp tự động bằng quay lui, ghép lớp LT với lớp BT kèm, loại phương án trùng giờ, đưa ra 5 phương án theo ưu tiên (ít ngày lên trường, tránh kíp sáng, tránh học tối, ngày nghỉ).
+- **Chương trình đào tạo** (`#/ctdt`): tiến độ tín chỉ, môn nên học kỳ tới, so sánh phiên bản chương trình, đề cương mới nhất. Khung chương trình trong demo là minh họa.
+- **Thông báo từ ctt.hust.edu.vn**: workflow `hust-feed.yml` chạy mỗi ngày, đọc các trang danh sách công khai (vài yêu cầu, cách nhau 1,5 giây), gắn nhãn CTĐT, đề cương, đăng ký học tập, lịch thi, học phí, rồi ghi `data/hust-feed.json` và đăng lại web.
+- **Ôn tập trắc nghiệm** (`#/on-tap`): ngân hàng câu hỏi theo học phần, chấm điểm, thống kê đúng sai theo chủ đề, ưu tiên câu hay sai.
+- **Flashcard** (`#/flashcard`): lặp lại ngắt quãng theo SM-2; câu làm sai được đưa vào hàng ôn; tự tạo thẻ.
+- **Gợi ý tài liệu**: ở trang chủ và trang Học tập, chấm điểm theo học phần theo dõi, lịch thi, CTĐT kỳ tới, lịch sử xem/tải, "người tải giống bạn cũng tải"; mỗi gợi ý ghi rõ lý do.
+- **Pomodoro, phòng học chung** (`#/hoc-chung`): đồng hồ riêng và phòng có đồng hồ chung (đồng bộ giữa các tab), thành viên đang mở phòng, bảng giờ học tuần.
+
 ## Hạn mức tải xuống và lượt thưởng
 
 - Mỗi sinh viên có 10 lượt tải miễn phí mỗi ngày, làm mới lúc 00:00 giờ Việt Nam. Khách chỉ xem bản xem trước, không tải được.

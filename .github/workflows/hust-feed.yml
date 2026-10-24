@@ -1,0 +1,46 @@
+name: Lấy thông báo HUST
+
+# Mỗi ngày 06:17 giờ Việt Nam: đọc các trang danh sách công khai trên ctt.hust.edu.vn,
+# gắn nhãn (CTĐT, đề cương, đăng ký học tập, lịch thi...), ghi data/hust-feed.json rồi đăng lại web.
+on:
+  schedule:
+    - cron: "17 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: hust-feed
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Kiểm tra bộ phân tích
+        run: node scripts/fetch-hust.test.mjs
+      - name: Lấy thông báo
+        run: node scripts/fetch-hust.mjs
+      - name: Lưu nếu có thay đổi và đăng lại web
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- data/hust-feed.json; then
+            echo "Không có thông báo mới"
+            exit 0
+          fi
+          git config user.name "hustdocu-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/hust-feed.json
+          git commit -m "Cập nhật thông báo HUST $(date -u +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          # Push bằng GITHUB_TOKEN không tự kích hoạt workflow khác, nên gọi đăng web trực tiếp
+          gh workflow run pages.yml --ref main
