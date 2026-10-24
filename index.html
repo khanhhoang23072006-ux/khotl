@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kho tài liệu HUST</title>
+<meta name="description" content="Bản demo một trang của Kho tài liệu học tập HUST: tìm kiếm tiếng Việt, xem, tải lên, kiểm duyệt, quản trị. Chạy hoàn toàn trên trình duyệt với dữ liệu mẫu.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' fill='%23F6F7F5' stroke='%231B1F23' stroke-width='2'/%3E%3Cpath d='M1 21h30M21 21v10' stroke='%231B1F23' stroke-width='2'/%3E%3Crect x='22' y='22' width='8' height='8' fill='%23B3172B'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+<style>
+/* Hệ nhận diện "Khung tên": khung tên bản vẽ kỹ thuật. Viền ngoài 2px, đường trong 1px, góc vuông.
+   Đỏ chỉ cho hành động chính, dấu ĐÃ DUYỆT và cảnh báo. */
+:root{--paper:#F6F7F5;--sheet:#FFFFFF;--ink:#1B1F23;--grid:#DFE5E9;--pencil:#5E6670;--stamp:#B3172B;--stamp-ink:#fff;--wash:#EEF1EE;
+--font:"Archivo","Arial Narrow",system-ui,sans-serif;color-scheme:light}
+html.dark{--paper:#121518;--sheet:#1A1E22;--ink:#E6E9EC;--grid:#262C32;--pencil:#A3ABB4;--stamp:#C8303F;--wash:#1F2428;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;font-variation-settings:"wdth" 100;min-height:100dvh}
+a{color:inherit}
+@media (hover:hover){a:hover{color:var(--stamp)}}
+:focus-visible{outline:2px solid var(--stamp);outline-offset:2px}
+button,input,select,textarea{font:inherit;color:inherit}
+mark{background:transparent;color:inherit;text-decoration:underline 2px var(--stamp);text-underline-offset:3px}
+[hidden]{display:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.code{font-variation-settings:"wdth" 62.5;font-weight:800;letter-spacing:-.01em}
+.head{font-variation-settings:"wdth" 75;font-weight:700}
+.muted{color:var(--pencil)}
+.small{font-size:13px}.tiny{font-size:11px;line-height:1.3}
+.wrap{max-width:1152px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.gridpaper{background-color:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:16px 16px}
+.tb{display:grid;gap:1px;background:var(--ink);border:2px solid var(--ink)}
+.tb>*{background:var(--sheet);min-width:0}
+.cell{display:flex;flex-direction:column;justify-content:flex-end;padding:8px 12px}
+.cell .l{font-size:11px;color:var(--pencil);line-height:1.2}
+.cell .v{font-size:13px;font-weight:600}
+.stamp{display:inline-flex;align-items:center;padding:2px 8px;border:2px solid var(--stamp);color:var(--stamp);font-variation-settings:"wdth" 75;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;transform:rotate(-2deg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 16px;border:2px solid var(--ink);background:var(--sheet);color:var(--ink);font-variation-settings:"wdth" 75;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--wash);color:var(--ink)}
+.btn.primary{background:var(--stamp);color:var(--stamp-ink)}
+.btn.primary:hover{background:var(--ink);color:var(--paper)}
+.btn.ink{background:var(--ink);color:var(--paper)}
+.btn.ink:hover{background:var(--stamp);color:var(--stamp-ink)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.sm{height:36px;padding:0 12px;font-size:14px}
+.btn.lg{height:52px;padding:0 24px;font-size:16px}
+.btn.block{width:100%}
+.btn:disabled{opacity:.5;pointer-events:none}
+.input,.select,.textarea{width:100%;border:2px solid var(--ink);background:var(--sheet);padding:0 12px;font-size:15px;border-radius:0}
+.input,.select{height:44px}
+.textarea{min-height:96px;padding:8px 12px;resize:vertical}
+.input::placeholder,.textarea::placeholder{color:var(--pencil)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label{font-variation-settings:"wdth" 75;font-weight:700;font-size:14px}
+.field .hint{font-size:13px;color:var(--pencil)}
+.field .err{font-size:13px;font-weight:600;color:var(--stamp)}
+.req{color:var(--stamp)}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.check input{width:20px;height:20px;margin-top:1px;accent-color:var(--ink);flex-shrink:0}
+.note{border-left:4px solid var(--ink);background:var(--sheet);padding:8px 12px;font-size:14px}
+.note.red{border-color:var(--stamp)}
+.empty{border:2px dashed color-mix(in srgb,var(--ink) 40%,transparent);background:var(--sheet);padding:32px 16px;text-align:center}
+.stack{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+h1,h2,h3{margin:0;text-wrap:balance}
+.h2{font-variation-settings:"wdth" 75;font-weight:700;font-size:18px}
+.sechead{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.sechead a{font-size:13px;font-weight:600}
+/* Đầu trang */
+.demo-bar{background:var(--ink);color:var(--paper);font-size:12px}
+.demo-bar .wrap{display:flex;gap:8px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-block:6px}
+.demo-bar button{background:transparent;border:1px solid color-mix(in srgb,var(--paper) 50%,transparent);color:var(--paper);font-size:12px;padding:3px 8px;cursor:pointer}
+.demo-bar button:hover{background:var(--paper);color:var(--ink)}
+header.site{position:sticky;top:0;z-index:30;background:var(--paper);border-bottom:2px solid var(--ink)}
+header.site .wrap{display:flex;align-items:stretch;height:56px;padding-left:0}
+.logo{display:flex;align-items:center;gap:10px;padding:0 16px 0 max(16px,env(safe-area-inset-left,0px));text-decoration:none}
+.logo:hover{color:var(--ink)}
+.mark{width:30px;height:30px;border:2px solid var(--ink);display:grid;grid-template-rows:1fr 10px;flex-shrink:0}
+.mark>span{display:grid;grid-template-columns:1fr 10px;border-top:2px solid var(--ink)}
+.mark>span>i{background:var(--stamp);border-left:2px solid var(--ink)}
+.logo b{font-variation-settings:"wdth" 75;font-weight:800;font-size:19px;letter-spacing:-.01em}
+nav.main{display:none;align-items:stretch;border-left:2px solid var(--ink)}
+nav.main a{display:flex;align-items:center;padding:0 16px;text-decoration:none;font-variation-settings:"wdth" 75;font-weight:700}
+nav.main a:hover{background:var(--wash);color:var(--ink)}
+nav.main a[aria-current]{background:var(--ink);color:var(--paper)}
+.tools{margin-left:auto;display:flex;align-items:center;padding-right:6px}
+.icon-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:none;border:0;cursor:pointer;position:relative;text-decoration:none}
+.icon-btn:hover{background:var(--wash);color:var(--ink)}
+.dot{position:absolute;top:10px;right:10px;width:8px;height:8px;background:var(--stamp)}
+.avatar{width:30px;height:30px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-variation-settings:"wdth" 62.5;font-weight:800;font-size:13px}
+.upload-top{display:none;margin-right:8px}
+details.menu{position:relative}
+details.menu summary{list-style:none;cursor:pointer}
+details.menu summary::-webkit-details-marker{display:none}
+.menu-pop{position:absolute;right:0;top:48px;width:260px;border:2px solid var(--ink);background:var(--sheet);box-shadow:4px 4px 0 var(--ink);z-index:40}
+.menu-pop .who{padding:8px 12px;border-bottom:1px solid var(--ink)}
+.menu-pop a,.menu-pop button{display:flex;align-items:center;width:100%;height:44px;padding:0 12px;border:0;border-bottom:1px solid var(--grid);background:none;text-decoration:none;font-size:14px;cursor:pointer;text-align:left}
+.menu-pop a:hover,.menu-pop button:hover{background:var(--wash);color:var(--ink)}
+nav.bottom{position:fixed;inset:auto 0 0 0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--ink);border-top:2px solid var(--ink);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.bottom a{height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:var(--paper);font-size:11px;text-decoration:none}
+nav.bottom a[aria-current]{background:var(--ink);color:var(--paper);font-weight:600}
+nav.bottom a.up{background:var(--stamp);color:#fff;font-weight:600}
+main{min-height:60vh}
+footer.site{border-top:2px solid var(--ink);margin-top:48px;padding-bottom:76px}
+@media (min-width:768px){nav.main{display:flex}.upload-top{display:inline-flex}nav.bottom{display:none}footer.site{padding-bottom:0}}
+/* Thẻ tài liệu */
+.doc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));text-decoration:none}
+.doc:hover .t{color:var(--stamp)}
+.doc .title{grid-column:1/-1;padding:10px 12px}
+.doc .t{font-weight:600;font-size:15px;line-height:1.3}
+.doc .snip{display:block;margin-top:4px;font-size:13px;color:var(--pencil);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.doc .cc{grid-column:1/-1}
+.doc .cc .v{font-variation-settings:"wdth" 62.5;font-weight:800;font-size:22px;line-height:1}
+.doc .opt{display:none}
+@media (min-width:640px){
+ .doc{grid-template-columns:repeat(4,minmax(0,1fr)) 96px}
+ .doc .title{grid-column:1/5}
+ .doc .cc{grid-column:5;grid-row:1/3}
+ .doc .opt{display:flex}
+ .doc.nocc .title{grid-column:1/-1}
+ .doc.nocc .last{grid-column:span 2}
+}
+.badge{display:inline-flex;align-items:center;height:24px;padding:0 8px;border:2px solid var(--ink);font-variation-settings:"wdth" 75;font-weight:700;font-size:12px}
+.badge.APPROVED{border-color:var(--stamp);color:var(--stamp)}
+.badge.CHANGES_REQUESTED{border-color:var(--stamp);background:var(--stamp);color:#fff}
+.badge.REJECTED,.badge.REMOVED{border-color:var(--pencil);color:var(--pencil)}
+.badge.REMOVED{text-decoration:line-through}
+table.t{width:100%;border-collapse:collapse;border:2px solid var(--ink);background:var(--sheet);font-size:14px}
+table.t th,table.t td{border:1px solid var(--ink);padding:6px 10px;text-align:left;vertical-align:top}
+table.t thead th{font-size:11px;color:var(--pencil);font-weight:500}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.page-head{border-bottom:2px solid var(--ink)}
+.page-head .wrap{padding-block:24px;display:flex;flex-direction:column;gap:12px}
+.page-head h1{font-variation-settings:"wdth" 62.5;font-weight:800;font-size:clamp(36px,6vw,52px);line-height:.98}
+/* Tìm kiếm */
+.searchbox{position:relative}
+.searchbox .bar{display:flex;border:2px solid var(--ink);background:var(--sheet);height:52px}
+.searchbox .bar:focus-within{outline:2px solid var(--stamp);outline-offset:2px}
+.searchbox label{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:0 12px;color:var(--pencil)}
+.searchbox input{flex:1;min-width:0;border:0;background:transparent;font-size:15px;color:var(--ink);outline:none}
+.searchbox input::-webkit-search-cancel-button{display:none}
+.searchbox button{width:80px;border:0;border-left:2px solid var(--ink);background:var(--stamp);color:#fff;font-variation-settings:"wdth" 75;font-weight:800;font-size:16px;cursor:pointer}
+.searchbox button:hover{background:var(--ink);color:var(--paper)}
+.sugg{position:absolute;left:0;right:0;top:100%;margin-top:-2px;border:2px solid var(--ink);background:var(--sheet);box-shadow:4px 4px 0 var(--ink);z-index:35}
+.sugg div{display:flex;gap:12px;align-items:baseline;padding:8px 12px;border-bottom:1px solid var(--grid);cursor:pointer}
+.sugg div:last-child{border-bottom:0}
+.sugg div[aria-selected=true],.sugg div:hover{background:var(--ink);color:var(--paper)}
+.filters{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (min-width:768px){.filters{grid-template-columns:repeat(6,1fr)}}
+.filters label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--pencil)}
+.filters .select{height:40px;font-size:14px}
+/* Trang đọc */
+.sheetpage{background:#fff;color:#1b1f23;border:1px solid var(--ink);box-shadow:2px 2px 0 var(--ink);aspect-ratio:1/1.414;padding:7% 8%;font-family:Arial,Helvetica,sans-serif;font-size:clamp(8px,1.35vw,13px);line-height:1.6;overflow:hidden;position:relative;max-width:100%}
+.sheetpage .hd{font-weight:700;font-size:1.05em}
+.sheetpage .ti{font-weight:700;font-size:1.35em;margin:.6em 0 .2em}
+.sheetpage .ft{position:absolute;left:8%;bottom:4%;color:#666;font-size:.8em}
+.sheetpage .frame{position:absolute;inset:4%;border:1.5px solid #1b1f23;pointer-events:none}
+.viewer{border:2px solid var(--ink);background:var(--sheet)}
+.viewer .bar{display:flex;justify-content:space-between;align-items:stretch;border-bottom:2px solid var(--ink);background:var(--paper);font-size:14px}
+.viewer .bar span{display:flex;align-items:center;padding:0 12px}
+.viewer .bar button{width:44px;height:44px;border:0;border-left:1px solid var(--ink);background:none;cursor:pointer;font-size:18px}
+.viewer .pages{max-height:80vh;overflow:auto;background:var(--wash);padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.viewer iframe{width:100%;height:80vh;border:0;background:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0}
+.chips a{display:inline-flex;height:32px;align-items:center;padding:0 8px;border:1px solid var(--ink);background:var(--sheet);font-size:13px;text-decoration:none}
+.toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);padding:10px 16px;font-size:14px;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--stamp);max-width:calc(100% - 32px)}
+@media (min-width:768px){.toast{bottom:24px}}
+.mailbox{border:2px solid var(--ink);background:var(--paper)}
+.mailbox .mh{padding:6px 12px;border-bottom:1px solid var(--ink);font-size:12px;display:flex;justify-content:space-between}
+.mailbox .mb{padding:10px 12px;font-size:14px}
+.otp{height:56px;text-align:center;font-variation-settings:"wdth" 62.5;font-weight:800;font-size:30px;letter-spacing:.4em}
+.dropzone{border:2px dashed var(--ink);background:var(--sheet);padding:32px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.dropzone.on{border-style:solid;background:var(--wash)}
+.progress{height:8px;border:1px solid var(--ink);background:var(--paper)}
+.progress>i{display:block;height:100%;background:var(--ink);transition:width .2s}
+.checkrow{display:grid;grid-template-columns:120px 1fr 90px}
+.st{display:flex;align-items:center;justify-content:center;font-variation-settings:"wdth" 75;font-weight:700;font-size:13px}
+.st.fail{background:var(--stamp)!important;color:#fff}
+.st.warn{background:var(--ink)!important;color:var(--paper)}
+.risk-high{background:var(--stamp)!important;color:#fff}
+.risk-medium{background:var(--ink)!important;color:var(--paper)}
+.tabs{display:flex;flex-wrap:wrap;gap:1px;background:var(--ink);border:2px solid var(--ink);width:fit-content;max-width:100%}
+.tabs a{display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;background:var(--sheet);text-decoration:none;font-size:14px}
+.tabs a[aria-current]{background:var(--ink);color:var(--paper)}
+.two{display:grid;gap:24px}
+@media (min-width:1024px){.two{grid-template-columns:minmax(0,1fr) 360px}.two.wide{grid-template-columns:minmax(0,1fr) 400px}}
+.home-grid{display:grid;gap:40px;grid-template-columns:minmax(0,1fr)}.home-grid>*{min-width:0}
+@media (min-width:900px){.home-grid{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}}
+.hero{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}.hero>*{min-width:0}
+@media (min-width:900px){.hero{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:end}}
+.hero h1{font-variation-settings:"wdth" 62.5;font-weight:800;font-size:clamp(42px,8vw,76px);line-height:.98}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="demo-bar"><div class="wrap">
+  <span>Bản demo chạy trên trình duyệt với dữ liệu mẫu. Mọi thay đổi chỉ lưu trên máy bạn.</span>
+  <span class="row" style="gap:6px"><span>Vào nhanh:</span>
+    <button type="button" data-action="quick" data-email="sv.demo@sis.hust.edu.vn">Sinh viên</button>
+    <button type="button" data-action="quick" data-email="kdv.demo@hust.edu.vn">Kiểm duyệt viên</button>
+    <button type="button" data-action="quick" data-email="admin.demo@hust.edu.vn">Quản trị</button>
+    <button type="button" data-action="reset">Đặt lại dữ liệu</button></span>
+</div></div>
+<header class="site" id="header"></header>
+<main id="app" tabindex="-1"></main>
+<footer class="site"><div class="wrap" style="padding-block:24px">
+  <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));font-size:13px">
+    <div class="cell" style="justify-content:flex-start"><span class="l">Công trình</span><b class="head">Kho tài liệu học tập HUST</b><span class="muted">Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.</span></div>
+    <div class="cell" style="justify-content:flex-start"><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
+    <div class="cell" style="justify-content:flex-start"><span class="l">Bản quyền</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a></div>
+    <div class="cell" style="justify-content:flex-start"><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener">github.com/khanhhoang23072006-ux/khotl</a></div>
+  </div>
+  <p class="small muted" style="margin:12px 0 0">Dự án của sinh viên, không phải kênh chính thức của Đại học Bách khoa Hà Nội. Tên Viện, học phần và tài liệu trong bản demo chỉ mang tính minh họa.</p>
+</div></footer>
+<nav class="bottom" id="bottomnav" aria-label="Điều hướng chính"></nav>
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+"use strict";
+const DATA = {"faculties":[{"code":"SOICT","name":"Trường Công nghệ Thông tin và Truyền thông","nameEn":"School of Information and Communications Technology","shortName":"Trường CNTT&TT","slug":"soict","order":0},{"code":"SEEE","name":"Trường Điện - Điện tử","nameEn":"School of Electrical and Electronic Engineering","shortName":"Trường Điện - Điện tử","slug":"seee","order":1},{"code":"SME","name":"Trường Cơ khí","nameEn":"School of Mechanical Engineering","shortName":"Trường Cơ khí","slug":"sme","order":2},{"code":"SCLS","name":"Trường Hóa và Khoa học sự sống","nameEn":"School of Chemistry and Life Sciences","shortName":"Trường Hóa và KHSS","slug":"scls","order":3},{"code":"SMSE","name":"Trường Vật liệu","nameEn":"School of Materials Science and Engineering","shortName":"Trường Vật liệu","slug":"smse","order":4},{"code":"SEM","name":"Trường Kinh tế","nameEn":"School of Economics and Management","shortName":"Trường Kinh tế","slug":"sem","order":5},{"code":"FAMI","name":"Khoa Toán - Tin","nameEn":"Faculty of Mathematics and Informatics","shortName":"Khoa Toán - Tin","slug":"fami","order":6},{"code":"FEP","name":"Khoa Vật lý Kỹ thuật","nameEn":"Faculty of Engineering Physics","shortName":"Khoa Vật lý KT","slug":"fep","order":7},{"code":"SOFL","name":"Khoa Ngoại ngữ","nameEn":"School of Foreign Languages","shortName":"Khoa Ngoại ngữ","slug":"sofl","order":8},{"code":"FPS","name":"Khoa Lý luận Chính trị","nameEn":"Faculty of Political Science","shortName":"Khoa LLCT","slug":"fps","order":9}],"courses":[{"code":"MI1111","name":"Giải tích I","nameEn":"Calculus I","credits":4,"faculty":"FAMI","keywords":["gioi han","dao ham","dinh ly Lagrange","tich phan suy rong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1121","name":"Giải tích II","nameEn":"Calculus II","credits":3,"faculty":"FAMI","keywords":["tich phan boi","tich phan duong","chuoi so"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1131","name":"Giải tích III","nameEn":"Calculus III","credits":3,"faculty":"FAMI","keywords":["phuong trinh vi phan","chuoi Fourier","bien doi Laplace"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1141","name":"Đại số","nameEn":"Linear Algebra","credits":4,"faculty":"FAMI","keywords":["ma tran","dinh thuc","khong gian vector","tri rieng"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI2020","name":"Xác suất thống kê","nameEn":"Probability and Statistics","credits":3,"faculty":"FAMI","keywords":["bien ngau nhien","phan phoi chuan","kiem dinh gia thuyet"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1110","name":"Vật lý đại cương I","nameEn":"General Physics I","credits":3,"faculty":"FEP","keywords":["dong luc hoc","dinh luat Newton","nhiet dong luc hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1120","name":"Vật lý đại cương II","nameEn":"General Physics II","credits":3,"faculty":"FEP","keywords":["dien truong","tu truong","dinh luat Faraday"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1130","name":"Vật lý đại cương III","nameEn":"General Physics III","credits":3,"faculty":"FEP","keywords":["giao thoa","nhieu xa","luong tu anh sang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT1110","name":"Tin học đại cương","nameEn":"Introduction to Computing","credits":4,"faculty":"SOICT","keywords":["ngon ngu C","con tro","mang mot chieu"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3011","name":"Cấu trúc dữ liệu và giải thuật","nameEn":"Data Structures and Algorithms","credits":3,"faculty":"SOICT","keywords":["cay nhi phan","do thi","sap xep nhanh","bang bam"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3020","name":"Toán rời rạc","nameEn":"Discrete Mathematics","credits":3,"faculty":"SOICT","keywords":["to hop","quan he truy hoi","do thi Euler"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3030","name":"Kiến trúc máy tính","nameEn":"Computer Architecture","credits":3,"faculty":"SOICT","keywords":["tap lenh MIPS","bo nho dem","pipeline"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3040","name":"Kỹ thuật lập trình","nameEn":"Programming Techniques","credits":2,"faculty":"SOICT","keywords":["de quy","quy hoach dong","kiem thu"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3070","name":"Nguyên lý hệ điều hành","nameEn":"Operating Systems","credits":3,"faculty":"SOICT","keywords":["tien trinh","dong bo hoa","bo nho ao"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3080","name":"Mạng máy tính","nameEn":"Computer Networks","credits":3,"faculty":"SOICT","keywords":["mo hinh OSI","TCP/IP","dinh tuyen"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3090","name":"Cơ sở dữ liệu","nameEn":"Databases","credits":3,"faculty":"SOICT","keywords":["SQL","chuan hoa","phu thuoc ham"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3100","name":"Lập trình hướng đối tượng","nameEn":"Object-Oriented Programming","credits":2,"faculty":"SOICT","keywords":["ke thua","da hinh","Java"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3160","name":"Nhập môn Trí tuệ nhân tạo","nameEn":"Introduction to Artificial Intelligence","credits":3,"faculty":"SOICT","keywords":["tim kiem A sao","hoc may","logic menh de"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT4409","name":"Công nghệ Web và dịch vụ trực tuyến","nameEn":"Web Technologies","credits":3,"faculty":"SOICT","keywords":["HTTP","REST","JavaScript"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ET2000","name":"Nhập môn kỹ thuật điện tử viễn thông","nameEn":"Introduction to Electronics and Telecommunications","credits":2,"faculty":"SEEE","keywords":["tin hieu","dieu che"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EE2000","name":"Tín hiệu và hệ thống","nameEn":"Signals and Systems","credits":3,"faculty":"SEEE","keywords":["bien doi Fourier","tich chap","he thong LTI"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE2020","name":"Lý thuyết mạch điện I","nameEn":"Circuit Theory I","credits":4,"faculty":"SEEE","keywords":["dinh luat Kirchhoff","mach RLC","so phuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE3110","name":"Kỹ thuật đo lường","nameEn":"Measurement Engineering","credits":3,"faculty":"SEEE","keywords":["sai so","cam bien"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2015","name":"Đồ họa kỹ thuật cơ bản","nameEn":"Engineering Graphics","credits":3,"faculty":"SME","keywords":["hinh chieu","khung ten","mat cat"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2011","name":"Cơ học kỹ thuật I","nameEn":"Engineering Mechanics I","credits":3,"faculty":"SME","keywords":["tinh hoc","ngau luc","can bang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME3090","name":"Sức bền vật liệu","nameEn":"Strength of Materials","credits":3,"faculty":"SME","keywords":["ung suat","bien dang","uon"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH1012","name":"Hóa học đại cương","nameEn":"General Chemistry","credits":3,"faculty":"SCLS","keywords":["cau tao nguyen tu","lien ket hoa hoc","can bang hoa hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH3001","name":"Hóa hữu cơ","nameEn":"Organic Chemistry","credits":3,"faculty":"SCLS","keywords":["hidrocacbon","co che phan ung"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MSE2010","name":"Khoa học vật liệu đại cương","nameEn":"Introduction to Materials Science","credits":3,"faculty":"SMSE","keywords":["mang tinh the","gian do pha"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EM1010","name":"Quản trị học đại cương","nameEn":"Principles of Management","credits":2,"faculty":"SEM","keywords":["hoach dinh","to chuc","kiem soat"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM1180","name":"Văn hóa kinh doanh và tinh thần khởi nghiệp","nameEn":"Business Culture and Entrepreneurship","credits":2,"faculty":"SEM","keywords":["khoi nghiep","mo hinh kinh doanh"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM3100","name":"Kinh tế học vi mô","nameEn":"Microeconomics","credits":3,"faculty":"SEM","keywords":["cung cau","do co gian","thi truong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1100","name":"Tiếng Anh I","nameEn":"English I","credits":3,"faculty":"SOFL","keywords":["reading","listening","grammar"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1101","name":"Tiếng Anh II","nameEn":"English II","credits":3,"faculty":"SOFL","keywords":["writing","speaking"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1111","name":"Triết học Mác - Lênin","nameEn":"Marxist-Leninist Philosophy","credits":3,"faculty":"FPS","keywords":["phep bien chung","vat chat va y thuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1121","name":"Kinh tế chính trị Mác - Lênin","nameEn":"Marxist-Leninist Political Economy","credits":2,"faculty":"FPS","keywords":["gia tri thang du","hang hoa"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1131","name":"Chủ nghĩa xã hội khoa học","nameEn":"Scientific Socialism","credits":2,"faculty":"FPS","keywords":["giai cap cong nhan"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1141","name":"Lịch sử Đảng Cộng sản Việt Nam","nameEn":"History of the Communist Party of Vietnam","credits":2,"faculty":"FPS","keywords":["cach mang thang Tam"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1151","name":"Tư tưởng Hồ Chí Minh","nameEn":"Ho Chi Minh Ideology","credits":2,"faculty":"FPS","keywords":["doc lap dan toc"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1170","name":"Pháp luật đại cương","nameEn":"Introduction to Law","credits":2,"faculty":"FPS","keywords":["quy pham phap luat","hop dong"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]}],"documents":[{"id":"d1","slug":"slide-giai-tich-i-chuong-1-63z","title":"Slide Giải tích I chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"MI1111","term":"20251","pages":3,"sizeKb":499,"kind":"PDF","downloads":359,"views":1079,"ratingCount":51,"ratingSum":205,"publishedAt":1790384400000,"createdAt":1790384400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["gioi han","dao ham"]},{"id":"d2","slug":"bai-giai-bai-tap-giai-tich-i-c7y","title":"Bài giải bài tập Giải tích I","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"MI1111","term":"20242","pages":4,"sizeKb":2470,"kind":"PDF","downloads":706,"views":2248,"ratingCount":26,"ratingSum":105,"publishedAt":1788915600000,"createdAt":1788915600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["gioi han","dao ham"]},{"id":"d3","slug":"bai-giai-bai-tap-giai-tich-ii-ibx","title":"Bài giải bài tập Giải tích II","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"MI1121","term":"20251","pages":5,"sizeKb":1620,"kind":"PDF","downloads":2223,"views":6747,"ratingCount":18,"ratingSum":64,"publishedAt":1787360400000,"createdAt":1787360400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["tich phan boi","tich phan duong"]},{"id":"d4","slug":"ghi-chu-on-tap-giai-tich-ii-ofw","title":"Ghi chú ôn tập Giải tích II","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"MI1121","term":"20241","pages":4,"sizeKb":2313,"kind":"PDF","downloads":964,"views":3063,"ratingCount":51,"ratingSum":229,"publishedAt":1791766800000,"createdAt":1791766800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["tich phan boi","tich phan duong"]},{"id":"d5","slug":"de-thi-cuoi-ky-dai-so-ky-20241-co-dap-an-ujv","title":"Đề thi cuối kỳ Đại số kỳ 20241, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"MI1141","term":"20241","pages":4,"sizeKb":1653,"kind":"PDF","downloads":1054,"views":3195,"ratingCount":46,"ratingSum":203,"publishedAt":1785373200000,"createdAt":1785373200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ma tran","dinh thuc","đáp án"]},{"id":"d6","slug":"bai-giai-bai-tap-dai-so-10nu","title":"Bài giải bài tập Đại số","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"MI1141","term":"20241","pages":5,"sizeKb":577,"kind":"PDF","downloads":566,"views":1855,"ratingCount":10,"ratingSum":40,"publishedAt":1792026000000,"createdAt":1792026000000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["ma tran","dinh thuc"]},{"id":"d7","slug":"ghi-chu-on-tap-dai-so-16rt","title":"Ghi chú ôn tập Đại số","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"MI1141","term":"20231","pages":5,"sizeKb":2063,"kind":"PDF","downloads":2042,"views":6211,"ratingCount":15,"ratingSum":62,"publishedAt":1785459600000,"createdAt":1785459600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ma tran","dinh thuc"]},{"id":"d8","slug":"de-giua-ky-xac-suat-thong-ke-ky-20242-1cvs","title":"Đề giữa kỳ Xác suất thống kê kỳ 20242","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"MI2020","term":"20242","pages":5,"sizeKb":1154,"kind":"PDF","downloads":57,"views":203,"ratingCount":25,"ratingSum":121,"publishedAt":1790384400000,"createdAt":1790384400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["bien ngau nhien","phan phoi chuan"]},{"id":"d9","slug":"ghi-chu-on-tap-xac-suat-thong-ke-1izr","title":"Ghi chú ôn tập Xác suất thống kê","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"MI2020","term":"20242","pages":3,"sizeKb":2215,"kind":"PDF","downloads":1003,"views":3188,"ratingCount":54,"ratingSum":263,"publishedAt":1789520400000,"createdAt":1789520400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["bien ngau nhien","phan phoi chuan"]},{"id":"d10","slug":"slide-vat-ly-dai-cuong-i-chuong-1-1p3q","title":"Slide Vật lý đại cương I chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"PH1110","term":"20242","pages":4,"sizeKb":2509,"kind":"PDF","downloads":393,"views":1338,"ratingCount":25,"ratingSum":88,"publishedAt":1782867600000,"createdAt":1782867600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dong luc hoc","dinh luat Newton"]},{"id":"d11","slug":"de-cuong-hoc-phan-vat-ly-dai-cuong-i-1v7p","title":"Đề cương học phần Vật lý đại cương I","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"PH1110","term":"20231","pages":4,"sizeKb":2243,"kind":"PDF","downloads":1552,"views":4679,"ratingCount":54,"ratingSum":252,"publishedAt":1785027600000,"createdAt":1785027600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dong luc hoc","dinh luat Newton"]},{"id":"d12","slug":"slide-vat-ly-dai-cuong-ii-chuong-1-21bo","title":"Slide Vật lý đại cương II chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"PH1120","term":"20251","pages":5,"sizeKb":2525,"kind":"PDF","downloads":1536,"views":4688,"ratingCount":29,"ratingSum":141,"publishedAt":1792458000000,"createdAt":1792458000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dien truong","tu truong"]},{"id":"d13","slug":"de-giua-ky-vat-ly-dai-cuong-ii-ky-20231-27fn","title":"Đề giữa kỳ Vật lý đại cương II kỳ 20231","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"PH1120","term":"20231","pages":3,"sizeKb":2347,"kind":"PDF","downloads":1783,"views":5380,"ratingCount":36,"ratingSum":156,"publishedAt":1790038800000,"createdAt":1790038800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dien truong","tu truong"]},{"id":"d14","slug":"de-thi-cuoi-ky-tin-hoc-dai-cuong-ky-20251-co-dap-an-2djm","title":"Đề thi cuối kỳ Tin học đại cương kỳ 20251, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT1110","term":"20251","pages":4,"sizeKb":2561,"kind":"PDF","downloads":479,"views":1574,"ratingCount":8,"ratingSum":27,"publishedAt":1790470800000,"createdAt":1790470800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ngon ngu C","con tro","đáp án"]},{"id":"d15","slug":"bai-giai-bai-tap-tin-hoc-dai-cuong-2jnl","title":"Bài giải bài tập Tin học đại cương","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT1110","term":"20251","pages":5,"sizeKb":1398,"kind":"PDF","downloads":1105,"views":3377,"ratingCount":50,"ratingSum":189,"publishedAt":1791853200000,"createdAt":1791853200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ngon ngu C","con tro"]},{"id":"d16","slug":"de-giua-ky-tin-hoc-dai-cuong-ky-20242-2prk","title":"Đề giữa kỳ Tin học đại cương kỳ 20242","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"IT1110","term":"20242","pages":5,"sizeKb":1033,"kind":"PDF","downloads":990,"views":3011,"ratingCount":3,"ratingSum":14,"publishedAt":1792026000000,"createdAt":1792026000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ngon ngu C","con tro"]},{"id":"d17","slug":"slide-cau-truc-du-lieu-va-giai-thuat-chuong-1-2vvj","title":"Slide Cấu trúc dữ liệu và giải thuật chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT3011","term":"20251","pages":4,"sizeKb":778,"kind":"PDF","downloads":1782,"views":5486,"ratingCount":50,"ratingSum":190,"publishedAt":1792198800000,"createdAt":1792198800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["cay nhi phan","do thi"]},{"id":"d18","slug":"de-cuong-hoc-phan-cau-truc-du-lieu-va-giai-thuat-31zi","title":"Đề cương học phần Cấu trúc dữ liệu và giải thuật","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3011","term":"20251","pages":3,"sizeKb":314,"kind":"PDF","downloads":421,"views":1378,"ratingCount":28,"ratingSum":115,"publishedAt":1790989200000,"createdAt":1790989200000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["cay nhi phan","do thi"]},{"id":"d19","slug":"de-cuong-hoc-phan-toan-roi-rac-383h","title":"Đề cương học phần Toán rời rạc","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3020","term":"20241","pages":3,"sizeKb":1798,"kind":"PDF","downloads":267,"views":822,"ratingCount":37,"ratingSum":147,"publishedAt":1783213200000,"createdAt":1783213200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["to hop","quan he truy hoi"]},{"id":"d20","slug":"ghi-chu-on-tap-toan-roi-rac-3e7g","title":"Ghi chú ôn tập Toán rời rạc","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3020","term":"20231","pages":3,"sizeKb":2357,"kind":"PDF","downloads":664,"views":2069,"ratingCount":17,"ratingSum":65,"publishedAt":1784422800000,"createdAt":1784422800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["to hop","quan he truy hoi"]},{"id":"d21","slug":"de-thi-cuoi-ky-toan-roi-rac-ky-20251-co-dap-an-3kbf","title":"Đề thi cuối kỳ Toán rời rạc kỳ 20251, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT3020","term":"20251","pages":3,"sizeKb":1081,"kind":"PDF","downloads":2083,"views":6308,"ratingCount":16,"ratingSum":60,"publishedAt":1790038800000,"createdAt":1790038800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["to hop","quan he truy hoi","đáp án"]},{"id":"d22","slug":"bai-giai-bai-tap-ky-thuat-lap-trinh-3qfe","title":"Bài giải bài tập Kỹ thuật lập trình","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3040","term":"20231","pages":5,"sizeKb":237,"kind":"PDF","downloads":1752,"views":5415,"ratingCount":44,"ratingSum":153,"publishedAt":1788742800000,"createdAt":1788742800000,"uploader":"Sinh viên Demo","anonymous":true,"tags":["de quy","quy hoach dong"]},{"id":"d23","slug":"de-thi-cuoi-ky-ky-thuat-lap-trinh-ky-20232-co-dap-an-3wjd","title":"Đề thi cuối kỳ Kỹ thuật lập trình kỳ 20232, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT3040","term":"20232","pages":4,"sizeKb":2121,"kind":"PDF","downloads":234,"views":820,"ratingCount":24,"ratingSum":103,"publishedAt":1787101200000,"createdAt":1787101200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["de quy","quy hoach dong","đáp án"]},{"id":"d24","slug":"ghi-chu-on-tap-ky-thuat-lap-trinh-42nc","title":"Ghi chú ôn tập Kỹ thuật lập trình","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3040","term":"20231","pages":5,"sizeKb":1716,"kind":"PDF","downloads":1020,"views":3105,"ratingCount":25,"ratingSum":106,"publishedAt":1786928400000,"createdAt":1786928400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["de quy","quy hoach dong"]},{"id":"d25","slug":"bai-giai-bai-tap-nguyen-ly-he-dieu-hanh-48rb","title":"Bài giải bài tập Nguyên lý hệ điều hành","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3070","term":"20241","pages":5,"sizeKb":979,"kind":"PDF","downloads":1026,"views":3277,"ratingCount":5,"ratingSum":22,"publishedAt":1783731600000,"createdAt":1783731600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["tien trinh","dong bo hoa"]},{"id":"d26","slug":"de-cuong-hoc-phan-nguyen-ly-he-dieu-hanh-4eva","title":"Đề cương học phần Nguyên lý hệ điều hành","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3070","term":"20241","pages":3,"sizeKb":1273,"kind":"PDF","downloads":2141,"views":6450,"ratingCount":13,"ratingSum":47,"publishedAt":1785718800000,"createdAt":1785718800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["tien trinh","dong bo hoa"]},{"id":"d27","slug":"de-cuong-hoc-phan-mang-may-tinh-4kz9","title":"Đề cương học phần Mạng máy tính","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3080","term":"20242","pages":5,"sizeKb":1363,"kind":"PDF","downloads":1299,"views":3919,"ratingCount":12,"ratingSum":57,"publishedAt":1786323600000,"createdAt":1786323600000,"uploader":"Nguyễn Thu Hà","anonymous":true,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d28","slug":"bai-giai-bai-tap-mang-may-tinh-4r38","title":"Bài giải bài tập Mạng máy tính","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3080","term":"20242","pages":3,"sizeKb":2223,"kind":"PDF","downloads":2220,"views":6689,"ratingCount":9,"ratingSum":37,"publishedAt":1791075600000,"createdAt":1791075600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d29","slug":"slide-mang-may-tinh-chuong-3-4x77","title":"Slide Mạng máy tính chương 3","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT3080","term":"20251","pages":5,"sizeKb":959,"kind":"PDF","downloads":576,"views":1773,"ratingCount":48,"ratingSum":213,"publishedAt":1791421200000,"createdAt":1791421200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d30","slug":"de-giua-ky-mang-may-tinh-ky-20251-53b6","title":"Đề giữa kỳ Mạng máy tính kỳ 20251","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"IT3080","term":"20251","pages":5,"sizeKb":235,"kind":"PDF","downloads":1996,"views":5989,"ratingCount":26,"ratingSum":107,"publishedAt":1791853200000,"createdAt":1791853200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d31","slug":"de-thi-cuoi-ky-co-so-du-lieu-ky-20232-co-dap-an-59f5","title":"Đề thi cuối kỳ Cơ sở dữ liệu kỳ 20232, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT3090","term":"20232","pages":4,"sizeKb":2406,"kind":"PDF","downloads":1416,"views":4378,"ratingCount":58,"ratingSum":277,"publishedAt":1787446800000,"createdAt":1787446800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["SQL","chuan hoa","đáp án"]},{"id":"d32","slug":"de-cuong-hoc-phan-co-so-du-lieu-5fj4","title":"Đề cương học phần Cơ sở dữ liệu","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3090","term":"20241","pages":4,"sizeKb":573,"kind":"PDF","downloads":1142,"views":3543,"ratingCount":9,"ratingSum":32,"publishedAt":1791075600000,"createdAt":1791075600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["SQL","chuan hoa"]},{"id":"d33","slug":"bai-giai-bai-tap-lap-trinh-huong-doi-tuong-5ln3","title":"Bài giải bài tập Lập trình hướng đối tượng","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3100","term":"20242","pages":4,"sizeKb":1294,"kind":"PDF","downloads":1210,"views":3778,"ratingCount":49,"ratingSum":186,"publishedAt":1789088400000,"createdAt":1789088400000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["ke thua","da hinh"]},{"id":"d34","slug":"slide-lap-trinh-huong-doi-tuong-chuong-2-5rr2","title":"Slide Lập trình hướng đối tượng chương 2","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT3100","term":"20231","pages":5,"sizeKb":533,"kind":"PDF","downloads":925,"views":2856,"ratingCount":55,"ratingSum":195,"publishedAt":1789174800000,"createdAt":1789174800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ke thua","da hinh"]},{"id":"d35","slug":"ghi-chu-on-tap-lap-trinh-huong-doi-tuong-5xv1","title":"Ghi chú ôn tập Lập trình hướng đối tượng","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3100","term":"20231","pages":4,"sizeKb":2374,"kind":"PDF","downloads":2437,"views":7504,"ratingCount":28,"ratingSum":99,"publishedAt":1790730000000,"createdAt":1790730000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ke thua","da hinh"]},{"id":"d36","slug":"bai-giai-bai-tap-tin-hieu-va-he-thong-63z0","title":"Bài giải bài tập Tín hiệu và hệ thống","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"EE2000","term":"20232","pages":4,"sizeKb":1355,"kind":"PDF","downloads":1972,"views":5985,"ratingCount":59,"ratingSum":240,"publishedAt":1790038800000,"createdAt":1790038800000,"uploader":"Trần Đức Anh","anonymous":true,"tags":["bien doi Fourier","tich chap"]},{"id":"d37","slug":"slide-tin-hieu-va-he-thong-chuong-2-6a2z","title":"Slide Tín hiệu và hệ thống chương 2","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"EE2000","term":"20242","pages":5,"sizeKb":2044,"kind":"PDF","downloads":1012,"views":3061,"ratingCount":59,"ratingSum":274,"publishedAt":1787274000000,"createdAt":1787274000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["bien doi Fourier","tich chap"]},{"id":"d38","slug":"bai-giai-bai-tap-ly-thuyet-mach-dien-i-6g6y","title":"Bài giải bài tập Lý thuyết mạch điện I","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"EE2020","term":"20242","pages":5,"sizeKb":2549,"kind":"PDF","downloads":396,"views":1354,"ratingCount":29,"ratingSum":100,"publishedAt":1791421200000,"createdAt":1791421200000,"uploader":"Sinh viên Demo","anonymous":true,"tags":["dinh luat Kirchhoff","mach RLC"]},{"id":"d39","slug":"slide-ly-thuyet-mach-dien-i-chuong-2-6max","title":"Slide Lý thuyết mạch điện I chương 2","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"EE2020","term":"20251","pages":5,"sizeKb":1422,"kind":"PDF","downloads":2120,"views":6529,"ratingCount":27,"ratingSum":123,"publishedAt":1784163600000,"createdAt":1784163600000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["dinh luat Kirchhoff","mach RLC"]},{"id":"d40","slug":"de-cuong-hoc-phan-ly-thuyet-mach-dien-i-6sew","title":"Đề cương học phần Lý thuyết mạch điện I","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"EE2020","term":"20242","pages":4,"sizeKb":1800,"kind":"PDF","downloads":474,"views":1523,"ratingCount":26,"ratingSum":95,"publishedAt":1782954000000,"createdAt":1782954000000,"uploader":"Sinh viên Demo","anonymous":true,"tags":["dinh luat Kirchhoff","mach RLC"]},{"id":"d41","slug":"de-giua-ky-ly-thuyet-mach-dien-i-ky-20231-6yiv","title":"Đề giữa kỳ Lý thuyết mạch điện I kỳ 20231","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"EE2020","term":"20231","pages":3,"sizeKb":1939,"kind":"PDF","downloads":278,"views":854,"ratingCount":12,"ratingSum":54,"publishedAt":1783990800000,"createdAt":1783990800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dinh luat Kirchhoff","mach RLC"]},{"id":"d42","slug":"bai-giai-bai-tap-do-hoa-ky-thuat-co-ban-74mu","title":"Bài giải bài tập Đồ họa kỹ thuật cơ bản","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"ME2015","term":"20232","pages":3,"sizeKb":2516,"kind":"PDF","downloads":620,"views":2016,"ratingCount":8,"ratingSum":39,"publishedAt":1789434000000,"createdAt":1789434000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hinh chieu","khung ten"]},{"id":"d43","slug":"de-giua-ky-do-hoa-ky-thuat-co-ban-ky-20232-7aqt","title":"Đề giữa kỳ Đồ họa kỹ thuật cơ bản kỳ 20232","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"ME2015","term":"20232","pages":4,"sizeKb":1448,"kind":"PDF","downloads":304,"views":1098,"ratingCount":11,"ratingSum":52,"publishedAt":1783040400000,"createdAt":1783040400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hinh chieu","khung ten"]},{"id":"d44","slug":"ghi-chu-on-tap-do-hoa-ky-thuat-co-ban-7gus","title":"Ghi chú ôn tập Đồ họa kỹ thuật cơ bản","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"ME2015","term":"20251","pages":4,"sizeKb":1602,"kind":"PDF","downloads":1870,"views":5800,"ratingCount":21,"ratingSum":91,"publishedAt":1791680400000,"createdAt":1791680400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hinh chieu","khung ten"]},{"id":"d45","slug":"bai-giai-bai-tap-hoa-hoc-dai-cuong-7myr","title":"Bài giải bài tập Hóa học đại cương","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"CH1012","term":"20232","pages":4,"sizeKb":407,"kind":"PDF","downloads":1338,"views":4203,"ratingCount":37,"ratingSum":164,"publishedAt":1790816400000,"createdAt":1790816400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["cau tao nguyen tu","lien ket hoa hoc"]},{"id":"d46","slug":"slide-hoa-hoc-dai-cuong-chuong-2-7t2q","title":"Slide Hóa học đại cương chương 2","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"CH1012","term":"20242","pages":4,"sizeKb":1080,"kind":"PDF","downloads":1017,"views":3239,"ratingCount":39,"ratingSum":144,"publishedAt":1792026000000,"createdAt":1792026000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["cau tao nguyen tu","lien ket hoa hoc"]},{"id":"d47","slug":"de-cuong-hoc-phan-hoa-hoc-dai-cuong-7z6p","title":"Đề cương học phần Hóa học đại cương","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"CH1012","term":"20232","pages":3,"sizeKb":2094,"kind":"PDF","downloads":1416,"views":4301,"ratingCount":57,"ratingSum":237,"publishedAt":1791421200000,"createdAt":1791421200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["cau tao nguyen tu","lien ket hoa hoc"]},{"id":"d48","slug":"slide-quan-tri-hoc-dai-cuong-chuong-1-85ao","title":"Slide Quản trị học đại cương chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"EM1010","term":"20241","pages":4,"sizeKb":373,"kind":"PDF","downloads":1376,"views":4326,"ratingCount":56,"ratingSum":199,"publishedAt":1785546000000,"createdAt":1785546000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hoach dinh","to chuc"]},{"id":"d49","slug":"ghi-chu-on-tap-quan-tri-hoc-dai-cuong-8ben","title":"Ghi chú ôn tập Quản trị học đại cương","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"EM1010","term":"20232","pages":3,"sizeKb":689,"kind":"PDF","downloads":1263,"views":3834,"ratingCount":3,"ratingSum":11,"publishedAt":1791507600000,"createdAt":1791507600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hoach dinh","to chuc"]},{"id":"d50","slug":"de-thi-cuoi-ky-quan-tri-hoc-dai-cuong-ky-20232-co-dap-an-8him","title":"Đề thi cuối kỳ Quản trị học đại cương kỳ 20232, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"EM1010","term":"20232","pages":4,"sizeKb":651,"kind":"PDF","downloads":1862,"views":5684,"ratingCount":22,"ratingSum":92,"publishedAt":1791939600000,"createdAt":1791939600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hoach dinh","to chuc","đáp án"]},{"id":"d51","slug":"de-cuong-hoc-phan-triet-hoc-mac-lenin-8nml","title":"Đề cương học phần Triết học Mác - Lênin","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"SSH1111","term":"20242","pages":4,"sizeKb":593,"kind":"PDF","downloads":864,"views":2639,"ratingCount":42,"ratingSum":188,"publishedAt":1792112400000,"createdAt":1792112400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["phep bien chung","vat chat va y thuc"]},{"id":"d52","slug":"ghi-chu-on-tap-triet-hoc-mac-lenin-8tqk","title":"Ghi chú ôn tập Triết học Mác - Lênin","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"SSH1111","term":"20231","pages":3,"sizeKb":1285,"kind":"PDF","downloads":1318,"views":3972,"ratingCount":58,"ratingSum":248,"publishedAt":1783213200000,"createdAt":1783213200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["phep bien chung","vat chat va y thuc"]},{"id":"d53","slug":"bai-giai-bai-tap-triet-hoc-mac-lenin-8zuj","title":"Bài giải bài tập Triết học Mác - Lênin","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"SSH1111","term":"20241","pages":5,"sizeKb":2030,"kind":"PDF","downloads":1043,"views":3274,"ratingCount":9,"ratingSum":42,"publishedAt":1787965200000,"createdAt":1787965200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["phep bien chung","vat chat va y thuc"]}],"bannedWords":["cá độ","lô đề","cờ bạc online","vay nóng"],"generatedAt":"2026-10-24T09:45:39.662Z"};
+
+/* ===================== Tiện ích ===================== */
+const TYPES = {EXAM_FINAL:"Đề cuối kỳ",EXAM_MIDTERM:"Đề giữa kỳ",SLIDE:"Slide",SOLUTION:"Bài giải",TEXTBOOK:"Giáo trình",SYLLABUS:"Đề cương",NOTES:"Ghi chú",OTHER:"Khác"};
+const STATUS = {PROCESSING:"Đang kiểm tra",PENDING_REVIEW:"Chờ duyệt",CHANGES_REQUESTED:"Cần sửa",APPROVED:"Đã duyệt",REJECTED:"Bị từ chối",REMOVED:"Đã gỡ"};
+const REPORT_REASONS = {COPYRIGHT:"Vi phạm bản quyền",WRONG_CATEGORY:"Sai học phần hoặc loại",LOW_QUALITY:"Chất lượng kém",SPAM:"Spam, quảng cáo",INAPPROPRIATE:"Nội dung không phù hợp",MALWARE:"Nghi có mã độc",OTHER:"Khác"};
+const REVIEW_TEMPLATES = ["Sai học phần hoặc sai loại tài liệu","File mờ, thiếu trang hoặc không đọc được","Trùng với tài liệu đã có","Vi phạm bản quyền","Nội dung không phù hợp hoặc quảng cáo","Tiêu đề, mô tả chưa đúng nội dung"];
+const DOMAINS = ["sis.hust.edu.vn","hust.edu.vn"];
+const DAILY_LIMIT = [3,10,30,50];
+const ALLOWED_EXT = {pdf:"PDF",docx:"DOCX",pptx:"PPTX",xlsx:"XLSX",jpg:"IMAGE",jpeg:"IMAGE",png:"IMAGE",webp:"IMAGE",zip:"ZIP"};
+const GUEST_PAGES = 3;
+
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function norm(s){return String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").toLowerCase().replace(/\s+/g," ").trim()}
+function slugify(s){return norm(s).replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,70)||"tai-lieu"}
+function fmtCount(n){if(n<1000)return String(n);const v=Math.floor(n/100)/10;return (Number.isInteger(v)?String(v):v.toFixed(1)).replace(".",",")+"k"}
+function fmtDate(t){return new Intl.DateTimeFormat("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric"}).format(new Date(t))}
+function fmtTime(t){return new Intl.DateTimeFormat("vi-VN",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}).format(new Date(t))}
+function fmtSize(kb){return kb<1024?`${Math.max(1,Math.round(kb))} KB`:`${(kb/1024).toFixed(1).replace(".",",")} MB`}
+function initials(n){const w=String(n).trim().split(/\s+/);return ((w[0]||"?")[0]+(w.length>1?w[w.length-1][0]:"")).toUpperCase()}
+function uid(){return Math.random().toString(36).slice(2,10)}
+function rating(d){return d.ratingCount?`${(d.ratingSum/d.ratingCount).toFixed(1).replace(".",",")}/5`:"–"}
+function currentTerm(){const n=new Date(),m=n.getMonth()+1,y=n.getFullYear();if(m>=9)return`${y}1`;if(m===1)return`${y-1}1`;if(m<=6)return`${y-1}2`;return`${y-1}3`}
+function recentTerms(c=12){const out=[];let t=currentTerm();for(let i=0;i<c;i++){out.push(t);const y=+t.slice(0,4),s=+t.slice(4);t=s===1?`${y-1}3`:`${y}${s-1}`}return out}
+function vnDay(t=Date.now()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Ho_Chi_Minh"}).format(new Date(t))}
+
+/** Tô từ khoá khớp (không phân biệt dấu, chỉ khớp đầu từ). */
+function highlight(text, terms){
+  text=String(text??"");
+  if(!terms.length)return esc(text);
+  const chars=Array.from(text);
+  const folded=chars.map((c)=>{const f=norm(c);return f.length===1?f:f.length===0?" ":c.toLowerCase()}).join("");
+  const marks=new Array(chars.length).fill(false);
+  for(const term of terms){let from=0;while(true){const i=folded.indexOf(term,from);if(i<0)break;const b=i===0?" ":folded[i-1];if(!/[a-z0-9]/.test(b))for(let k=i;k<i+term.length;k++)marks[k]=true;from=i+1}}
+  let out="",on=false;
+  chars.forEach((c,i)=>{if(marks[i]!==on){out+=marks[i]?"<mark>":"</mark>";on=marks[i]}out+=esc(c)});
+  return out+(on?"</mark>":"");
+}
+
+/* ===================== Dữ liệu và lưu trữ ===================== */
+const KEY="khotl-demo-v1";
+function seedState(){
+  const users=[
+    {email:"sv.demo@sis.hust.edu.vn",name:"Sinh viên Demo",username:"sv.demo",faculty:"SOICT",cohort:68,roles:[{key:"STUDENT"}],reputation:600,approved:DATA.documents.filter(d=>d.uploader==="Sinh viên Demo").length,trust:2,createdAt:Date.now()},
+    {email:"kdv.demo@hust.edu.vn",name:"Kiểm duyệt viên Demo",username:"kdv.demo",faculty:"SOICT",cohort:68,roles:[{key:"STUDENT"},{key:"MODERATOR",faculty:null}],reputation:0,approved:0,trust:2,createdAt:Date.now()},
+    {email:"admin.demo@hust.edu.vn",name:"Quản trị Demo",username:"admin.demo",faculty:"SOICT",cohort:68,roles:[{key:"STUDENT"},{key:"ADMIN",faculty:null}],reputation:0,approved:0,trust:2,createdAt:Date.now()},
+  ];
+  for(const name of ["Lê Minh Quân","Nguyễn Thu Hà","Trần Đức Anh","Phạm Ngọc Mai"]){
+    const u=slugify(name).replace(/-/g,".");
+    users.push({email:`${u}@sis.hust.edu.vn`,name,username:u,faculty:"SOICT",cohort:67,roles:[{key:"STUDENT"}],reputation:0,approved:DATA.documents.filter(d=>d.uploader===name).length,trust:1,createdAt:Date.now()});
+  }
+  const byName=Object.fromEntries(users.map(u=>[u.name,u.email]));
+  const docs=DATA.documents.map(d=>({...d,uploader:byName[d.uploader]||"sv.demo@sis.hust.edu.vn",checks:{format:{s:"pass",d:"PDF, khớp đuôi file"},duplicate:{s:"pass",d:"Không có bản trùng SHA-256"},virus:{s:"pass",d:"ClamAV không phát hiện"},integrity:{s:"pass",d:`${d.pages} trang, mở được`},content:{s:"pass",d:"Điểm rủi ro 5/100"}},risk:5,logs:[{t:d.publishedAt,a:"APPROVE",by:"kdv.demo@hust.edu.vn"},{t:d.publishedAt-3600e3,a:"AUTO_CHECK_PASSED"}]}));
+  // Hai tài liệu đang chờ duyệt để thử hàng chờ kiểm duyệt ngay
+  const pending=[
+    {course:"IT3011",type:"EXAM_FINAL",term:"20251",title:"Đề thi cuối kỳ Cấu trúc dữ liệu và giải thuật kỳ 20251, có đáp án",uploader:"le.minh.quan@sis.hust.edu.vn",risk:8,desc:"Đề 2 ca thi, kèm đáp án chi tiết phần cây nhị phân và đồ thị."},
+    {course:"IT3080",type:"NOTES",term:"20251",title:"Tài liệu ôn thi tổng hợp Mạng máy tính (link tải thêm bên trong)",uploader:"tran.duc.anh@sis.hust.edu.vn",risk:62,desc:"Xem thêm tại bit.ly/abc, tinyurl.com/xyz ...",reasons:["14 liên kết ngoài","Có link rút gọn"]},
+  ];
+  for(const p of pending){const t=Date.now()-Math.floor(Math.random()*6+1)*3600e3;docs.push({id:"p"+uid(),slug:slugify(p.title)+"-"+uid().slice(0,4),title:p.title,description:p.desc,type:p.type,status:"PENDING_REVIEW",course:p.course,term:p.term,pages:4,sizeKb:1300,kind:"PDF",downloads:0,views:0,ratingCount:0,ratingSum:0,publishedAt:null,createdAt:t,uploader:p.uploader,anonymous:false,tags:[],risk:p.risk,checks:{format:{s:"pass",d:"PDF, khớp đuôi file"},duplicate:{s:"pass",d:"Không có bản trùng SHA-256"},virus:{s:"pass",d:"ClamAV không phát hiện"},integrity:{s:"pass",d:"4 trang, mở được"},content:{s:p.risk>=60?"warn":"pass",d:`Điểm rủi ro ${p.risk}/100`,reasons:p.reasons||[]}},logs:[{t:t+60e3,a:"AUTO_CHECK_PASSED"}]})}
+  return {v:1,users,docs,courses:DATA.courses.map(c=>({...c})),session:null,notifications:[],reports:[],audit:[],searches:[]};
+}
+let S;
+function load(){try{const raw=localStorage.getItem(KEY);S=raw?JSON.parse(raw):seedState()}catch{S=seedState()}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch{}}
+load();
+
+/* File tải lên lưu trong IndexedDB của trình duyệt (để xem lại sau khi tải lại trang) */
+const fileDB={db:null,
+  open(){return this.db||(this.db=new Promise((ok,err)=>{try{const r=indexedDB.open("khotl-demo-files",1);r.onupgradeneeded=()=>r.result.createObjectStore("files");r.onsuccess=()=>ok(r.result);r.onerror=()=>err(r.error)}catch(e){err(e)}}))},
+  async put(k,v){try{const db=await this.open();await new Promise((ok,err)=>{const tx=db.transaction("files","readwrite");tx.objectStore("files").put(v,k);tx.oncomplete=ok;tx.onerror=()=>err(tx.error)})}catch{}},
+  async get(k){try{const db=await this.open();return await new Promise((ok)=>{const r=db.transaction("files").objectStore("files").get(k);r.onsuccess=()=>ok(r.result);r.onerror=()=>ok(null)})}catch{return null}},
+  async clear(){try{const db=await this.open();db.transaction("files","readwrite").objectStore("files").clear()}catch{}}};
+
+const faculty=(code)=>DATA.faculties.find(f=>f.code===code);
+const course=(code)=>S.courses.find(c=>c.code===code);
+const userBy=(email)=>S.users.find(u=>u.email===email);
+const me=()=>S.session?userBy(S.session):null;
+const hasRole=(u,k)=>!!u&&u.roles.some(r=>r.key===k);
+const isMod=(u)=>hasRole(u,"MODERATOR")||hasRole(u,"ADMIN");
+const isAdmin=(u)=>hasRole(u,"ADMIN");
+function modScope(u){if(!u)return[];if(u.roles.some(r=>(r.key==="MODERATOR"||r.key==="ADMIN")&&!r.faculty))return null;return u.roles.filter(r=>r.key==="MODERATOR"&&r.faculty).map(r=>r.faculty)}
+function canModerate(u,doc){const s=modScope(u);if(s===null)return isMod(u);return s.includes(course(doc.course)?.faculty)}
+const publicDocs=()=>S.docs.filter(d=>d.status==="APPROVED");
+const displayName=(u)=>u?(u.displayName||u.name):"";
+function trustFrom(approved,violations){if(violations>=3)return 0;if(approved>=30&&violations===0)return 3;if(approved>=10)return 2;if(approved>=3)return 1;return 0}
+function notify(email,type,doc,extra={}){S.notifications.unshift({id:uid(),to:email,type,doc:doc?.id,title:doc?.title,link:extra.link,reason:extra.reason,t:Date.now(),read:false})}
+function docContent(doc){
+  const c=course(doc.course)||{keywords:[],name:"",code:""};const kw=c.keywords.length?c.keywords:["nội dung"];
+  const pages=[];for(let p=1;p<=doc.pages;p++){const lines=[];for(let i=0;i<16;i++){const k=kw[(i+p)%kw.length];lines.push(`Câu ${p}.${i+1}. Trình bày về ${k} và áp dụng vào bài tập ${c.code}.`)}pages.push(lines)}
+  return pages;
+}
+function courseDocCount(code){return publicDocs().filter(d=>d.course===code).length}
+
+/* ===================== Tìm kiếm tiếng Việt ===================== */
+function queryTerms(q){const pos=q.replace(/-"[^"]*"/g," ").replace(/(^|\s)-\S+/g," ");return [...new Set(norm(pos).replace(/"/g," ").split(" ").filter(t=>t&&t!=="or").map(t=>t.replace(/[^a-z0-9]/g,"")).filter(t=>t.length>=2))].sort((a,b)=>b.length-a.length)}
+function trigrams(s){const out=new Set();for(const w of norm(s).split(" ")){const p=`  ${w} `;for(let i=0;i<p.length-2;i++)out.add(p.slice(i,i+3))}return out}
+function wordSimilarity(q,text){const a=trigrams(q);if(!a.size)return 0;const words=norm(text).split(" ");const n=norm(q).split(" ").length;let best=0;for(let i=0;i<words.length;i++){const b=trigrams(words.slice(i,i+n).join(" "));let c=0;for(const t of a)if(b.has(t))c++;best=Math.max(best,c/a.size)}return best}
+function docIndex(d){const c=course(d.course)||{};return{A:norm(`${d.title} ${c.code} ${c.name}`).split(" "),B:norm(`${(d.tags||[]).join(" ")} ${d.description||""}`).split(" "),D:norm(docContent(d).flat().join(" ")).split(" ")}}
+/** Tìm theo tiền tố từng từ (gõ dở vẫn khớp), hỗ trợ "cụm từ" và -loại trừ; không có kết quả thì so gần đúng. */
+function searchDocs({q="",faculty:fac,course:cc,type,term,format,sort="relevance"}){
+  let pool=publicDocs().filter(d=>(!fac||course(d.course)?.faculty===fac)&&(!cc||d.course===cc)&&(!type||d.type===type)&&(!term||d.term===term)&&(!format||d.kind===format));
+  const text=q.trim();let fuzzy=false;let scored;
+  if(text){
+    const phrases=[...text.matchAll(/(-?)"([^"]+)"/g)].map(m=>({neg:!!m[1],p:norm(m[2])}));
+    const rest=text.replace(/-?"[^"]+"/g," ");
+    const neg=[...rest.matchAll(/(?:^|\s)-(\S+)/g)].map(m=>norm(m[1]));
+    const toks=norm(rest.replace(/(?:^|\s)-\S+/g," ")).split(" ").map(t=>t.replace(/[^a-z0-9]/g,"")).filter(Boolean);
+    scored=[];
+    for(const d of pool){const ix=docIndex(d);const all=[...ix.A,...ix.B,...ix.D];const joined=all.join(" ");
+      if(neg.some(n=>all.some(w=>w.startsWith(n))))continue;
+      if(phrases.some(p=>p.neg?joined.includes(p.p):!joined.includes(p.p)))continue;
+      let score=0,ok=true;
+      for(const t of toks){const a=ix.A.some(w=>w.startsWith(t)),b=ix.B.some(w=>w.startsWith(t)),dd=ix.D.some(w=>w.startsWith(t));if(!a&&!b&&!dd){ok=false;break}score+=(a?3:0)+(b?1.5:0)+(dd?.5:0)}
+      if(!ok)continue;if(d.title.toLowerCase().includes(text.toLowerCase()))score+=2;scored.push({d,score})}
+    if(!scored.length){fuzzy=true;scored=pool.map(d=>({d,score:wordSimilarity(text,d.title)})).filter(x=>x.score>=.45)}
+  }else scored=pool.map(d=>({d,score:0}));
+  const by={relevance:(a,b)=>b.score-a.score||(b.d.publishedAt||0)-(a.d.publishedAt||0),newest:(a,b)=>(b.d.publishedAt||0)-(a.d.publishedAt||0),popular:(a,b)=>b.d.downloads-a.d.downloads,rating:(a,b)=>(b.d.ratingCount?b.d.ratingSum/b.d.ratingCount:0)-(a.d.ratingCount?a.d.ratingSum/a.d.ratingCount:0)};
+  scored.sort(text||sort!=="relevance"?by[sort]:by.newest);
+  return {hits:scored.map(x=>x.d),fuzzy,terms:queryTerms(text)};
+}
+function searchCourses(q,limit=4){const t=norm(q),code=t.replace(/\s/g,"");if(!t)return[];const toks=t.split(" ");
+  return S.courses.map(c=>{const n=norm(c.name).split(" ");let s=0;if(c.code.toLowerCase()===code)s=10;else if(c.code.toLowerCase().startsWith(code))s=6;else if(toks.every(k=>n.some(w=>w.startsWith(k))))s=4;else if(wordSimilarity(q,c.name)>=.5)s=2;return{c,s}}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||courseDocCount(b.c.code)-courseDocCount(a.c.code)).slice(0,limit).map(x=>x.c)}
+function snippet(d,terms){if(!terms.length)return"";const text=docContent(d).flat().join(" ");const f=norm(text);const i=f.indexOf(terms[0]);if(i<0)return"";const s=Math.max(0,i-70);return text.slice(s,s+200)}
+
+/* ===================== Giao diện chung ===================== */
+const icon={
+ search:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+ bell:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21h3.4"/></svg>',
+ home:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>',
+ plus:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg>',
+ grid:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 3h8v8H3zM13 3h8v8h-8zM3 13h8v8H3zM13 13h8v8h-8z"/></svg>',
+ user:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>',
+ moon:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
+ sun:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+ down:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3v12M6 10l6 6 6-6M4 21h16"/></svg>',
+ file:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>',
+};
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>{t.hidden=true},3200)}
+function go(hash){if(location.hash===hash)render();else location.hash=hash}
+function currentPath(){return (location.hash.slice(1)||"/").split("?")[0]}
+function params(){return new URLSearchParams((location.hash.split("?")[1])||"")}
+function isDark(){try{const v=localStorage.getItem("khotl-theme");if(v)return v==="dark"}catch{}return matchMedia("(prefers-color-scheme: dark)").matches}
+function applyTheme(){document.documentElement.classList.toggle("dark",isDark())}
+applyTheme();
+
+function renderHeader(){
+  const u=me(),path=currentPath(),unread=u?S.notifications.filter(n=>n.to===u.email&&!n.read).length:0;
+  const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
+  document.getElementById("header").innerHTML=`<div class="wrap">
+   <a class="logo" href="#/"><span class="mark" aria-hidden="true"><span></span><span><span></span><i></i></span></span><b>Kho tài liệu HUST</b></a>
+   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/vien"${cur("/vien")}>Viện</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
+   <div class="tools">
+    <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>
+    <button class="icon-btn" type="button" data-action="theme" aria-label="${isDark()?"Chuyển sang nền sáng":"Chuyển sang nền tối"}">${isDark()?icon.sun:icon.moon}</button>
+    ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
+    <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
+     <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
+      <a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
+    :`<a class="btn ghost sm" href="#/dang-nhap">Đăng nhập</a>`}
+   </div></div>`;
+  document.getElementById("bottomnav").innerHTML=`<a href="#/"${cur("/",true)}>${icon.home}Trang chủ</a><a href="#/tim-kiem"${cur("/tim-kiem")}>${icon.search}Tìm kiếm</a><a class="up" href="#/tai-len">${icon.plus}Tải lên</a><a href="#/vien"${cur("/vien")}>${icon.grid}Viện</a><a href="${u?"#/tai-lieu-cua-toi":"#/dang-nhap"}"${cur(u?"/tai-lieu-cua-toi":"/dang-nhap")}>${icon.user}${u?"Cá nhân":"Đăng nhập"}</a>`;
+}
+
+function docRow(d,terms=[],opts={}){
+  const c=course(d.course);const showCC=opts.course!==false;const snip=opts.snippet?snippet(d,terms):"";
+  return `<a class="doc tb${showCC?"":" nocc"}" href="#/tai-lieu/${esc(d.slug)}">
+   <span class="title"><span class="t">${highlight(d.title,terms)}</span>${snip?`<span class="snip">…${highlight(snip,terms)}…</span>`:""}</span>
+   ${showCC?`<span class="cell cc"><span class="l">Mã HP</span><span class="v">${highlight(c?.code||d.course,terms)}</span></span>`:""}
+   <span class="cell"><span class="l">Loại</span><span class="v">${TYPES[d.type]}</span></span>
+   <span class="cell"><span class="l">Kỳ</span><span class="v">${esc(d.term||"–")}</span></span>
+   <span class="cell opt"><span class="l">Tệp</span><span class="v">${esc(d.kind)}${d.pages?`, ${d.pages} trang`:""}</span></span>
+   <span class="cell last"><span class="l">Điểm</span><span class="v">${rating(d)}</span></span></a>`;
+}
+function searchBox(value="",extra={}){return `<form class="searchbox" role="search" data-form="search">
+  ${Object.entries(extra).filter(([,v])=>v).map(([k,v])=>`<input type="hidden" name="${k}" value="${esc(v)}">`).join("")}
+  <div class="bar"><label>${icon.search}<span class="sr">Tìm tài liệu</span><input type="search" name="q" value="${esc(value)}" placeholder="Mã học phần hoặc tên tài liệu" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list"></label><button type="submit">Tìm</button></div>
+  <div class="sugg" id="sugg" role="listbox" hidden></div></form>`}
+function pageHead(title,kicker="",extra=""){return `<section class="page-head gridpaper"><div class="wrap">${kicker?`<p class="small muted" style="margin:0">${kicker}</p>`:""}<h1>${title}</h1>${extra}</div></section>`}
+function empty(t,sub=""){return `<div class="empty"><p class="head" style="margin:0">${t}</p>${sub?`<div class="small muted" style="margin-top:8px">${sub}</div>`:""}</div>`}
+function needLogin(next){go(`#/dang-nhap?next=${encodeURIComponent(next)}`);return {html:""}}
+
+/* ===================== Các trang ===================== */
+const views={};
+
+views["/"]=()=>{
+  const u=me();const docs=publicDocs();
+  const latest=[...docs].sort((a,b)=>b.publishedAt-a.publishedAt).slice(0,5);
+  const fac=u&&faculty(u.faculty);
+  const mine=fac?[...docs].filter(d=>course(d.course)?.faculty===fac.code).sort((a,b)=>b.publishedAt-a.publishedAt).slice(0,3):[];
+  const top=[...S.courses].map(c=>({c,n:courseDocCount(c.code)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n||a.c.code.localeCompare(b.c.code)).slice(0,8);
+  const most=[...docs].sort((a,b)=>b.downloads-a.downloads).slice(0,5);
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--ink)"><div class="wrap hero" style="padding-block:24px 32px">
+   <div class="stack" style="gap:16px"><p class="small muted" style="margin:0">${u?`Chào ${esc(displayName(u))}${u.cohort&&fac?`, K${u.cohort} ${esc(fac.shortName)}`:""}`:"Tài liệu học tập do sinh viên Bách khoa chia sẻ, đã qua kiểm duyệt."}</p>
+    <h1>Hôm nay ôn môn gì?</h1>${searchBox()}<p class="small muted" style="margin:0">Gõ mã học phần (IT3011) hoặc tên tài liệu, không dấu cũng được.</p></div>
+   <dl class="tb" style="grid-template-columns:repeat(3,1fr);margin:0">${[["Tài liệu đã duyệt",docs.length],["Học phần",S.courses.length],["Viện, Trường",DATA.faculties.length]].map(([l,v])=>`<div class="cell" style="flex-direction:column-reverse"><dt class="tiny muted">${l}</dt><dd class="code" style="margin:0;font-size:36px;line-height:1">${fmtCount(v)}</dd></div>`).join("")}</dl>
+  </div></section>
+  <div class="wrap home-grid" style="padding-block:32px">
+   <div class="stack" style="gap:32px">
+    ${mine.length?`<section class="stack"><div class="sechead"><h2 class="h2">Mới ở ${esc(fac.shortName)}</h2><a href="#/tim-kiem?sort=newest&faculty=${fac.code}">Xem thêm</a></div>${mine.map(d=>docRow(d)).join("")}</section>`:""}
+    <section class="stack"><div class="sechead"><h2 class="h2">Mới duyệt</h2><a href="#/tim-kiem?sort=newest">Xem thêm</a></div>${latest.map(d=>docRow(d)).join("")||empty("Chưa có tài liệu nào được duyệt.")}</section>
+   </div>
+   <div class="stack" style="gap:32px">
+    <section class="stack"><div class="sechead"><h2 class="h2">Học phần nhiều tài liệu</h2><a href="#/vien">Tất cả Viện</a></div>
+     <div class="tb" style="grid-template-columns:repeat(2,1fr)">${top.map(({c,n})=>`<a href="#/hoc-phan/${c.code}" style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding:10px 12px;background:var(--paper);text-decoration:none"><span style="display:flex;flex-direction:column;min-width:0"><span class="code" style="font-size:22px;line-height:1">${c.code}</span><span class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span></span><span class="tiny muted">${n}</span></a>`).join("")}</div>
+     <p class="tiny muted" style="margin:0">Số bên phải là số tài liệu đã duyệt của học phần.</p></section>
+    <section class="stack"><h2 class="h2">Được tải nhiều</h2><table class="t"><thead><tr><th style="width:48px">Hạng</th><th>Tài liệu</th><th class="num" style="width:80px">Lượt tải</th></tr></thead><tbody>
+     ${most.map((d,i)=>`<tr><td class="code" style="font-size:26px;line-height:1;text-align:center">${i+1}</td><td><a href="#/tai-lieu/${esc(d.slug)}" style="display:flex;flex-direction:column;text-decoration:none"><b style="font-weight:600">${esc(d.title)}</b><span class="head small muted">${d.course}</span></a></td><td class="num"><b>${fmtCount(d.downloads)}</b></td></tr>`).join("")}</tbody></table></section>
+   </div></div>`};
+};
+
+views["/tim-kiem"]=()=>{
+  const p=params();const q={q:p.get("q")||"",faculty:p.get("faculty")||"",course:p.get("course")||"",type:p.get("type")||"",term:p.get("term")||"",format:p.get("format")||"",sort:p.get("sort")||"relevance"};
+  const r=searchDocs(q);const courses=q.q?searchCourses(q.q):[];
+  const u=me();if(u&&q.q){S.searches.unshift({by:u.email,q:q.q,n:r.hits.length,t:Date.now()});S.searches=S.searches.slice(0,50);save()}
+  const per=20,page=Math.max(1,+(p.get("page")||1)),pages=Math.max(1,Math.ceil(r.hits.length/per));
+  const opt=(v,l,sel)=>`<option value="${v}"${v===sel?" selected":""}>${esc(l)}</option>`;
+  const link=(pg)=>{const n=new URLSearchParams(p);pg>1?n.set("page",pg):n.delete("page");return "#/tim-kiem?"+n.toString()};
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--ink)"><div class="wrap stack" style="padding-block:20px"><h1 class="sr">Tìm kiếm</h1>
+   ${searchBox(q.q,{course:q.course})}
+   <form class="filters" data-form="filters">
+    <label>Viện<select class="select" name="faculty">${opt("","Tất cả",q.faculty)}${DATA.faculties.map(f=>opt(f.code,f.shortName,q.faculty)).join("")}</select></label>
+    <label>Loại<select class="select" name="type">${opt("","Tất cả",q.type)}${Object.entries(TYPES).map(([k,v])=>opt(k,v,q.type)).join("")}</select></label>
+    <label>Kỳ<select class="select" name="term">${opt("","Tất cả",q.term)}${recentTerms(12).map(t=>opt(t,t,q.term)).join("")}</select></label>
+    <label>Định dạng<select class="select" name="format">${opt("","Tất cả",q.format)}${["PDF","DOCX","PPTX","XLSX","IMAGE","ZIP"].map(k=>opt(k,k==="IMAGE"?"Ảnh":k,q.format)).join("")}</select></label>
+    <label>Sắp xếp<select class="select" name="sort">${opt("relevance","Liên quan nhất",q.sort)}${opt("newest","Mới nhất",q.sort)}${opt("popular","Tải nhiều",q.sort)}${opt("rating","Điểm cao",q.sort)}</select></label>
+    <div class="row" style="align-items:flex-end"><button class="btn ink sm" style="height:40px;flex:1" type="submit">Lọc</button>${q.faculty||q.type||q.term||q.format||q.course?`<a class="small" style="font-weight:600" href="#/tim-kiem${q.q?`?q=${encodeURIComponent(q.q)}`:""}">Bỏ lọc</a>`:""}</div>
+   </form></div></section>
+  <div class="wrap stack" style="padding-block:24px;gap:24px">
+   ${courses.length?`<section class="stack" style="gap:8px"><h2 class="h2">Học phần</h2><div class="tb" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">${courses.map(c=>`<a href="#/hoc-phan/${c.code}" style="display:flex;flex-direction:column;padding:10px 12px;text-decoration:none"><span class="code" style="font-size:24px;line-height:1">${highlight(c.code,r.terms)}</span><span class="small">${highlight(c.name,r.terms)}</span><span class="tiny muted">${courseDocCount(c.code)} tài liệu</span></a>`).join("")}</div></section>`:""}
+   <section class="stack"><div class="sechead"><h2 class="h2">${q.q?`${r.hits.length} kết quả cho “${esc(q.q)}”`:`${r.hits.length} tài liệu`}</h2>${q.course?`<a href="#/hoc-phan/${esc(q.course)}">Trong học phần ${esc(q.course)}</a>`:""}</div>
+    ${r.fuzzy&&r.hits.length?`<p class="note red" style="margin:0">Không có kết quả khớp chính xác. Đây là các tài liệu có tiêu đề gần giống, có thể bạn gõ nhầm.</p>`:""}
+    ${r.hits.slice((page-1)*per,page*per).map(d=>docRow(d,r.terms,{snippet:true})).join("")||empty("Không tìm thấy tài liệu phù hợp.","Gõ không dấu vẫn tìm được, ví dụ “cau truc du lieu”.")}
+    ${pages>1?`<nav class="tabs" aria-label="Phân trang">${page>1?`<a href="${link(page-1)}">Trang trước</a>`:""}<a aria-current="page">Trang ${page}/${pages}</a>${page<pages?`<a href="${link(page+1)}">Trang sau</a>`:""}</nav>`:""}
+   </section>
+   <aside class="small muted" style="border-top:2px solid var(--ink);padding-top:16px"><b class="head" style="color:var(--ink)">Mẹo tìm kiếm</b><br>Gõ không dấu vẫn tìm được, ví dụ “cau truc du lieu”. Gõ dở từ cũng được (“giai ti”). Đặt cụm từ trong ngoặc kép để tìm đúng cụm, thêm dấu trừ để loại một từ: “giai tich -slide”. Gõ sai chính tả (“giai tihc”) vẫn có kết quả gần đúng.</aside>
+  </div>`};
+};
+
+views["/vien"]=()=>({html:pageHead("Viện, Trường và Khoa","Chọn đơn vị để xem danh sách học phần")+`<div class="wrap" style="padding-block:24px"><ul class="tb" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));list-style:none;margin:0;padding:0">
+ ${DATA.faculties.map(f=>{const cs=S.courses.filter(c=>c.faculty===f.code);const n=cs.reduce((s,c)=>s+courseDocCount(c.code),0);return `<li><a href="#/vien/${f.slug}" style="display:grid;grid-template-columns:1fr auto;gap:0 12px;padding:12px;text-decoration:none;height:100%"><span class="code" style="font-size:30px;line-height:1">${f.code}</span><span class="tiny muted" style="grid-row:span 2;align-self:end;text-align:right">${cs.length} học phần<br>${n} tài liệu</span><span class="small">${esc(f.name)}</span></a></li>`}).join("")}</ul></div>`});
+
+views["/vien/:slug"]=({slug})=>{
+  const f=DATA.faculties.find(x=>x.slug===slug);if(!f)return views.notfound();
+  const filter=norm(params().get("loc")||"");
+  const cs=S.courses.filter(c=>c.faculty===f.code&&(!filter||norm(`${c.code} ${c.name}`).includes(filter))).sort((a,b)=>courseDocCount(b.code)-courseDocCount(a.code)||a.code.localeCompare(b.code));
+  return {html:pageHead(esc(f.name),'<a href="#/vien">Viện, Trường và Khoa</a>',`<form class="row" data-form="loc" style="max-width:440px;flex-wrap:nowrap"><label for="loc" class="sr">Lọc học phần</label><input class="input" id="loc" name="loc" value="${esc(params().get("loc")||"")}" placeholder="Mã hoặc tên học phần"><button class="btn ink" type="submit">Lọc</button></form>`)+`<div class="wrap" style="padding-block:24px">${cs.length?`<div style="overflow-x:auto"><table class="t"><thead><tr><th style="width:110px">Mã HP</th><th>Học phần</th><th class="num" style="width:80px">Tín chỉ</th><th class="num" style="width:90px">Tài liệu</th></tr></thead><tbody>${cs.map(c=>`<tr><td><a class="code" style="font-size:20px;text-decoration:none" href="#/hoc-phan/${c.code}">${c.code}</a></td><td><a href="#/hoc-phan/${c.code}" style="text-decoration:none">${esc(c.name)}</a></td><td class="num">${c.credits??"–"}</td><td class="num"><b>${courseDocCount(c.code)}</b></td></tr>`).join("")}</tbody></table></div>`:empty("Không có học phần phù hợp.")}</div>`};
+};
+
+views["/hoc-phan/:code"]=({code})=>{
+  const c=course(code.toUpperCase());if(!c)return views.notfound();const f=faculty(c.faculty);const p=params();
+  const type=p.get("loai")||"",ky=p.get("ky")||"";const all=publicDocs().filter(d=>d.course===c.code);
+  const list=all.filter(d=>(!type||d.type===type)&&(!ky||d.term===ky)).sort((a,b)=>(b.term||"").localeCompare(a.term||"")||b.downloads-a.downloads);
+  const counts={};all.forEach(d=>counts[d.type]=(counts[d.type]||0)+1);const terms=[...new Set(all.map(d=>d.term).filter(Boolean))].sort().reverse();
+  const tab=(t)=>`#/hoc-phan/${c.code}${t||ky?"?"+new URLSearchParams({...(t?{loai:t}:{}),...(ky?{ky}:{})}).toString():""}`;
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--ink)"><div class="wrap stack" style="padding-block:24px;gap:16px">
+   <p class="small muted" style="margin:0"><a href="#/vien/${f.slug}">${esc(f.shortName)}</a></p>
+   <h1 style="display:flex;flex-direction:column"><span class="code" style="font-size:clamp(56px,9vw,76px);line-height:.9">${c.code}</span><span class="head" style="font-size:24px">${esc(c.name)}</span></h1>
+   <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Tín chỉ</span><span class="v">${c.credits??"–"}</span></div><div class="cell"><span class="l">Tài liệu</span><span class="v">${all.length}</span></div><div class="cell"><span class="l">Đơn vị</span><span class="v">${esc(f.shortName)}</span></div></div>
+   ${c.grading?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 4px">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--ink);color:var(--paper)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
+   <div><a class="btn primary" href="#/tai-len?hp=${c.code}">Đóng góp tài liệu cho học phần này</a></div></div></section>
+  <div class="wrap stack" style="padding-block:24px">
+   <h2 class="h2">Tài liệu theo loại</h2>
+   <nav class="tabs" aria-label="Tài liệu theo loại"><a href="${tab("")}"${!type?' aria-current="page"':""}>Tất cả <span class="tiny">${all.length}</span></a>${Object.keys(TYPES).filter(t=>counts[t]).map(t=>`<a href="${tab(t)}"${type===t?' aria-current="page"':""}>${TYPES[t]} <span class="tiny">${counts[t]}</span></a>`).join("")}</nav>
+   ${terms.length>1?`<form class="row" data-form="ky"><label for="ky" class="small muted">Kỳ</label><select class="select" id="ky" name="ky" style="width:auto;height:36px">${["",...terms].map(t=>`<option value="${t}"${t===ky?" selected":""}>${t||"Tất cả các kỳ"}</option>`).join("")}</select></form>`:""}
+   ${list.map(d=>docRow(d,[],{course:false})).join("")||empty("Học phần này chưa có tài liệu nào được duyệt.",`<a href="#/tai-len?hp=${c.code}"><b>Đóng góp tài liệu</b></a>`)}
+  </div>`,mount(root){root.querySelector('[data-form="ky"] select')?.addEventListener("change",(e)=>{const n=new URLSearchParams();if(type)n.set("loai",type);if(e.target.value)n.set("ky",e.target.value);go(`#/hoc-phan/${c.code}${n.toString()?"?"+n:""}`)})}};
+};
+
+function canSee(d,u){if(d.status==="APPROVED")return"public";if(!u)return null;if(d.uploader===u.email)return"owner";if(canModerate(u,d))return"moderator";return null}
+function renderPages(d,count){const c=course(d.course);return docContent(d).slice(0,count).map((lines,i)=>`<div class="sheetpage" role="img" aria-label="Trang ${i+1}" style="width:100%"><div class="frame"></div>${i===0?`<div class="hd">ĐẠI HỌC BÁCH KHOA HÀ NỘI</div><div class="ti">${esc(d.title)}</div><div>${c.code} ${esc(c.name)}</div><br>`:""}${lines.slice(0,i===0?12:18).map(l=>`<div>${esc(l)}</div>`).join("")}<div class="ft">Trang ${i+1}/${d.pages}. Dữ liệu mẫu để demo.</div></div>`).join("")}
+async function mountUploadedPreview(root,d){const box=root.querySelector("[data-file-preview]");if(!box)return;const blob=await fileDB.get(d.id);if(!blob){box.innerHTML=`<p class="small muted" style="padding:16px">File gốc không còn trong trình duyệt này (bản demo lưu file trên máy người tải lên).</p>`;return}const url=URL.createObjectURL(blob);if(d.kind==="PDF")box.innerHTML=`<iframe src="${url}" title="${esc(d.title)}"></iframe>`;else if(d.kind==="IMAGE")box.innerHTML=`<img src="${url}" alt="${esc(d.title)}" style="max-width:100%;display:block;margin:0 auto">`;else box.innerHTML=`<p class="small" style="padding:16px">Định dạng ${d.kind} không có bản xem trước trong bản demo. Tải về để mở.</p>`}
+
+views["/tai-lieu/:slug"]=({slug})=>{
+  const d=S.docs.find(x=>x.slug===slug);const u=me();if(!d)return views.notfound();const access=canSee(d,u);if(!access)return views.notfound();
+  const c=course(d.course),f=faculty(c.faculty),up=userBy(d.uploader);const mod=u&&canModerate(u,d);
+  const showUp=!d.anonymous||access!=="public"||mod;
+  if(access==="public"&&u?.email!==d.uploader){d.views++;save()}
+  const related=publicDocs().filter(x=>x.course===d.course&&x.id!==d.id).sort((a,b)=>b.downloads-a.downloads).slice(0,4);
+  const uploaded=!!d.uploaded;
+  const viewer=uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`
+   :u?`<div class="viewer"><div class="bar"><span class="head" data-page-ind>Trang 1 / ${d.pages}</span><span style="padding:0"><button type="button" data-zoom="-1" aria-label="Thu nhỏ">−</button><button type="button" data-zoom="0" aria-label="Vừa chiều ngang" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button><button type="button" data-zoom="1" aria-label="Phóng to">+</button></span></div><div class="pages" data-pages><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,d.pages)}</div></div></div>`
+   :`<div class="stack">${renderPages(d,Math.min(GUEST_PAGES,d.pages))}<div class="stack" style="border:2px solid var(--ink);background:var(--sheet);padding:16px;align-items:flex-start"><p class="head" style="margin:0">Khách xem được ${Math.min(GUEST_PAGES,d.pages)} trang đầu. Đăng nhập bằng email trường để đọc hết và tải về.</p><a class="btn ink" href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập để đọc toàn bộ</a></div></div>`;
+  return {html:`<div class="wrap" style="padding-block:20px">
+   <nav class="small muted row" style="gap:8px;margin-bottom:12px" aria-label="Vị trí tài liệu"><a href="#/vien/${f.slug}">${esc(f.shortName)}</a><span aria-hidden="true">/</span><a href="#/hoc-phan/${c.code}">${c.code} ${esc(c.name)}</a></nav>
+   ${access!=="public"?`<div class="note${d.status==="CHANGES_REQUESTED"||d.status==="REJECTED"?" red":""}" style="margin-bottom:16px"><span class="badge ${d.status}">${STATUS[d.status]}</span> ${{PROCESSING:"Đang chạy kiểm tra tự động.",PENDING_REVIEW:"Đã qua kiểm tra tự động, đang chờ kiểm duyệt viên. Chỉ bạn và kiểm duyệt viên thấy trang này.",CHANGES_REQUESTED:"Kiểm duyệt viên đề nghị bạn chỉnh sửa rồi gửi lại.",REJECTED:"Tài liệu không được duyệt.",REMOVED:"Tài liệu đã bị gỡ khỏi kho."}[d.status]||""}${d.reviewNote?`<div><b class="head">Ghi chú của kiểm duyệt viên:</b> ${esc(d.reviewNote)}</div>`:""}${mod&&d.status==="PENDING_REVIEW"?`<div><a href="#/kiem-duyet/${d.id}"><b>Mở trong hàng chờ kiểm duyệt</b></a></div>`:""}${access==="owner"&&d.status==="CHANGES_REQUESTED"?`<div><a href="#/tai-lieu-cua-toi/${d.id}/sua"><b>Sửa và gửi lại</b></a></div>`:""}</div>`:""}
+   <div class="two">
+    <div style="order:2;min-width:0" class="stack">${viewer}</div>
+    <aside class="stack" style="order:1">
+     <div class="tb" style="grid-template-columns:1fr 1fr">
+      <div style="grid-column:span 2;padding:12px"><h1 class="head" style="font-size:22px;line-height:1.2">${esc(d.title)}</h1>${d.status==="APPROVED"?`<div class="row" style="margin-top:8px"><span class="stamp">Đã duyệt</span><span class="tiny muted">${fmtDate(d.publishedAt)}</span></div>`:""}</div>
+      <div style="grid-column:span 2;display:flex;justify-content:space-between;align-items:flex-end;padding:8px 12px"><span style="display:flex;flex-direction:column"><span class="tiny muted">Mã HP</span><a class="code" style="font-size:30px;line-height:1;text-decoration:none" href="#/hoc-phan/${c.code}">${c.code}</a></span><span class="small" style="text-align:right;max-width:60%">${esc(c.name)}</span></div>
+      <div class="cell"><span class="l">Loại</span><span class="v">${TYPES[d.type]}</span></div><div class="cell"><span class="l">Kỳ</span><span class="v">${esc(d.term||"–")}</span></div>
+      <div class="cell"><span class="l">Tệp</span><span class="v">${esc(d.kind)}, ${fmtSize(d.sizeKb)}${d.pages?`, ${d.pages} trang`:""}</span></div><div class="cell"><span class="l">Điểm</span><span class="v">${rating(d)}${d.ratingCount?` (${d.ratingCount})`:""}</span></div>
+      <div class="cell"><span class="l">Lượt xem</span><span class="v">${fmtCount(d.views)}</span></div><div class="cell"><span class="l">Lượt tải</span><span class="v">${fmtCount(d.downloads)}</span></div>
+      <div style="grid-column:span 2;display:flex;gap:12px;align-items:center;padding:8px 12px"><span class="avatar" style="width:36px;height:36px">${showUp?esc(initials(displayName(up))):"?"}</span><span style="display:flex;flex-direction:column;min-width:0"><b style="font-weight:600">${showUp?esc(displayName(up)):"Người đăng ẩn danh"}${showUp&&d.anonymous?' <span class="tiny muted">(ẩn danh với người xem)</span>':""}</b>${showUp?`<span class="tiny muted">Đã đóng góp ${up?.approved||0} tài liệu được duyệt</span>`:""}</span></div>
+     </div>
+     <button class="btn primary lg block" type="button" data-action="download" data-id="${d.id}">${icon.down}${u?`Tải xuống, ${fmtSize(d.sizeKb)}`:"Đăng nhập để tải xuống"}</button>
+     ${d.description?`<section style="border:2px solid var(--ink);background:var(--sheet);padding:8px 12px"><h2 class="tiny muted" style="font-weight:400">Mô tả</h2><p style="margin:0;white-space:pre-line;font-size:14px">${esc(d.description)}</p></section>`:""}
+     ${d.tags?.length?`<ul class="chips" aria-label="Thẻ">${d.tags.map(t=>`<li><a href="#/tim-kiem?q=${encodeURIComponent(t)}">${esc(t)}</a></li>`).join("")}</ul>`:""}
+     ${u&&access==="public"?`<details style="border:2px solid var(--ink);background:var(--sheet)"><summary class="head" style="height:44px;display:flex;align-items:center;padding:0 12px;cursor:pointer;font-size:14px">Báo cáo vi phạm</summary><form class="stack" data-form="report" style="padding:12px;border-top:1px solid var(--ink)"><div class="field"><label for="rr">Lý do</label><select class="select" id="rr" name="reason">${Object.entries(REPORT_REASONS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div><div class="field"><label for="rd">Chi tiết</label><textarea class="textarea" id="rd" name="details" placeholder="Ví dụ: trang nào có vấn đề, tài liệu đúng phải thuộc học phần nào."></textarea></div><button class="btn ink" type="submit">Gửi báo cáo</button></form></details>`:""}
+     ${mod&&d.status==="APPROVED"?`<section style="border:2px solid var(--stamp);background:var(--sheet);padding:12px" class="stack"><h2 class="head" style="font-size:14px">Công cụ kiểm duyệt</h2><form class="stack" data-form="remove"><div class="field"><label for="rm">Lý do gỡ (gửi người đăng)</label><textarea class="textarea" id="rm" name="reason" required minlength="3" style="min-height:64px"></textarea></div><button class="btn ink sm" type="submit">Gỡ tài liệu</button></form></section>`:""}
+    </aside>
+   </div>
+   ${related.length?`<section class="stack" style="margin-top:32px"><h2 class="h2">Cùng học phần</h2><div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">${related.map(x=>docRow(x,[],{course:false})).join("")}</div></section>`:""}
+  </div>`,mount(root){
+   if(uploaded)mountUploadedPreview(root,d);
+   const pages=root.querySelector("[data-pages]");
+   if(pages){let z=1;const sc=root.querySelector("[data-scale]"),lab=root.querySelector("[data-zoom-label]"),ind=root.querySelector("[data-page-ind]");
+    root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.zoom;z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));sc.style.width=`${z*100}%`;lab.textContent=`${Math.round(z*100)}%`}));
+    pages.addEventListener("scroll",()=>{const kids=[...sc.children];const top=pages.scrollTop+pages.clientHeight/3;let i=0;kids.forEach((k,n)=>{if(k.offsetTop<=top)i=n});ind.textContent=`Trang ${i+1} / ${d.pages}`})}
+   root.querySelector('[data-form="report"]')?.addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);if(S.reports.some(r=>r.doc===d.id&&r.by===u.email&&r.status==="OPEN")){toast("Bạn đã báo cáo tài liệu này, kiểm duyệt viên đang xem xét.");return}S.reports.push({id:uid(),doc:d.id,by:u.email,reason:fd.get("reason"),details:fd.get("details"),status:"OPEN",t:Date.now()});save();e.target.closest("details").outerHTML='<p class="note">Đã gửi báo cáo. Cảm ơn bạn, kiểm duyệt viên sẽ xem xét.</p>'});
+   root.querySelector('[data-form="remove"]')?.addEventListener("submit",(e)=>{e.preventDefault();removeDoc(d,new FormData(e.target).get("reason"));toast("Đã gỡ tài liệu.");render()});
+  }};
+};
+
+function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="REMOVED";d.reviewNote=reason;d.logs.unshift({t:Date.now(),a:"REMOVE",by:u.email,reason});
+  if(was==="APPROVED"){const up=userBy(d.uploader);if(up){up.approved=Math.max(0,up.approved-1);up.reputation-=20;up.violations=(up.violations||0)+1;up.trust=trustFrom(up.approved,up.violations)}}
+  S.reports.filter(r=>r.doc===d.id&&r.status==="OPEN").forEach(r=>{r.status="RESOLVED";r.resolution=reason});notify(d.uploader,"DOCUMENT_REMOVED",d,{reason,link:"#/tai-lieu-cua-toi"});save()}
+
+/* ----- Đăng nhập (OTP giả lập: mã hiện trong hộp thư demo) ----- */
+let pendingOtp=null;
+views["/dang-nhap"]=()=>{
+  const next=params().get("next")||"/";if(me()){go("#"+next);return{html:""}}
+  return {html:`<div class="gridpaper" style="border-bottom:2px solid var(--ink)"><div class="wrap" style="padding-block:40px;display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:960px">
+   <div class="stack"><h1 class="code" style="font-size:clamp(44px,7vw,60px);line-height:.95">Đăng nhập</h1><p style="margin:0;max-width:440px">Dùng email trường để đăng nhập, không cần mật khẩu. Lần đầu đăng nhập tài khoản được tạo tự động.</p>
+    <ul class="small muted" style="margin:0;padding-left:18px"><li>Đọc toàn bộ tài liệu ngay trên trình duyệt.</li><li>Tải file gốc về máy.</li><li>Đóng góp tài liệu và nhận điểm uy tín.</li></ul>
+    <div class="stack" style="gap:6px;margin-top:8px"><p class="head small" style="margin:0">Hoặc vào nhanh bằng tài khoản demo</p><div class="row"><button class="btn sm" type="button" data-action="quick" data-email="sv.demo@sis.hust.edu.vn">Sinh viên</button><button class="btn sm" type="button" data-action="quick" data-email="kdv.demo@hust.edu.vn">Kiểm duyệt viên</button><button class="btn sm" type="button" data-action="quick" data-email="admin.demo@hust.edu.vn">Quản trị viên</button></div></div></div>
+   <div style="border:2px solid var(--ink);background:var(--sheet);padding:16px;box-shadow:6px 6px 0 var(--ink)" class="stack" data-signin></div>
+  </div></div>`,mount(root){const box=root.querySelector("[data-signin]");
+   const step1=(err="")=>{box.innerHTML=`<form class="stack" data-f1 novalidate><div class="field"><label for="em">Email trường</label><input class="input" id="em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn" value="${esc(pendingOtp?.email||"")}" aria-describedby="emh"><span id="emh" class="${err?"err":"hint"}">${err||"Chỉ nhận @sis.hust.edu.vn, @hust.edu.vn"}</span></div><button class="btn primary lg" type="submit">Gửi mã đăng nhập</button></form>`;
+    box.querySelector("[data-f1]").addEventListener("submit",(e)=>{e.preventDefault();const email=box.querySelector("#em").value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+$/.test(email))return step1("Email không hợp lệ.");if(!DOMAINS.includes(email.split("@")[1]))return step1("Chỉ nhận email trường: @sis.hust.edu.vn, @hust.edu.vn");pendingOtp={email,code:String(Math.floor(100000+Math.random()*900000)),t:Date.now()};step2()});box.querySelector("#em").focus()};
+   const step2=(err="")=>{box.innerHTML=`<div class="mailbox"><div class="mh"><b>Hộp thư demo</b><span>${fmtTime(pendingOtp.t)}</span></div><div class="mb"><b>${pendingOtp.code} là mã đăng nhập Kho tài liệu HUST</b><br><span class="small muted">Gửi tới ${esc(pendingOtp.email)}. Bản thật gửi qua email trường; bản demo hiện mã ở đây.</span></div></div>
+     <form class="stack" data-f2 novalidate><div class="field"><label for="otp">Mã 6 số</label><input class="input otp" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="otph">${err?`<span id="otph" class="err" role="alert">${err}</span>`:'<span id="otph" class="hint">Mã có hiệu lực 10 phút.</span>'}</div><button class="btn primary lg" type="submit">Đăng nhập</button><div class="row" style="justify-content:space-between;font-size:13px"><button type="button" class="btn ghost sm" data-back>Đổi email</button><button type="button" class="btn ghost sm" data-resend>Gửi lại mã</button></div></form>`;
+    const otp=box.querySelector("#otp");otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});otp.focus();
+    box.querySelector("[data-back]").addEventListener("click",()=>step1());box.querySelector("[data-resend]").addEventListener("click",()=>{pendingOtp.code=String(Math.floor(100000+Math.random()*900000));pendingOtp.t=Date.now();step2()});
+    box.querySelector("[data-f2]").addEventListener("submit",(e)=>{e.preventDefault();if(otp.value!==pendingOtp.code)return step2("Mã không đúng hoặc đã hết hạn.");signIn(pendingOtp.email,params().get("next")||"/");pendingOtp=null})};
+   step1()}};
+};
+function signIn(email,next="/"){let u=userBy(email);if(!u){const base=email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"sv";u={email,name:email.split("@")[0],username:base,faculty:null,cohort:null,roles:[{key:"STUDENT"}],reputation:0,approved:0,trust:0,createdAt:Date.now()};S.users.push(u)}
+  S.session=email;save();toast(`Đã đăng nhập: ${displayName(u)}`);go(u.faculty&&u.cohort?"#"+next:`#/hoan-thien-ho-so?next=${encodeURIComponent(next)}`)}
+
+views["/hoan-thien-ho-so"]=()=>{
+  const u=me();if(!u)return needLogin("/hoan-thien-ho-so");const next=params().get("next")||"/";const done=!!(u.faculty&&u.cohort);
+  return {html:`<div class="wrap" style="padding-block:32px;display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:960px">
+   <div class="stack"><h1 class="code" style="font-size:48px;line-height:.95">${done?"Hồ sơ của bạn":"Hoàn thiện hồ sơ"}</h1><p style="margin:0">Chọn Viện và khóa để trang chủ gợi ý đúng học phần của bạn.</p><p class="small muted" style="margin:0">Đang đăng nhập bằng ${esc(u.email)}</p></div>
+   <form class="stack" data-form="profile" novalidate style="border:2px solid var(--ink);background:var(--sheet);padding:16px">
+    <div class="field"><label for="un">Tên người dùng <span class="req">*</span></label><input class="input" id="un" name="username" value="${esc(u.username||"")}"><span class="hint">3 đến 30 ký tự: chữ thường, số, dấu chấm, gạch dưới.</span></div>
+    <div class="field"><label for="dn">Tên hiển thị</label><input class="input" id="dn" name="displayName" value="${esc(u.displayName||"")}"><span class="hint">Để trống thì dùng họ tên từ email trường.</span></div>
+    <div class="field"><label for="fa">Viện, Trường <span class="req">*</span></label><select class="select" id="fa" name="faculty"><option value="">Chọn Viện, Trường</option>${DATA.faculties.map(f=>`<option value="${f.code}"${u.faculty===f.code?" selected":""}>${f.code}: ${esc(f.name)}</option>`).join("")}</select></div>
+    <div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1"><label for="co">Khóa <span class="req">*</span></label><input class="input" id="co" name="cohort" inputmode="numeric" maxlength="2" value="${u.cohort||""}"><span class="hint">Ví dụ 68 cho K68</span></div><div class="field" style="flex:1"><label for="sc">Mã số sinh viên</label><input class="input" id="sc" name="studentCode" inputmode="numeric" maxlength="8" value="${esc(u.studentCode||"")}"><span class="hint">Không bắt buộc</span></div></div>
+    <label class="check"><input type="checkbox" name="accept"${done?" checked":""}><span>Tôi đã đọc và đồng ý với <a href="#/dieu-khoan">Điều khoản sử dụng</a>.</span></label>
+    <p class="err" data-err role="alert" hidden></p><button class="btn primary lg" type="submit">Lưu hồ sơ</button></form></div>`,
+   mount(root){root.querySelector('[data-form="profile"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);const err=e.target.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false};
+    const un=String(fd.get("username")).trim().toLowerCase();if(!/^[a-z0-9_.]{3,30}$/.test(un))return fail("Tên người dùng: 3–30 ký tự, chữ thường, số, dấu chấm, gạch dưới.");if(S.users.some(x=>x.username===un&&x.email!==u.email))return fail("Tên người dùng đã có người dùng.");
+    if(!fd.get("faculty"))return fail("Chọn Viện, Trường.");const co=+fd.get("cohort");if(!(co>=40&&co<=99))return fail("Khóa từ K40 đến K99.");const sc=String(fd.get("studentCode")||"").trim();if(sc&&!/^\d{8}$/.test(sc))return fail("Mã sinh viên gồm 8 chữ số.");if(!fd.get("accept"))return fail("Cần đồng ý điều khoản.");
+    Object.assign(u,{username:un,displayName:String(fd.get("displayName")||"").trim()||null,faculty:fd.get("faculty"),cohort:co,studentCode:sc||null});save();toast("Đã lưu hồ sơ.");go("#"+next)})}};
+};
+
+/* ----- Tải lên + kiểm tra tự động ----- */
+function quota(u){const used=S.docs.filter(d=>d.uploader===u.email&&d.uploaded&&vnDay(d.createdAt)===vnDay()).length;const limit=DAILY_LIMIT[Math.min(3,u.trust||0)];return{used,limit,left:Math.max(0,limit-used)}}
+async function sha256(buf){const h=await crypto.subtle.digest("SHA-256",buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+function sniff(bytes){const s=(a,b)=>bytes.slice(0,b.length).every((x,i)=>x===b[i]);if(s(0,[0x25,0x50,0x44,0x46]))return"PDF";if(s(0,[0x89,0x50,0x4e,0x47]))return"IMAGE";if(s(0,[0xff,0xd8,0xff]))return"IMAGE";if(s(0,[0x52,0x49,0x46,0x46])&&String.fromCharCode(...bytes.slice(8,12))==="WEBP")return"IMAGE";if(s(0,[0x50,0x4b,0x03,0x04]))return"ZIPLIKE";return null}
+function riskOf(text){const t=norm(text);const reasons=[];let score=0;const links=(text.match(/https?:\/\/|www\.|bit\.ly|tinyurl/gi)||[]).length;if(links>10){score+=35;reasons.push(`${links} liên kết ngoài`)}else if(links>=4){score+=15;reasons.push(`${links} liên kết ngoài`)}if(/bit\.ly|tinyurl|goo\.gl/i.test(text)){score+=20;reasons.push("Có link rút gọn")}for(const w of DATA.bannedWords)if(t.includes(norm(w))){score+=40;reasons.push(`Từ cấm: “${w}”`)}return{score:Math.min(100,score),reasons}}
+/** Chạy các bước kiểm tra như worker thật: định dạng thật (magic bytes), dung lượng, trùng SHA-256, mã độc (mẫu EICAR), nội dung. */
+async function runChecks(file,meta){const buf=await file.arrayBuffer();const bytes=new Uint8Array(buf);const ext=file.name.split(".").pop().toLowerCase();const kind=ALLOWED_EXT[ext];const checks={};
+  const real=sniff(bytes);const okFormat=kind&&(real===kind||(real==="ZIPLIKE"&&["DOCX","PPTX","XLSX","ZIP"].includes(kind)));
+  checks.format=okFormat?{s:"pass",d:`${kind}, khớp đuôi file`}:{s:"fail",d:`Nội dung thật là ${real||"không xác định"}, không phải ${kind||ext}`};
+  if(!okFormat)return{checks,reject:"Định dạng thật của file không khớp với đuôi file",kind};
+  const max=(kind==="ZIP"?100:50)*1024*1024;if(file.size>max){checks.size={s:"fail",d:fmtSize(file.size/1024)};return{checks,reject:"File vượt dung lượng cho phép",kind}}
+  const hash=await sha256(buf);const dup=S.docs.find(d=>d.sha256===hash&&d.id!==meta.id&&["PENDING_REVIEW","APPROVED"].includes(d.status));
+  if(dup){checks.duplicate={s:"fail",d:`Trùng với “${dup.title}”`};return{checks,reject:`Trùng với tài liệu đã có: “${dup.title}”`,hash,kind}}
+  checks.duplicate={s:"pass",d:"Không có bản trùng SHA-256"};
+  const head=new TextDecoder("latin1").decode(bytes.slice(0,Math.min(bytes.length,2e6)));
+  if(head.includes("EICAR-STANDARD-ANTIVIRUS-TEST-FILE")){checks.virus={s:"fail",d:"Eicar-Test-Signature"};return{checks,reject:"Phát hiện mã độc (Eicar-Test-Signature), file đã bị xóa",hash,kind}}
+  checks.virus={s:"pass",d:"Không phát hiện mã độc"};
+  let pages=null;if(kind==="PDF"){pages=(head.match(/\/Type\s*\/Page[^s]/g)||[]).length||null}
+  checks.integrity={s:"pass",d:pages?`${pages} trang, mở được`:"Mở được"};
+  const r=riskOf(`${meta.title} ${meta.description} ${meta.tags.join(" ")} ${kind==="PDF"?head.slice(0,2e5):""}`);
+  checks.content={s:r.score>=60?"warn":"pass",d:`Điểm rủi ro ${r.score}/100`,reasons:r.reasons};
+  return{checks,hash,kind,pages,risk:r.score}}
+
+function uploadForm(mode,init){return `<form class="stack" data-form="upload" novalidate style="gap:20px">
+  <div class="dropzone" data-drop>${icon.file}<p class="head" style="margin:0">${mode==="edit"?"Muốn thay file? Kéo thả file mới vào đây (không bắt buộc)":"Kéo thả file vào đây hoặc bấm để chọn"}</p><p class="small muted" style="margin:0">PDF, DOCX, PPTX, XLSX, ảnh JPG/PNG/WebP, ZIP. Tối đa 50 MB mỗi file, ZIP tối đa 100 MB.</p><input type="file" id="file" class="sr" accept=".pdf,.docx,.pptx,.xlsx,.jpg,.jpeg,.png,.webp,.zip"><button class="btn ink" type="button" data-pick>Chọn file</button></div>
+  <div data-filebox></div>
+  <fieldset class="stack" style="border:0;padding:0;margin:0;gap:16px"><legend class="h2" style="margin-bottom:8px">Thông tin tài liệu</legend>
+   <div class="field"><label for="cp">Học phần <span class="req">*</span></label><div style="position:relative" data-course-wrap><input class="input" id="cp" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="cpl" placeholder="Gõ mã hoặc tên học phần, ví dụ IT3011" value="${init.course?`${init.course.code} ${esc(init.course.name)}`:""}"><div class="sugg" id="cpl" role="listbox" hidden></div></div><input type="hidden" name="course" value="${init.course?.code||""}"></div>
+   <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div class="field" style="flex:1"><label for="ty">Loại tài liệu <span class="req">*</span></label><select class="select" id="ty" name="type"><option value="">Chọn loại</option>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${init.type===k?" selected":""}>${v}</option>`).join("")}</select></div>
+    <div class="field" style="flex:1"><label for="te">Kỳ học</label><select class="select" id="te" name="term"><option value="">Không rõ</option>${recentTerms(12).map(t=>`<option${init.term===t?" selected":""}>${t}</option>`).join("")}</select></div></div>
+   <div class="field"><label for="ti">Tiêu đề <span class="req">*</span></label><input class="input" id="ti" name="title" maxlength="200" value="${esc(init.title||"")}"><span class="hint">Ví dụ: Đề thi cuối kỳ IT3011 kỳ 20241, có đáp án</span></div>
+   <div class="field"><label for="de">Mô tả</label><textarea class="textarea" id="de" name="description" maxlength="2000">${esc(init.description||"")}</textarea></div>
+   <div class="field"><label for="tg">Thẻ</label><input class="input" id="tg" name="tags" value="${esc((init.tags||[]).join(", "))}"><span class="hint">Cách nhau bằng dấu phẩy, tối đa 10 thẻ.</span></div>
+   <label class="check"><input type="checkbox" name="anonymous"${init.anonymous?" checked":""}><span>Ẩn tên tôi với người xem<br><span class="tiny muted">Kiểm duyệt viên vẫn thấy người đăng.</span></span></label>
+   <label class="check"><input type="checkbox" name="copyright"><span>Tôi xác nhận có quyền chia sẻ tài liệu này và đồng ý với <a href="#/dieu-khoan">Điều khoản bản quyền</a>.</span></label>
+  </fieldset>
+  <p class="note red" data-err role="alert" hidden></p>
+  <div class="stack" style="gap:8px"><button class="btn primary lg" type="submit">${mode==="edit"?"Gửi lại kiểm duyệt":"Gửi kiểm duyệt"}</button><p class="small muted" style="margin:0">Bạn sẽ nhận thông báo khi có kết quả kiểm duyệt.</p></div></form>`}
+function mountUpload(root,{mode,doc,onDone}){
+  const form=root.querySelector('[data-form="upload"]');let file=null;
+  const input=form.querySelector("#file"),box=form.querySelector("[data-filebox]"),drop=form.querySelector("[data-drop]");
+  const setFile=(f)=>{const ext=f.name.split(".").pop().toLowerCase();if(!ALLOWED_EXT[ext]){box.innerHTML=`<p class="note red">Định dạng .${esc(ext)} không được hỗ trợ.</p>`;file=null;return}
+   file=f;let p=0;box.innerHTML=`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:8px 12px"><p style="margin:0;font-weight:600;font-size:14px">${esc(f.name)}</p><p class="tiny muted" style="margin:0">${fmtSize(f.size/1024)}</p><div class="progress" role="progressbar" aria-label="Tiến độ tải lên" style="margin-top:6px"><i style="width:0"></i></div></div><div class="head small" style="display:flex;align-items:center;padding:0 12px" data-st>0%</div></div>`;
+   const bar=box.querySelector("i"),st=box.querySelector("[data-st]");const tick=setInterval(()=>{p=Math.min(100,p+20+Math.random()*25);bar.style.width=p+"%";st.textContent=p>=100?"Xong":Math.round(p)+"%";if(p>=100)clearInterval(tick)},180);
+   const ti=form.querySelector("#ti");if(!ti.value){const b=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim();ti.value=b.charAt(0).toUpperCase()+b.slice(1)}};
+  form.querySelector("[data-pick]").addEventListener("click",()=>input.click());input.addEventListener("change",()=>{if(input.files[0])setFile(input.files[0]);input.value=""});
+  drop.addEventListener("dragover",(e)=>{e.preventDefault();drop.classList.add("on")});drop.addEventListener("dragleave",()=>drop.classList.remove("on"));drop.addEventListener("drop",(e)=>{e.preventDefault();drop.classList.remove("on");if(e.dataTransfer.files[0])setFile(e.dataTransfer.files[0])});
+  // Ô chọn học phần
+  const cp=form.querySelector("#cp"),cl=form.querySelector("#cpl"),hidden=form.querySelector('[name="course"]');let items=[],act=0;
+  const show=()=>{items=searchCourses(cp.value,8);act=0;cl.hidden=!items.length;cp.setAttribute("aria-expanded",String(!!items.length));cl.innerHTML=items.map((c,i)=>`<div role="option" id="cpo${i}" aria-selected="${i===act}" data-code="${c.code}"><span class="code" style="font-size:18px;line-height:1">${c.code}</span><span class="small">${esc(c.name)}</span></div>`).join("")};
+  const choose=(code)=>{const c=course(code);hidden.value=c.code;cp.value=`${c.code} ${c.name}`;cl.hidden=true};
+  cp.addEventListener("input",()=>{hidden.value="";show()});cp.addEventListener("blur",()=>setTimeout(()=>{cl.hidden=true},150));
+  cp.addEventListener("keydown",(e)=>{if(cl.hidden)return;if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();act=(act+(e.key==="ArrowDown"?1:items.length-1))%items.length;cl.querySelectorAll("[role=option]").forEach((o,i)=>o.setAttribute("aria-selected",String(i===act)))}else if(e.key==="Enter"){e.preventDefault();choose(items[act].code)}else if(e.key==="Escape")cl.hidden=true});
+  cl.addEventListener("mousedown",(e)=>{const o=e.target.closest("[data-code]");if(o){e.preventDefault();choose(o.dataset.code)}});
+  form.addEventListener("submit",async(e)=>{e.preventDefault();const u=me();const fd=new FormData(form);const err=form.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false;err.scrollIntoView({block:"center"})};
+   if(mode==="create"&&!file)return fail("Chọn file trước khi gửi.");if(!hidden.value)return fail("Chọn học phần trong danh sách gợi ý.");if(!fd.get("type"))return fail("Chọn loại tài liệu.");
+   const title=String(fd.get("title")).trim();if(title.length<5)return fail("Tiêu đề quá ngắn (ít nhất 5 ký tự).");if(!fd.get("copyright"))return fail("Cần xác nhận quyền chia sẻ tài liệu.");
+   if(mode==="create"&&quota(u).left<=0)return fail(`Bạn đã dùng hết ${quota(u).limit} lượt tải lên hôm nay.`);
+   const meta={title,description:String(fd.get("description")||"").trim(),tags:String(fd.get("tags")||"").split(",").map(t=>t.trim().replace(/^#+/,"").toLowerCase()).filter(t=>t.length>=2).slice(0,10)};
+   const d=doc||{id:"u"+uid(),slug:slugify(title)+"-"+uid().slice(0,4),uploaded:true,uploader:u.email,downloads:0,views:0,ratingCount:0,ratingSum:0,publishedAt:null,createdAt:Date.now(),logs:[]};
+   Object.assign(d,{title,description:meta.description,tags:meta.tags,course:hidden.value,type:fd.get("type"),term:fd.get("term")||null,anonymous:!!fd.get("anonymous"),priority:(u.trust||0)*10});
+   if(!file){d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người đăng sửa thông tin và gửi lại"});save();onDone(d);return}
+   d.status="PROCESSING";d.fileName=file.name;d.sizeKb=file.size/1024;d.uploaded=true;if(!S.docs.includes(d))S.docs.push(d);save();
+   form.querySelector('[type="submit"]').disabled=true;
+   const r=await runChecks(file,{...meta,id:d.id});d.checks=r.checks;d.kind=r.kind||"PDF";d.sha256=r.hash;d.pages=r.pages||(r.kind==="PDF"?1:null);d.risk=r.risk||0;
+   if(r.reject){d.status="REJECTED";d.reviewNote=r.reject;d.logs.unshift({t:Date.now(),a:"AUTO_REJECTED",reason:r.reject});notify(u.email,"DOCUMENT_REJECTED",d,{reason:r.reject,link:"#/tai-lieu-cua-toi"})}
+   else{d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"AUTO_CHECK_PASSED",meta:`Điểm rủi ro ${d.risk}`});await fileDB.put(d.id,file)}
+   if(mode==="edit")d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người đăng gửi lại kèm file mới"});
+   save();onDone(d,r)})}
+
+views["/tai-len"]=()=>{
+  const u=me();if(!u)return needLogin("/tai-len"+(params().get("hp")?`?hp=${params().get("hp")}`:""));if(!(u.faculty&&u.cohort)){go("#/hoan-thien-ho-so?next=/tai-len");return{html:""}}
+  const q=quota(u);const hp=params().get("hp");
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--ink)"><div class="wrap" style="max-width:800px;padding-block:24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px"><div><h1 class="code" style="font-size:48px;line-height:.95">Tải tài liệu lên</h1><p style="margin:8px 0 0;max-width:520px;font-size:14px">Tài liệu được kiểm tra tự động rồi chuyển cho kiểm duyệt viên. Bạn nhận thông báo khi có kết quả.</p></div><div class="tb"><div class="cell"><span class="l">Hôm nay còn</span><span class="code" style="font-size:30px;line-height:1">${q.left}/${q.limit}</span></div></div></div></section>
+   <div class="wrap" style="max-width:800px;padding-block:24px" data-upload-root>${q.left<=0?`<p class="note">Bạn đã dùng hết ${q.limit} lượt tải lên hôm nay. Quay lại vào ngày mai nhé.</p>`:`<p class="small muted" style="margin:0 0 16px">Hạn mức mỗi ngày tăng khi tài liệu của bạn được duyệt. Thử tải file .pdf thật để thấy bước kiểm tra; file đổi đuôi (ví dụ ảnh đặt tên .pdf) hoặc file chứa chuỗi kiểm thử EICAR sẽ bị từ chối tự động.</p>`+uploadForm("create",{course:hp?course(hp.toUpperCase()):null})}</div>`,
+   mount(root){if(!root.querySelector('[data-form="upload"]'))return;mountUpload(root,{mode:"create",onDone:(d,r)=>{const box=root.querySelector("[data-upload-root]");const rows=Object.entries(d.checks||{}).map(([k,c])=>checkRow(k,c)).join("");
+    box.innerHTML=`<div class="stack" style="border:2px solid var(--ink);background:var(--sheet);padding:20px;align-items:flex-start"><span class="stamp">${d.status==="REJECTED"?"Bị từ chối":"Đã gửi"}</span><h2 class="head" style="font-size:22px">${d.status==="REJECTED"?"Tài liệu bị từ chối tự động":"Đã nhận tài liệu của bạn"}</h2><p style="margin:0;font-size:14px">${d.status==="REJECTED"?esc(d.reviewNote):"File đã qua kiểm tra tự động và đang chờ kiểm duyệt viên. Thử vào nhanh bằng tài khoản Kiểm duyệt viên (thanh trên cùng) để duyệt."}</p><div class="tb" style="width:100%">${rows}</div><div class="row"><a class="btn ink" href="#/tai-len">Tải thêm tài liệu khác</a><a class="btn" href="#/tai-lieu-cua-toi">Xem tài liệu của tôi</a></div></div>`;renderHeader()}})}};
+};
+const CHECK_LABEL={format:"Định dạng",size:"Dung lượng",duplicate:"Trùng lặp",virus:"Mã độc",convert:"Chuyển PDF",integrity:"Mở file",text:"Trích văn bản",archive:"Tệp nén",content:"Nội dung"};
+const CHECK_ST={pass:"Đạt",fail:"Không đạt",warn:"Lưu ý",skipped:"Bỏ qua"};
+function checkRow(k,c){return `<div class="checkrow" style="background:var(--ink);gap:1px"><span style="background:var(--sheet);padding:6px 10px;font-size:13px;font-weight:600">${CHECK_LABEL[k]||k}</span><span style="background:var(--sheet);padding:6px 10px;font-size:13px">${esc(c.d||"")}${c.reasons?.length?`<span style="display:block;color:var(--stamp)">${c.reasons.map(esc).join("; ")}</span>`:""}</span><span class="st ${c.s}" style="background:var(--sheet)">${CHECK_ST[c.s]}</span></div>`}
+
+views["/tai-lieu-cua-toi"]=()=>{
+  const u=me();if(!u)return needLogin("/tai-lieu-cua-toi");const docs=S.docs.filter(d=>d.uploader===u.email).sort((a,b)=>b.createdAt-a.createdAt);
+  return {html:pageHead("Tài liệu của tôi",`${u.approved} tài liệu được duyệt, ${u.reputation} điểm uy tín, bậc uy tín ${u.trust||0}`,'<div><a class="btn primary" href="#/tai-len">Tải tài liệu lên</a></div>')+`<div class="wrap stack" style="padding-block:24px">${docs.length?docs.map(d=>`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:10px 12px" class="stack" style="gap:4px"><a href="#/tai-lieu/${d.slug}" style="font-weight:600;text-decoration:none">${esc(d.title)}</a><span class="tiny muted">${d.course}, ${TYPES[d.type]}${d.term?`, ${d.term}`:""}. Gửi ngày ${fmtDate(d.createdAt)}.</span>${d.reviewNote&&d.status!=="APPROVED"?`<span class="small"><b class="head">Ghi chú kiểm duyệt:</b> ${esc(d.reviewNote)}</span>`:""}</div><div style="padding:10px 12px;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px"><span class="badge ${d.status}">${STATUS[d.status]}</span>${d.status==="CHANGES_REQUESTED"?`<a class="btn ink sm" href="#/tai-lieu-cua-toi/${d.id}/sua">Sửa và gửi lại</a>`:d.status==="APPROVED"?`<span class="tiny muted">${d.downloads} lượt tải</span>`:""}</div></div>`).join(""):empty("Bạn chưa đăng tài liệu nào.",'<a href="#/tai-len"><b>Tải tài liệu lên</b></a>')}</div>`};
+};
+views["/tai-lieu-cua-toi/:id/sua"]=({id})=>{
+  const u=me();if(!u)return needLogin(`/tai-lieu-cua-toi/${id}/sua`);const d=S.docs.find(x=>x.id===id&&x.uploader===u.email);if(!d)return views.notfound();
+  return {html:pageHead("Sửa tài liệu",esc(d.title))+`<div class="wrap" style="max-width:800px;padding-block:24px">${d.status!=="CHANGES_REQUESTED"?'<p class="note">Chỉ sửa được tài liệu đang ở trạng thái cần sửa.</p>':`${d.reviewNote?`<p class="note red" style="margin:0 0 16px"><b class="head">Ghi chú kiểm duyệt:</b> ${esc(d.reviewNote)}</p>`:""}${uploadForm("edit",{course:course(d.course),type:d.type,term:d.term,title:d.title,description:d.description,tags:d.tags,anonymous:d.anonymous})}`}</div>`,
+   mount(root){if(root.querySelector('[data-form="upload"]'))mountUpload(root,{mode:"edit",doc:d,onDone:()=>{toast("Đã gửi lại. Tài liệu quay về hàng chờ kiểm duyệt.");go("#/tai-lieu-cua-toi")}})}};
+};
+
+const NOTI={DOCUMENT_APPROVED:(n)=>`“${n.title}” đã được duyệt và công khai`,DOCUMENT_REJECTED:(n)=>`“${n.title}” không được duyệt`,DOCUMENT_CHANGES_REQUESTED:(n)=>`“${n.title}” cần chỉnh sửa trước khi duyệt`,DOCUMENT_REMOVED:(n)=>`“${n.title}” đã bị gỡ khỏi kho`};
+views["/thong-bao"]=()=>{
+  const u=me();if(!u)return needLogin("/thong-bao");const list=S.notifications.filter(n=>n.to===u.email);
+  return {html:pageHead("Thông báo","",list.some(n=>!n.read)?'<div><button class="btn ink sm" type="button" data-mark>Đánh dấu đã đọc hết</button></div>':"")+`<div class="wrap" style="max-width:800px;padding-block:24px">${list.length?`<ul class="tb" style="list-style:none;margin:0;padding:0">${list.map(n=>`<li><a href="${n.link||"#/tai-lieu-cua-toi"}" style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;text-decoration:none;${n.read?"background:var(--paper)":"border-left:4px solid var(--stamp)"}"><span style="display:flex;justify-content:space-between;gap:12px"><b style="font-weight:600">${esc(NOTI[n.type]?.(n)||n.type)}</b><span class="tiny muted" style="flex-shrink:0">${fmtTime(n.t)}</span></span>${n.reason?`<span class="small">Lý do: ${esc(n.reason)}</span>`:""}</a></li>`).join("")}</ul>`:empty("Chưa có thông báo nào.")}<p class="small muted">Bản thật gửi kèm email tới hộp thư trường.</p></div>`,
+   mount(root){root.querySelector("[data-mark]")?.addEventListener("click",()=>{list.forEach(n=>n.read=true);save();render()})}};
+};
+
+/* ----- Kiểm duyệt ----- */
+function modTabs(active){const u=me();const s=modScope(u);const inScope=(d)=>s===null||s.includes(course(d.course)?.faculty);
+  const pending=S.docs.filter(d=>d.status==="PENDING_REVIEW"&&inScope(d)).length;const reps=S.reports.filter(r=>r.status==="OPEN"&&inScope(S.docs.find(d=>d.id===r.doc)||{})).length;
+  return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Kiểm duyệt</h1><p class="small muted" style="margin:4px 0 0">${s===null?"Phạm vi: toàn hệ thống":`Phạm vi: ${s.map(c=>faculty(c)?.shortName).join(", ")}`}</p></div><nav class="tabs" aria-label="Kiểm duyệt"><a href="#/kiem-duyet"${active==="q"?' aria-current="page"':""}>Hàng chờ tài liệu <span class="code" style="font-size:18px">${pending}</span></a><a href="#/kiem-duyet/bao-cao"${active==="r"?' aria-current="page"':""}>Báo cáo vi phạm <span class="code" style="font-size:18px">${reps}</span></a></nav></div>`}
+function decide(ids,decision,reason,note){const u=me();let n=0;
+  for(const id of ids){const d=S.docs.find(x=>x.id===id);if(!d||d.status!=="PENDING_REVIEW"||!canModerate(u,d))continue;n++;
+   d.status=decision==="APPROVE"?"APPROVED":decision==="REJECT"?"REJECTED":"CHANGES_REQUESTED";d.reviewNote=decision==="APPROVE"?null:reason;d.logs.unshift({t:Date.now(),a:decision,by:u.email,reason,note});
+   if(decision==="APPROVE"){d.publishedAt=Date.now();const up=userBy(d.uploader);if(up){up.approved++;up.reputation+=10;up.trust=trustFrom(up.approved,up.violations||0)}}
+   notify(d.uploader,decision==="APPROVE"?"DOCUMENT_APPROVED":decision==="REJECT"?"DOCUMENT_REJECTED":"DOCUMENT_CHANGES_REQUESTED",d,{reason,link:decision==="APPROVE"?`#/tai-lieu/${d.slug}`:decision==="REQUEST_CHANGES"?`#/tai-lieu-cua-toi/${d.id}/sua`:"#/tai-lieu-cua-toi"})}
+  save();return n}
+function decisionPanel(compact){return `<div class="stack" data-decision>${compact?"":`<div class="field"><label for="inote">Ghi chú nội bộ (chỉ kiểm duyệt viên thấy)</label><textarea class="textarea" id="inote" style="min-height:64px" placeholder="Không bắt buộc"></textarea></div>`}
+  <div class="tb" style="grid-template-columns:repeat(3,1fr)" data-buttons><button type="button" class="btn primary" style="border:0" data-dec="APPROVE">Duyệt</button><button type="button" class="btn" style="border:0" data-dec="REQUEST_CHANGES">Yêu cầu sửa</button><button type="button" class="btn" style="border:0" data-dec="REJECT">Từ chối</button></div>
+  <div class="stack" data-reason hidden style="border:2px solid var(--ink);background:var(--paper);padding:12px"><div class="field"><label for="tpl">Lý do mẫu</label><select class="select" id="tpl"><option value="">Chọn lý do mẫu</option>${REVIEW_TEMPLATES.map(t=>`<option>${t}</option>`).join("")}</select></div><div class="field"><label for="rsn">Lý do gửi người đăng <span class="req">*</span></label><textarea class="textarea" id="rsn"></textarea></div><div class="row"><button type="button" class="btn ink" data-confirm>Xác nhận</button><button type="button" class="btn ghost" data-cancel>Thôi</button></div></div></div>`}
+function mountDecision(root,getIds,after){const p=root.querySelector("[data-decision]");if(!p)return;let pending=null;const rbox=p.querySelector("[data-reason]");
+  p.querySelector("#tpl").addEventListener("change",(e)=>{if(e.target.value)p.querySelector("#rsn").value=e.target.value});
+  p.querySelectorAll("[data-dec]").forEach(b=>b.addEventListener("click",()=>{const ids=getIds();if(!ids.length)return toast("Chưa chọn tài liệu nào.");if(b.dataset.dec==="APPROVE"){const n=decide(ids,"APPROVE",null,p.querySelector("#inote")?.value);toast(`Đã duyệt ${n} tài liệu.`);after()}else{pending=b.dataset.dec;rbox.hidden=false;p.querySelector("[data-confirm]").textContent=pending==="REJECT"?`Từ chối ${ids.length} tài liệu`:`Gửi yêu cầu sửa cho ${ids.length} tài liệu`;p.querySelector("#rsn").focus()}}));
+  p.querySelector("[data-cancel]").addEventListener("click",()=>{rbox.hidden=true});
+  p.querySelector("[data-confirm]").addEventListener("click",()=>{const reason=p.querySelector("#rsn").value.trim();if(reason.length<3)return toast("Cần ghi lý do để người đăng biết.");const n=decide(getIds(),pending,reason,p.querySelector("#inote")?.value);toast(`Đã xử lý ${n} tài liệu.`);after()})}
+
+views["/kiem-duyet"]=()=>{
+  const u=me();if(!u)return needLogin("/kiem-duyet");if(!isMod(u))return views.notfound();const s=modScope(u);
+  const docs=S.docs.filter(d=>d.status==="PENDING_REVIEW"&&(s===null||s.includes(course(d.course)?.faculty))).sort((a,b)=>(b.priority||0)-(a.priority||0)||a.createdAt-b.createdAt);
+  const lvl=(r)=>r>=60?["high","Cao"]:r>=30?["medium","Trung bình"]:["low","Thấp"];
+  return {html:`<div class="wrap" style="padding-block:20px">${modTabs("q")}${docs.length?`<div class="stack">
+   <div class="stack" style="position:sticky;top:58px;z-index:20;border:2px solid var(--ink);background:var(--paper);padding:8px"><label class="check"><input type="checkbox" data-all><span data-count>Chọn tất cả</span></label><div data-bulk hidden>${decisionPanel(true)}</div></div>
+   ${docs.map(d=>{const up=userBy(d.uploader);const [cls,lab]=lvl(d.risk||0);const h=Math.max(0,Math.round((Date.now()-d.createdAt)/3600e3));return `<div class="tb" style="grid-template-columns:44px 1fr 96px"><label style="display:flex;justify-content:center;padding-top:12px"><span class="sr">Chọn “${esc(d.title)}”</span><input type="checkbox" data-pick="${d.id}" style="width:20px;height:20px;accent-color:var(--ink)"></label><a href="#/kiem-duyet/${d.id}" style="display:flex;flex-direction:column;gap:4px;padding:8px 12px;text-decoration:none"><b style="font-weight:600">${esc(d.title)}</b><span class="tiny muted"><b class="head" style="color:var(--ink)">${d.course}</b> ${TYPES[d.type]}, ${d.kind} ${fmtSize(d.sizeKb)}. ${esc(displayName(up))} (${up?.approved?`${up.approved} tài liệu đã duyệt, bậc uy tín ${up.trust||0}`:"người đăng mới"}). ${h<24?`Chờ ${h} giờ.`:`Chờ ${Math.round(h/24)} ngày.`}</span>${d.checks?.content?.reasons?.length?`<span class="tiny" style="color:var(--stamp)">${d.checks.content.reasons.map(esc).join("; ")}</span>`:""}</a><div class="risk-${cls}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:4px"><span class="tiny">Rủi ro</span><b class="head small">${lab}</b><span class="tiny">${d.risk||0}/100</span></div></div>`}).join("")}</div>`:empty("Hàng chờ trống.","Tài liệu mới sẽ xuất hiện ở đây sau khi qua kiểm tra tự động. Thử đăng nhập Sinh viên và tải một file PDF lên.")}</div>`,
+   mount(root){const picks=[...root.querySelectorAll("[data-pick]")];if(!picks.length)return;const all=root.querySelector("[data-all]"),cnt=root.querySelector("[data-count]"),bulk=root.querySelector("[data-bulk]");
+    const sel=()=>picks.filter(p=>p.checked).map(p=>p.dataset.pick);const upd=()=>{const n=sel().length;cnt.textContent=n?`Đã chọn ${n} tài liệu`:"Chọn tất cả";bulk.hidden=!n;all.checked=n===picks.length};
+    picks.forEach(p=>p.addEventListener("change",upd));all.addEventListener("change",()=>{picks.forEach(p=>p.checked=all.checked);upd()});mountDecision(root,sel,()=>render())}};
+};
+views["/kiem-duyet/:id"]=({id})=>{
+  const u=me();if(!u)return needLogin(`/kiem-duyet/${id}`);const d=S.docs.find(x=>x.id===id);if(!d||!canModerate(u,d))return views.notfound();const c=course(d.course),up=userBy(d.uploader);
+  const s=modScope(u);const next=S.docs.filter(x=>x.status==="PENDING_REVIEW"&&x.id!==d.id&&(s===null||s.includes(course(x.course)?.faculty))).sort((a,b)=>(b.priority||0)-(a.priority||0)||a.createdAt-b.createdAt)[0];
+  const AC={AUTO_CHECK_PASSED:"qua kiểm tra tự động",AUTO_REJECTED:"từ chối tự động",APPROVE:"duyệt",REJECT:"từ chối",REQUEST_CHANGES:"yêu cầu sửa",REMOVE:"gỡ tài liệu",NOTE:"ghi chú"};
+  return {html:`<div class="wrap" style="padding-block:20px">${modTabs("q")}<div class="two wide"><div class="stack" style="min-width:0"><a class="small" href="#/kiem-duyet">Về hàng chờ</a>
+   ${d.uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`:`<div class="viewer"><div class="pages"><div style="width:100%;display:flex;flex-direction:column;gap:8px">${renderPages(d,d.pages)}</div></div></div>`}</div>
+   <aside class="stack" style="gap:16px">
+    <div class="tb" style="grid-template-columns:1fr 1fr"><div style="grid-column:span 2;padding:12px"><span class="badge ${d.status}">${STATUS[d.status]}</span><h2 class="head" style="font-size:20px;margin-top:6px">${esc(d.title)}</h2>${d.description?`<p class="small" style="margin:4px 0 0;white-space:pre-line">${esc(d.description)}</p>`:""}</div>
+     <div class="cell" style="grid-column:span 2"><span class="l">Người đăng</span><span class="v">${esc(displayName(up))} (${esc(d.uploader)})${d.anonymous?' <span style="color:var(--stamp)">(chọn ẩn danh)</span>':""}<span class="tiny muted" style="display:block;font-weight:400">${up?.approved||0} tài liệu đã duyệt, bậc uy tín ${up?.trust||0}</span></span></div>
+     <div class="cell"><span class="l">Mã HP</span><span class="v">${c.code} ${esc(c.name)}</span></div><div class="cell"><span class="l">Loại</span><span class="v">${TYPES[d.type]}${d.term?`, ${d.term}`:""}</span></div>
+     <div class="cell" style="grid-column:span 2"><span class="l">Tệp</span><span class="v">${esc(d.fileName||d.slug+".pdf")}, ${fmtSize(d.sizeKb)}</span></div></div>
+    <section><h3 class="head small" style="margin-bottom:4px">Kiểm tra tự động</h3><div class="tb">${Object.entries(d.checks||{}).map(([k,v])=>checkRow(k,v)).join("")}<div class="checkrow" style="background:var(--ink);gap:1px"><span style="background:var(--sheet);padding:6px 10px;font-size:13px;font-weight:600">Điểm rủi ro</span><span style="grid-column:span 2;background:var(--sheet);padding:6px 10px;font-size:13px" class="head">${d.risk||0}/100</span></div></div></section>
+    ${d.status==="PENDING_REVIEW"?`<section class="stack" style="gap:8px"><h3 class="head small">Quyết định</h3>${decisionPanel(false)}</section>`:""}
+    <section><h3 class="head small" style="margin-bottom:4px">Nhật ký</h3><ol style="list-style:none;margin:0;padding:0;border:2px solid var(--ink);background:var(--sheet);font-size:13px">${(d.logs||[]).map(l=>`<li style="padding:6px 12px;border-bottom:1px solid var(--grid)"><span class="muted">${fmtTime(l.t)} </span><b style="font-weight:600">${l.by?esc(displayName(userBy(l.by))):"Hệ thống"}</b> ${AC[l.a]||l.a}${l.reason?`<span style="display:block">${esc(l.reason)}</span>`:""}${l.note?`<span class="muted" style="display:block">${esc(l.note)}</span>`:""}</li>`).join("")}<li style="padding:6px 12px"><span class="muted">${fmtTime(d.createdAt)} </span>Người đăng gửi tài liệu</li></ol></section>
+   </aside></div></div>`,
+   mount(root){if(d.uploaded)mountUploadedPreview(root,d);mountDecision(root,()=>[d.id],()=>go(next?`#/kiem-duyet/${next.id}`:"#/kiem-duyet"))}};
+};
+views["/kiem-duyet/bao-cao"]=()=>{
+  const u=me();if(!u)return needLogin("/kiem-duyet/bao-cao");if(!isMod(u))return views.notfound();
+  const list=S.reports.filter(r=>r.status==="OPEN").map(r=>({r,d:S.docs.find(x=>x.id===r.doc)})).filter(x=>x.d&&canModerate(u,x.d));
+  return {html:`<div class="wrap" style="padding-block:20px">${modTabs("r")}${list.length?`<div class="stack">${list.map(({r,d})=>`<div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"><div class="stack" style="padding:10px 12px;gap:6px"><div class="row">${r.takedown?'<span class="stamp">Gỡ bản quyền</span>':`<span class="badge">${REPORT_REASONS[r.reason]}</span>`}<span class="tiny muted">${fmtTime(r.t)}</span></div><p style="margin:0" class="row"><b class="head">${d.course}</b><a href="#/tai-lieu/${d.slug}" style="font-weight:600">${esc(d.title)}</a><span class="badge ${d.status}">${STATUS[d.status]}</span></p>${r.details?`<p class="small" style="margin:0;white-space:pre-line">${esc(r.details)}</p>`:""}<p class="tiny muted" style="margin:0">Người báo cáo: ${r.by?esc(r.by):esc(`${r.fullName} (${r.email})`)}</p></div>
+   <div class="stack" style="padding:10px 12px">${d.status!=="REMOVED"?`<form class="stack" data-remove="${r.id}"><div class="field"><label for="rm-${r.id}">Lý do gỡ (gửi người đăng)</label><textarea class="textarea" id="rm-${r.id}" style="min-height:56px"></textarea></div><button class="btn ink sm" type="submit">Gỡ tài liệu</button></form>`:""}<button class="btn sm" type="button" data-dismiss="${r.id}">Bỏ qua báo cáo</button></div></div>`).join("")}</div>`:empty("Không có báo cáo nào đang mở.","Thử đăng nhập Sinh viên, mở một tài liệu và bấm “Báo cáo vi phạm”.")}</div>`,
+   mount(root){root.querySelectorAll("[data-remove]").forEach(f=>f.addEventListener("submit",(e)=>{e.preventDefault();const r=S.reports.find(x=>x.id===f.dataset.remove);const reason=f.querySelector("textarea").value.trim();if(reason.length<3)return toast("Cần ghi lý do.");removeDoc(S.docs.find(x=>x.id===r.doc),reason,r.id);toast("Đã gỡ tài liệu và đóng báo cáo.");render()}));
+    root.querySelectorAll("[data-dismiss]").forEach(b=>b.addEventListener("click",()=>{const r=S.reports.find(x=>x.id===b.dataset.dismiss);r.status="DISMISSED";save();toast("Đã bỏ qua báo cáo.");render()}))}};
+};
+
+/* ----- Quản trị ----- */
+function adminTabs(a){return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px"><h1 class="code" style="font-size:40px;line-height:1">Quản trị</h1><nav class="tabs" aria-label="Quản trị"><a href="#/quan-tri/hoc-phan"${a==="c"?' aria-current="page"':""}>Học phần</a><a href="#/quan-tri/nguoi-dung"${a==="u"?' aria-current="page"':""}>Phân quyền</a><a href="#/quan-tri/nhat-ky"${a==="l"?' aria-current="page"':""}>Nhật ký</a></nav></div>`}
+function audit(action,detail){S.audit.unshift({t:Date.now(),by:me().email,action,detail});save()}
+views["/quan-tri"]=()=>{go("#/quan-tri/hoc-phan");return{html:""}};
+views["/quan-tri/hoc-phan"]=()=>{
+  const u=me();if(!u)return needLogin("/quan-tri/hoc-phan");if(!isAdmin(u))return views.notfound();const f=norm(params().get("q")||"");
+  const list=S.courses.filter(c=>!f||norm(`${c.code} ${c.name}`).includes(f)).sort((a,b)=>a.code.localeCompare(b.code));
+  const facOpt=DATA.faculties.map(x=>`<option value="${x.code}">${x.code}: ${esc(x.name)}</option>`).join("");
+  return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("c")}<div class="two wide"><section class="stack" style="min-width:0"><form class="row" data-form="aq" style="flex-wrap:nowrap"><label for="aq" class="sr">Lọc</label><input class="input" id="aq" name="q" value="${esc(params().get("q")||"")}" placeholder="Mã hoặc tên học phần"><button class="btn ink" type="submit">Lọc</button></form><p class="small muted" style="margin:0">Hiện ${list.length} trên ${S.courses.length} học phần</p>
+   <div style="overflow-x:auto"><table class="t"><thead><tr><th>Mã</th><th>Tên học phần</th><th>Viện</th><th class="num">Tín chỉ</th><th class="num">Tài liệu</th></tr></thead><tbody>${list.map(c=>`<tr><td class="head"><a href="#/hoc-phan/${c.code}">${c.code}</a></td><td>${esc(c.name)}</td><td>${c.faculty}</td><td class="num">${c.credits??"–"}</td><td class="num">${courseDocCount(c.code)}</td></tr>`).join("")}</tbody></table></div></section>
+   <aside class="stack" style="gap:24px"><form class="stack" data-form="addc" style="border:2px solid var(--ink);background:var(--sheet);padding:16px"><h2 class="h2">Thêm học phần</h2><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div class="field" style="width:120px"><label for="cc">Mã <span class="req">*</span></label><input class="input" id="cc" name="code" placeholder="IT3011"></div><div class="field" style="flex:1"><label for="cn">Tên học phần <span class="req">*</span></label><input class="input" id="cn" name="name"></div></div><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div class="field" style="flex:1"><label for="ce">Tên tiếng Anh</label><input class="input" id="ce" name="nameEn"></div><div class="field" style="width:90px"><label for="cr">Tín chỉ</label><input class="input" id="cr" name="credits" inputmode="numeric"></div></div><div class="field"><label for="cf">Viện <span class="req">*</span></label><select class="select" id="cf" name="faculty"><option value="">Chọn Viện</option>${facOpt}</select></div><p class="err" data-err hidden></p><button class="btn ink" type="submit">Thêm học phần</button></form>
+    <form class="stack" data-form="csv" style="border:2px solid var(--ink);background:var(--sheet);padding:16px"><h2 class="h2">Nhập từ CSV</h2><div class="field"><label for="csv">Nội dung CSV</label><textarea class="textarea" id="csv" style="min-height:140px;font-family:ui-monospace,monospace;font-size:13px" placeholder="IT4409,Công nghệ Web và dịch vụ trực tuyến,Web Technologies,3,SOICT"></textarea><span class="hint">Mỗi dòng: mã, tên, tên tiếng Anh, số tín chỉ, mã Viện. Mã đã có sẽ được cập nhật.</span></div><div data-result></div><button class="btn ink" type="submit">Nhập</button></form></aside></div></div>`,
+   mount(root){root.querySelector('[data-form="aq"]').addEventListener("submit",(e)=>{e.preventDefault();go(`#/quan-tri/hoc-phan?q=${encodeURIComponent(e.target.q.value)}`)});
+    root.querySelector('[data-form="addc"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target),err=e.target.querySelector("[data-err]");const code=String(fd.get("code")).trim().toUpperCase();const fail=(m)=>{err.textContent=m;err.hidden=false};
+     if(!/^[A-Z]{2,4}\d{4}[A-Z]?$/.test(code))return fail("Mã dạng IT3011.");if(course(code))return fail("Mã học phần đã tồn tại.");if(String(fd.get("name")).trim().length<2)return fail("Nhập tên học phần.");if(!fd.get("faculty"))return fail("Chọn Viện.");
+     S.courses.push({code,name:String(fd.get("name")).trim(),nameEn:String(fd.get("nameEn")||"").trim(),credits:+fd.get("credits")||null,faculty:fd.get("faculty"),keywords:[]});audit("course.create",code);toast(`Đã thêm học phần ${code}.`);render()});
+    root.querySelector('[data-form="csv"]').addEventListener("submit",(e)=>{e.preventDefault();let created=0,updated=0;const errs=[];
+     e.target.csv.value.split(/\r?\n/).forEach((line,i)=>{line=line.trim();if(!line||/^(ma|mã|code)\s*[,;]/i.test(line))return;const [code0,name,nameEn,credits,fac]=line.split(/[,;]/).map(s=>(s||"").trim());const code=code0.toUpperCase();
+      if(!/^[A-Z]{2,4}\d{4}[A-Z]?$/.test(code))return errs.push(`Dòng ${i+1}: mã “${code0}” không hợp lệ`);if(!faculty((fac||"").toUpperCase()))return errs.push(`Dòng ${i+1}: không có Viện mã “${fac||""}”`);if(!name)return errs.push(`Dòng ${i+1}: thiếu tên`);
+      const ex=course(code);const data={name,nameEn,credits:+credits||null,faculty:fac.toUpperCase()};if(ex){Object.assign(ex,data);updated++}else{S.courses.push({code,keywords:[],...data});created++}});
+     audit("course.import",`${created} thêm, ${updated} cập nhật`);save();e.target.querySelector("[data-result]").innerHTML=`<div class="note"><p style="margin:0">Thêm ${created}, cập nhật ${updated}, lỗi ${errs.length}.</p>${errs.map(x=>`<p class="tiny" style="margin:0;color:var(--stamp)">${esc(x)}</p>`).join("")}</div>`;toast("Đã nhập CSV.")})}};
+};
+views["/quan-tri/nguoi-dung"]=()=>{
+  const u=me();if(!u)return needLogin("/quan-tri/nguoi-dung");if(!isAdmin(u))return views.notfound();
+  const staff=S.users.flatMap(x=>x.roles.filter(r=>r.key!=="STUDENT").map(r=>({x,r})));
+  return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("u")}<form class="stack" data-form="grant" style="border:2px solid var(--ink);background:var(--sheet);padding:16px;margin-bottom:24px"><h2 class="h2">Giao vai trò</h2><div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:end"><div class="field"><label for="ge">Email</label><input class="input" id="ge" name="email" type="email" list="users"><datalist id="users">${S.users.map(x=>`<option value="${esc(x.email)}">`).join("")}</datalist></div><div class="field"><label for="gr">Vai trò</label><select class="select" id="gr" name="role"><option value="MODERATOR">Kiểm duyệt viên</option><option value="ADMIN">Quản trị viên</option></select></div><div class="field"><label for="gf">Phạm vi</label><select class="select" id="gf" name="faculty"><option value="">Toàn hệ thống</option>${DATA.faculties.map(f=>`<option value="${f.code}">${f.code}: ${esc(f.shortName)}</option>`).join("")}</select></div><button class="btn ink" type="submit">Giao</button></div><p class="small muted" style="margin:0">Người được giao phải đăng nhập ít nhất một lần. Kiểm duyệt viên theo Viện chỉ thấy tài liệu của Viện đó.</p></form>
+   <h2 class="h2" style="margin-bottom:8px">Kiểm duyệt viên và quản trị viên</h2><div style="overflow-x:auto"><table class="t"><thead><tr><th>Người dùng</th><th>Vai trò</th><th>Phạm vi</th><th></th></tr></thead><tbody>${staff.map(({x,r},i)=>`<tr><td>${esc(x.name)}<span class="tiny muted" style="display:block">${esc(x.email)}</span></td><td class="head">${r.key==="ADMIN"?"Quản trị viên":"Kiểm duyệt viên"}</td><td>${r.faculty||"Toàn hệ thống"}</td><td class="num"><button class="btn ghost sm" type="button" data-revoke="${esc(x.email)}|${r.key}|${r.faculty||""}" style="text-decoration:underline">Thu hồi</button></td></tr>`).join("")}</tbody></table></div></div>`,
+   mount(root){root.querySelector('[data-form="grant"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);const t=userBy(String(fd.get("email")).trim().toLowerCase());if(!t)return toast("Chưa có người dùng với email này.");const role=fd.get("role"),fac=role==="MODERATOR"?fd.get("faculty")||null:null;
+     if(t.roles.some(r=>r.key===role&&(r.faculty||null)===fac))return toast("Người dùng đã có vai trò này.");t.roles.push({key:role,faculty:fac});audit("role.grant",`${t.email} ${role} ${fac||"toàn hệ thống"}`);toast("Đã giao vai trò.");render()});
+    root.querySelectorAll("[data-revoke]").forEach(b=>b.addEventListener("click",()=>{const [email,key,fac]=b.dataset.revoke.split("|");if(email===me().email&&key==="ADMIN")return toast("Không thể tự thu hồi quyền quản trị của chính mình.");const t=userBy(email);t.roles=t.roles.filter(r=>!(r.key===key&&(r.faculty||"")===fac));audit("role.revoke",`${email} ${key} ${fac||"toàn hệ thống"}`);toast("Đã thu hồi.");render()}))}};
+};
+views["/quan-tri/nhat-ky"]=()=>{const u=me();if(!u)return needLogin("/quan-tri/nhat-ky");if(!isAdmin(u))return views.notfound();
+  return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("l")}${S.audit.length?`<table class="t"><thead><tr><th>Thời gian</th><th>Người làm</th><th>Hành động</th><th>Chi tiết</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td>${fmtTime(a.t)}</td><td>${esc(a.by)}</td><td class="head">${esc(a.action)}</td><td>${esc(a.detail)}</td></tr>`).join("")}</tbody></table>`:empty("Chưa có thao tác quản trị nào.")}<p class="small muted">Bản thật lưu nhật ký vào bảng chỉ cho thêm (có trigger chặn sửa, xóa).</p></div>`}};
+
+/* ----- Trang quy định, gỡ bản quyền ----- */
+function legal(title,sections){return {html:pageHead(title,"Cập nhật ngày 24/10/2026")+`<div class="wrap" style="max-width:800px;padding-block:24px"><ol class="tb" style="grid-template-columns:56px 1fr;list-style:none;margin:0;padding:0">${sections.map(([t,b],i)=>`<li style="display:contents"><span class="code" style="display:flex;justify-content:center;padding-top:12px;font-size:24px;background:var(--sheet)">${i+1}</span><div style="padding:12px 16px;background:var(--sheet)"><h2 class="h2">${t}</h2>${b.map(p=>`<p style="margin:8px 0 0">${p}</p>`).join("")}</div></li>`).join("")}</ol></div>`}}
+views["/dieu-khoan"]=()=>legal("Điều khoản sử dụng",[["Kho tài liệu là gì",["Kho tài liệu học tập HUST là nơi sinh viên Đại học Bách khoa Hà Nội chia sẻ tài liệu phục vụ học tập: đề thi, slide, bài giải, ghi chú, đề cương.","Đây là dự án của sinh viên, không phải kênh chính thức của Nhà trường."]],["Tài khoản",["Chỉ email do trường cấp được đăng ký. Bạn chịu trách nhiệm về hoạt động trên tài khoản của mình và không chia sẻ mã đăng nhập cho người khác."]],["Quyền chia sẻ và bản quyền",["Khi tải tài liệu lên, bạn xác nhận mình là tác giả hoặc có quyền chia sẻ tài liệu đó cho mục đích học tập, phi thương mại.","Không đăng giáo trình, sách đang bán, tài liệu nội bộ được đánh dấu không phát tán, hoặc nội dung của người khác khi chưa được đồng ý.","Chủ sở hữu bản quyền có thể yêu cầu gỡ tài liệu qua trang Yêu cầu gỡ tài liệu."]],["Kiểm duyệt",["Mọi tài liệu đều qua kiểm tra tự động (định dạng, trùng lặp, mã độc, nội dung) rồi đến kiểm duyệt viên trước khi công khai. Kiểm duyệt viên có thể từ chối, yêu cầu sửa hoặc gỡ tài liệu vi phạm và sẽ nêu lý do."]],["Hành vi bị cấm",["Đăng mã độc, nội dung quảng cáo, nội dung xúc phạm, thông tin cá nhân của người khác; gian lận lượt tải hoặc điểm uy tín; dùng công cụ tự động thu thập dữ liệu hàng loạt.","Vi phạm có thể dẫn tới gỡ tài liệu, trừ điểm uy tín, khóa chức năng tải lên hoặc khóa tài khoản."]],["Giới hạn trách nhiệm",["Tài liệu do người dùng đóng góp có thể có sai sót. Hãy đối chiếu với giáo trình và giảng viên. Không dùng kho để gian lận trong thi cử."]]]);
+views["/quyen-rieng-tu"]=()=>legal("Quyền riêng tư",[["Chúng tôi lưu gì",["Email trường, họ tên, Viện, khóa, mã số sinh viên (nếu bạn nhập), tài liệu bạn đăng, lịch sử tìm kiếm và lượt tải của bạn.","Địa chỉ IP chỉ được lưu ở dạng băm để chống lạm dụng."]],["Ai thấy thông tin của bạn",["Người xem thấy tên hiển thị của người đăng, trừ khi bạn chọn ẩn danh. Kiểm duyệt viên luôn thấy người đăng để xử lý vi phạm.","Chúng tôi không bán hay chia sẻ dữ liệu cho bên thứ ba."]],["Email",["Chúng tôi gửi mã đăng nhập và thông báo kết quả kiểm duyệt tới email trường của bạn."]],["Quyền của bạn",["Bạn có thể sửa hồ sơ bất cứ lúc nào. Muốn xóa tài khoản hoặc tải bản sao dữ liệu của mình, hãy liên hệ quản trị viên."]],["Bản demo này",["Bản demo chạy hoàn toàn trên trình duyệt của bạn: dữ liệu và file tải lên chỉ lưu trên máy bạn (localStorage, IndexedDB), không gửi đi đâu."]]]);
+views["/go-tai-lieu"]=()=>({html:pageHead("Yêu cầu gỡ tài liệu","",'<p style="margin:0;max-width:640px">Nếu bạn là tác giả hoặc chủ sở hữu bản quyền của một tài liệu trên kho và không muốn tài liệu được chia sẻ, hãy gửi yêu cầu. Không cần tài khoản.</p>')+`<div class="wrap" style="max-width:800px;padding-block:24px" data-tk><form class="stack" data-form="takedown" novalidate style="border:2px solid var(--ink);background:var(--sheet);padding:16px"><div class="row" style="align-items:flex-start;flex-wrap:wrap"><div class="field" style="flex:1;min-width:220px"><label for="tn">Họ và tên <span class="req">*</span></label><input class="input" id="tn" name="fullName" autocomplete="name"></div><div class="field" style="flex:1;min-width:220px"><label for="tm">Email liên hệ <span class="req">*</span></label><input class="input" id="tm" name="email" type="email" autocomplete="email"></div></div><div class="field"><label for="tu">Đường dẫn tài liệu <span class="req">*</span></label><input class="input" id="tu" name="url" value="${esc(params().get("url")||"")}"><span class="hint">Dán đường dẫn trang tài liệu, có dạng …#/tai-lieu/ten-tai-lieu</span></div><div class="field"><label for="tdd">Mô tả <span class="req">*</span></label><textarea class="textarea" id="tdd" name="details" style="min-height:140px"></textarea><span class="hint">Bạn là ai với tài liệu này, và vì sao cần gỡ (ít nhất 20 ký tự).</span></div><label class="check"><input type="checkbox" name="decl"><span>Tôi cam đoan thông tin trên là đúng và tôi là chủ sở hữu hoặc được ủy quyền.</span></label><p class="err" data-err hidden></p><button class="btn primary lg" type="submit">Gửi yêu cầu</button></form><p class="small muted">Kiểm duyệt viên xem xét yêu cầu, gỡ tài liệu nếu yêu cầu hợp lệ và thông báo cho người đăng.</p></div>`,
+ mount(root){root.querySelector('[data-form="takedown"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target),err=e.target.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false};
+  if(String(fd.get("fullName")).trim().length<2)return fail("Nhập họ và tên.");if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(fd.get("email")).trim()))return fail("Email không hợp lệ.");const m=String(fd.get("url")).match(/tai-lieu\/([a-z0-9-]+)/i);const d=m&&S.docs.find(x=>x.slug===m[1].toLowerCase());if(!d)return fail("Không tìm thấy tài liệu theo đường dẫn này.");if(String(fd.get("details")).trim().length<20)return fail("Mô tả ít nhất 20 ký tự.");if(!fd.get("decl"))return fail("Cần xác nhận cam kết.");
+  S.reports.push({id:uid(),doc:d.id,reason:"COPYRIGHT",takedown:true,fullName:String(fd.get("fullName")).trim(),email:String(fd.get("email")).trim(),details:String(fd.get("details")).trim(),status:"OPEN",t:Date.now()});save();root.querySelector("[data-tk]").innerHTML='<p class="note">Đã nhận yêu cầu. Chúng tôi sẽ phản hồi qua email trong vòng 3 ngày làm việc. (Bản demo: đăng nhập Kiểm duyệt viên để xem yêu cầu trong mục Báo cáo vi phạm.)</p>'})}});
+
+views.notfound=()=>({html:`<div class="wrap" style="max-width:640px;padding-block:64px"><div class="tb" style="grid-template-columns:96px 1fr"><div class="code" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--ink);color:var(--paper)">404</div><div style="padding:12px 16px"><h1 class="head" style="font-size:20px">Không tìm thấy trang</h1><p class="small muted" style="margin:0">Trang không tồn tại, đã bị gỡ hoặc bạn không có quyền xem.</p></div></div><div class="row" style="margin-top:16px"><a class="btn ink" href="#/">Về trang chủ</a><a class="btn" href="#/tim-kiem">Tìm tài liệu</a></div></div>`});
+
+/* ===================== Bộ định tuyến ===================== */
+const ROUTES=Object.keys(views).filter(k=>k.startsWith("/")).map(k=>({k,re:new RegExp("^"+k.replace(/:[a-z]+/g,"([^/]+)")+"$"),names:(k.match(/:[a-z]+/g)||[]).map(n=>n.slice(1))})).sort((a,b)=>b.k.length-a.k.length);
+const TITLES={"/":"Kho tài liệu HUST","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
+let lastPath=null;
+function render(){
+  const path=currentPath();let view=views.notfound,args={};
+  for(const r of ROUTES){const m=path.match(r.re);if(m){view=views[r.k];r.names.forEach((n,i)=>args[n]=decodeURIComponent(m[i+1]));break}}
+  const out=view(args)||{html:""};const app=document.getElementById("app");app.innerHTML=out.html;renderHeader();out.mount?.(app);bindSearch(app);
+  const h1=app.querySelector("h1");document.title=(TITLES[path]||(h1?h1.textContent.trim():"Kho tài liệu HUST"))+(path==="/"?"":" | Kho tài liệu HUST");
+  if(path!==lastPath){window.scrollTo(0,0);lastPath=path}
+}
+/* Ô tìm kiếm có gợi ý (mã học phần, tiêu đề tài liệu), điều khiển bằng bàn phím */
+function bindSearch(root){
+  root.querySelectorAll('[data-form="search"]').forEach(form=>{const input=form.querySelector('input[name="q"]'),list=form.querySelector(".sugg");let items=[],act=-1;
+   const paint=()=>{list.innerHTML=items.map((it,i)=>`<div role="option" id="sg${i}" tabindex="-1" aria-selected="${i===act}" data-href="${it.href}">${it.kind==="c"?`<span class="code" style="font-size:18px;line-height:1">${it.a}</span><span class="small">${esc(it.b)}</span>`:`<span style="flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(it.a)}</span><span class="head tiny">${it.b}</span>`}</div>`).join("");list.hidden=!items.length;input.setAttribute("aria-expanded",String(!!items.length));input.setAttribute("aria-activedescendant",act>=0?`sg${act}`:"")};
+   input.addEventListener("input",()=>{const q=input.value.trim();if(q.length<2){items=[];paint();return}const cs=searchCourses(q,4).map(c=>({kind:"c",a:c.code,b:c.name,href:`#/hoc-phan/${c.code}`}));const toks=norm(q).split(" ");const ds=publicDocs().filter(d=>{const w=norm(`${d.title} ${d.course}`).split(" ");return toks.every(t=>w.some(x=>x.startsWith(t)))}).sort((a,b)=>b.downloads-a.downloads).slice(0,5).map(d=>({kind:"d",a:d.title,b:d.course,href:`#/tai-lieu/${d.slug}`}));items=[...cs,...ds];act=-1;paint()});
+   input.addEventListener("keydown",(e)=>{if(list.hidden)return;if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();act=(act+(e.key==="ArrowDown"?1:items.length-1)+(act<0&&e.key==="ArrowUp"?1:0))%items.length;paint()}else if(e.key==="Enter"&&act>=0){e.preventDefault();go(items[act].href)}else if(e.key==="Escape"){items=[];paint()}});
+   input.addEventListener("blur",()=>setTimeout(()=>{list.hidden=true},150));
+   list.addEventListener("mousedown",(e)=>{const o=e.target.closest("[data-href]");if(o){e.preventDefault();go(o.dataset.href)}});
+   form.addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(form);const n=new URLSearchParams();for(const [k,v] of fd)if(v)n.set(k,v);go("#/tim-kiem?"+n.toString())})});
+  root.querySelectorAll('[data-form="filters"]').forEach(form=>form.addEventListener("submit",(e)=>{e.preventDefault();const n=new URLSearchParams(params());n.delete("page");for(const [k,v] of new FormData(form)){v?n.set(k,v):n.delete(k)}if(n.get("sort")==="relevance")n.delete("sort");go("#/tim-kiem?"+n.toString())}));
+  root.querySelectorAll('[data-form="loc"]').forEach(form=>form.addEventListener("submit",(e)=>{e.preventDefault();go(`#${currentPath()}${form.loc.value?`?loc=${encodeURIComponent(form.loc.value)}`:""}`)}));
+}
+/* Hành động dùng chung (vào nhanh, đăng xuất, đổi nền, tải xuống, đặt lại) */
+document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-action]");if(!el)return;const a=el.dataset.action;
+  if(a==="quick"){e.preventDefault();const next=params().get("next");S.session=el.dataset.email;save();toast(`Đã vào bằng ${displayName(me())}`);go(next?"#"+next:el.dataset.email.startsWith("kdv")?"#/kiem-duyet":el.dataset.email.startsWith("admin")?"#/quan-tri/hoc-phan":location.hash||"#/");render()}
+  else if(a==="logout"){S.session=null;save();toast("Đã đăng xuất.");go("#/")}
+  else if(a==="theme"){try{localStorage.setItem("khotl-theme",isDark()?"light":"dark")}catch{}applyTheme();renderHeader()}
+  else if(a==="reset"){localStorage.removeItem(KEY);await fileDB.clear();load();toast("Đã đặt lại dữ liệu demo.");go("#/");render()}
+  else if(a==="download"){const d=S.docs.find(x=>x.id===el.dataset.id);const u=me();if(!u){go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);return}
+   let blob=d.uploaded?await fileDB.get(d.id):null;let name=d.fileName||`${d.course}-${d.slug}.txt`;
+   if(!blob){blob=new Blob([`${d.title}\n${d.course} ${course(d.course).name}\n\n${docContent(d).map((p,i)=>`Trang ${i+1}\n${p.join("\n")}`).join("\n\n")}\n\nDữ liệu mẫu của bản demo Kho tài liệu HUST.`],{type:"text/plain;charset=utf-8"})}
+   const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+   if(d.status==="APPROVED"){d.downloads++;save()}toast("Đã tải xuống.")}
+});
+// Bấm liên kết tới đúng trang đang mở (vd "Tải thêm tài liệu khác") thì vẽ lại trang
+document.addEventListener("click",(e)=>{const a=e.target.closest('a[href^="#/"]');if(a&&a.getAttribute("href")===location.hash&&!e.defaultPrevented){e.preventDefault();render()}});
+document.addEventListener("click",(e)=>{const m=document.querySelector("details.menu[open]");if(m&&!m.contains(e.target))m.removeAttribute("open");if(e.target.closest(".menu-pop a"))m?.removeAttribute("open")});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{applyTheme();renderHeader()});
+window.addEventListener("hashchange",render);
+render();
+</script>
+</body>
+</html>

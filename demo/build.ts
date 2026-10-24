@@ -95,4 +95,6 @@ const data = {
 const template = readFileSync(new URL("./template.html", import.meta.url), "utf8");
 const html = template.replace("/*__DATA__*/null", JSON.stringify(data).replace(/</g, "\\u003c"));
 writeFileSync(new URL("./index.html", import.meta.url), html);
+// Bản ở gốc repo để GitHub Pages (chế độ "Deploy from branch: main") mở thẳng bản demo
+writeFileSync(new URL("../index.html", import.meta.url), html);
 console.log(`demo/index.html: ${data.faculties.length} Viện, ${data.courses.length} học phần, ${documents.length} tài liệu`);
