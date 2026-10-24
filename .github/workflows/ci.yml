@@ -130,7 +130,12 @@ jobs:
           if [ -s drift-rest.sql ]; then echo "Schema lệch với migration:" | tee ../../ci-logs/drift-check.log; cat drift-rest.sql | tee -a ../../ci-logs/drift-check.log; exit 1; fi
           echo "Schema khớp migration"
       - name: Test tích hợp sổ lượt tải (Postgres thật)
-        run: set -o pipefail; pnpm --filter @khotl/web test:int 2>&1 | tee ci-logs/int.log
+        run: |
+          set -o pipefail
+          pnpm --filter @khotl/web test:int 2>&1 | tee ci-logs/int.log
+          # Tóm tắt số test đã chạy, đọc được qua API annotations
+          summary=$(grep -E "Test Files|Tests " ci-logs/int.log | sed 's/\x1b\[[0-9;]*m//g' | tr '\n' ' ')
+          echo "::notice title=Test tích hợp::${summary}"
       - name: Đưa lỗi vào chú thích (đọc được qua API khi không tải được log)
         if: failure()
         run: |
