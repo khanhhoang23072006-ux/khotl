@@ -15,13 +15,25 @@
 :root{--paper:#F6F7F5;--sheet:#FFFFFF;--ink:#1B1F23;--grid:#DFE5E9;--pencil:#5E6670;--stamp:#B3172B;--stamp-ink:#fff;--wash:#EEF1EE;
 --line:#1B1F23;--fill:#1B1F23;--on-fill:#F6F7F5;--star:#B3172B;--page:#FFFFFF;
 --font:"Archivo","Arial Narrow",system-ui,sans-serif;color-scheme:light}
-/* Nền tối hiện đại: sắc đen than obsidian sâu thẳm, bề mặt khối tinh tế, đường kẻ kỹ thuật sắc nét, đỏ neon rực rỡ */
-html.dark{--paper:#0A0D14;--sheet:#121824;--ink:#F0F6FC;--grid:#16202C;--pencil:#8B9BAE;--stamp:#FA384C;--stamp-ink:#FFFFFF;--wash:#1A2332;
---line:#222D3D;--fill:#1F2B3B;--on-fill:#F8FAFC;--star:#FFB300;--page:#F8FAFC;color-scheme:dark}
-html.dark .gridpaper{background-image:linear-gradient(rgba(56,139,253,0.07) 1px,transparent 1px),linear-gradient(90deg,rgba(56,139,253,0.07) 1px,transparent 1px)}
-html.dark .tb{box-shadow:0 2px 8px rgba(0,0,0,0.4)}
-html.dark .menu-pop,html.dark .sugg{box-shadow:0 12px 28px rgba(0,0,0,0.65),0 0 0 1px var(--line)}
-html.dark .toast{box-shadow:0 8px 24px rgba(250,56,76,0.35),0 0 0 1px var(--line)}
+/* Nền tối: Khung trắng sắc nét phong cách bản vẽ kỹ thuật, chữ trắng sáng tinh khôi, thi thoảng kết hợp viền và điểm nhấn đỏ */
+html.dark{--paper:#08090C;--sheet:#0F1117;--ink:#FFFFFF;--grid:rgba(255,255,255,0.06);--pencil:#A6B0BE;--stamp:#FF2B44;--stamp-ink:#FFFFFF;--wash:#1A1D26;
+--line:#FFFFFF;--fill:#202430;--on-fill:#FFFFFF;--star:#FFB800;--page:#FFFFFF;color-scheme:dark}
+html.dark .gridpaper{background-image:linear-gradient(rgba(255,255,255,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.06) 1px,transparent 1px)}
+html.dark .tb{box-shadow:0 0 0 1px #000, 0 4px 16px rgba(0,0,0,0.6)}
+html.dark .menu-pop,html.dark .sugg{border:2px solid var(--line);box-shadow:4px 4px 0 var(--stamp)}
+html.dark .toast{border:2px solid var(--line);box-shadow:4px 4px 0 var(--stamp)}
+html.dark .note{border-left:4px solid var(--stamp)}
+html.dark .note.red{border-color:var(--stamp);background:rgba(255,43,68,0.08)}
+html.dark .input:focus,html.dark .select:focus,html.dark .textarea:focus{border-color:var(--stamp)!important;outline:2px solid var(--stamp)}
+html.dark .btn:not(.primary):hover{border-color:var(--stamp);color:var(--stamp)}
+html.dark .doc:hover{box-shadow:inset 0 0 0 1px var(--stamp)}
+html.dark header.site::after{content:'';position:absolute;bottom:-2px;left:0;width:80px;height:2px;background:var(--stamp);z-index:2}
+html.dark .page-head{position:relative}
+html.dark .page-head::after{content:'';position:absolute;bottom:-2px;left:0;width:96px;height:2px;background:var(--stamp);z-index:2}
+html.dark nav.main a[aria-current]{background:var(--fill);color:#FFFFFF;border-bottom:2px solid var(--stamp)}
+html.dark nav.bottom a[aria-current]{background:var(--fill);color:#FFFFFF;border-top:2px solid var(--stamp)}
+html.dark .badge.APPROVED{border-color:var(--stamp);color:var(--stamp);background:rgba(255,43,68,0.12)}
+html.dark mark{color:#FFFFFF;background:rgba(255,43,68,0.25);text-decoration:underline 2px var(--stamp)}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;font-variation-settings:"wdth" 100;min-height:100dvh}
