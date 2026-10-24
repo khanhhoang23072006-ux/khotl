@@ -1,0 +1,31 @@
+{
+  "name": "khotl",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @khotl/web --filter @khotl/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "infra:up": "docker compose -f infra/compose/docker-compose.dev.yml up -d",
+    "infra:down": "docker compose -f infra/compose/docker-compose.dev.yml down",
+    "db:generate": "pnpm --filter @khotl/db generate",
+    "db:migrate": "pnpm --filter @khotl/db migrate:deploy",
+    "db:seed": "pnpm --filter @khotl/db seed",
+    "db:setup": "pnpm db:migrate && pnpm db:seed",
+    "e2e": "pnpm --filter @khotl/e2e e2e"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@biomejs/biome", "@prisma/engines", "esbuild", "prisma", "sharp"]
+  }
+}

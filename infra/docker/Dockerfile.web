@@ -1,0 +1,33 @@
+# Web Next.js chạy ở chế độ standalone (chỉ chép các file cần thiết vào image).
+# Build: docker build -f infra/docker/Dockerfile.web \
+#   --build-arg S3_PUBLIC_ENDPOINT=https://files.example.com --build-arg S3_FORCE_PATH_STYLE=true -t khotl-web .
+FROM node:22-bookworm-slim AS build
+RUN corepack enable
+WORKDIR /app
+COPY . .
+RUN pnpm install --frozen-lockfile && pnpm --filter @khotl/db generate
+# Header CSP được tính lúc build từ địa chỉ kho file mà trình duyệt truy cập
+ARG S3_PUBLIC_ENDPOINT=http://localhost:8333
+ARG S3_FORCE_PATH_STYLE=true
+ARG APP_URL=http://localhost:3000
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    S3_PUBLIC_ENDPOINT=$S3_PUBLIC_ENDPOINT \
+    S3_FORCE_PATH_STYLE=$S3_FORCE_PATH_STYLE \
+    APP_URL=$APP_URL
+RUN pnpm --filter @khotl/web build
+
+FROM node:22-bookworm-slim AS runner
+WORKDIR /app
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
+RUN useradd --system --uid 1001 nextjs
+COPY --from=build --chown=nextjs /app/apps/web/.next/standalone ./
+COPY --from=build --chown=nextjs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build --chown=nextjs /app/apps/web/public ./apps/web/public
+USER nextjs
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
+  CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "apps/web/server.js"]

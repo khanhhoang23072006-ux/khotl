@@ -1,0 +1,34 @@
+{
+  "name": "@khotl/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./enums": "./src/enums.ts"
+  },
+  "scripts": {
+    "generate": "prisma generate",
+    "postinstall": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "migration:init": "node scripts/build-init-migration.mjs",
+    "seed": "prisma db seed",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@khotl/adapters": "workspace:*",
+    "@khotl/core": "workspace:*",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.11.10",
+    "dotenv": "^16.4.7",
+    "pdf-lib": "^1.17.1",
+    "prisma": "^7.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  }
+}

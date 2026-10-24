@@ -1,0 +1,1138 @@
+// =====================================================================
+// Kho tài liệu học tập HUST — Prisma schema
+// Bản nháp Giai đoạn 0 (24/10/2026). Đây là nguồn sự thật của ERD.
+//
+// Ghi chú Prisma 7:
+//  - URL kết nối nằm trong prisma.config.ts, không khai báo ở đây.
+//  - Client sinh ra bằng generator "prisma-client" vào thư mục src/generated.
+//
+// Những thứ Prisma không diễn đạt được (extension unaccent/pg_trgm/vector,
+// cột tsvector, GIN index, CHECK constraint, trigger chống sửa AuditLog)
+// nằm trong sql/001_search_and_constraints.sql và sẽ được gộp vào
+// migration đầu tiên ở Giai đoạn 1.
+//
+// Quy ước:
+//  - Tên bảng snake_case số nhiều (@@map), tên cột giữ camelCase.
+//  - Khóa chính uuid v7 (tăng dần theo thời gian, thân thiện với index),
+//    riêng bảng ghi nhiều (tin nhắn, log tải) dùng BigInt tự tăng.
+//  - Bộ đếm (viewCount, ratingCount...) là dữ liệu phi chuẩn hóa,
+//    được cập nhật trong cùng transaction hoặc bởi job của worker.
+// =====================================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------
+// ENUM
+// ---------------------------------------------------------------------
+
+enum RoleKey {
+  STUDENT
+  MODERATOR
+  ADMIN
+}
+
+enum DocumentType {
+  TEXTBOOK // Giáo trình
+  SLIDE // Slide bài giảng
+  EXAM_MIDTERM // Đề thi giữa kỳ
+  EXAM_FINAL // Đề thi cuối kỳ
+  SYLLABUS // Đề cương
+  SOLUTION // Bài giải
+  NOTES // Ghi chú
+  OTHER // Khác
+}
+
+// Vòng đời tài liệu (xem mục 7 của tài liệu kiến trúc)
+enum DocumentStatus {
+  DRAFT // đã xin presigned URL, chưa upload xong
+  PROCESSING // đang chạy kiểm tra tự động
+  PENDING_REVIEW // chờ kiểm duyệt viên
+  CHANGES_REQUESTED // kiểm duyệt viên yêu cầu người đăng sửa
+  APPROVED // công khai
+  REJECTED // bị từ chối (tự động hoặc thủ công)
+  REMOVED // đã công khai rồi bị gỡ (vi phạm, bản quyền)
+}
+
+enum DocumentVisibility {
+  PUBLIC // qua kiểm duyệt, ai cũng thấy
+  GROUP // chỉ thành viên nhóm học tập, không vào hàng chờ thủ công
+}
+
+enum FileKind {
+  PDF
+  DOCX
+  PPTX
+  XLSX
+  IMAGE
+  ZIP
+}
+
+enum ProcessingStatus {
+  AWAITING_UPLOAD
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum TagSource {
+  USER
+  AUTO
+  MODERATOR
+}
+
+enum ContentStatus {
+  VISIBLE
+  HIDDEN // kiểm duyệt viên ẩn
+  DELETED // tác giả xóa
+}
+
+enum ReportTarget {
+  DOCUMENT
+  COMMENT
+  MESSAGE
+  DIRECT_MESSAGE
+  USER
+}
+
+enum ReportReason {
+  COPYRIGHT
+  WRONG_CATEGORY
+  LOW_QUALITY
+  SPAM
+  INAPPROPRIATE
+  MALWARE
+  HARASSMENT
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ModerationAction {
+  AUTO_CHECK_PASSED
+  AUTO_REJECTED
+  APPROVE
+  REJECT
+  REQUEST_CHANGES
+  REMOVE
+  RESTORE
+  HIDE_COMMENT
+  RESTORE_COMMENT
+  DELETE_MESSAGE
+  SANCTION_USER
+  LIFT_SANCTION
+  RESOLVE_REPORT
+  DISMISS_REPORT
+  NOTE
+}
+
+enum NotificationType {
+  DOCUMENT_APPROVED
+  DOCUMENT_REJECTED
+  DOCUMENT_CHANGES_REQUESTED
+  DOCUMENT_REMOVED
+  COMMENT_ON_DOCUMENT
+  COMMENT_REPLY
+  MENTION
+  NEW_DOCUMENT_IN_FOLLOWED_COURSE
+  BADGE_AWARDED
+  REPORT_RESOLVED
+  GROUP_INVITE
+  SYSTEM
+}
+
+enum ReputationReason {
+  DOCUMENT_APPROVED
+  DOCUMENT_DOWNLOADED
+  DOCUMENT_RATED
+  DOCUMENT_SAVED
+  COMMENT_LIKED
+  CONTENT_REMOVED
+  REPORT_UPHELD_AGAINST
+  ADMIN_ADJUSTMENT
+}
+
+enum ChatRoomType {
+  GLOBAL
+  FACULTY
+  COURSE
+  GROUP
+}
+
+enum SanctionType {
+  CHAT_MUTE
+  UPLOAD_BAN
+  SITE_BAN
+}
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum GroupVisibility {
+  PUBLIC // ai cũng xin vào được
+  PRIVATE // chỉ qua lời mời hoặc mã tham gia
+}
+
+// ---------------------------------------------------------------------
+// TÀI KHOẢN VÀ PHÂN QUYỀN
+// User/Session/Account/Verification theo schema của Better Auth.
+// ---------------------------------------------------------------------
+
+model User {
+  id            String   @id @default(uuid(7))
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Better Auth tạo user trước, username được gán ngay sau đó (hook) và sửa ở bước hoàn thiện hồ sơ
+  username    String? @unique
+  displayName String?
+  bio         String?
+  studentCode String? // mã sinh viên, tùy chọn
+  cohort      Int? // khóa, vd 68 cho K68
+  facultyId   String?
+  locale      String  @default("vi")
+
+  // Uy tín: reputation là tổng ReputationEvent.delta; trustLevel quyết định
+  // hạn mức upload/ngày và độ ưu tiên trong hàng chờ (0 mới → 3 rất uy tín).
+  reputation            Int       @default(0)
+  trustLevel            Int       @default(0)
+  approvedDocumentCount Int       @default(0)
+  notificationPrefs     Json      @default("{}")
+  lastActiveAt          DateTime?
+  deletedAt             DateTime?
+
+  faculty Faculty? @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+
+  sessions               Session[]
+  accounts               Account[]
+  roles                  UserRole[]           @relation("UserRoles")
+  rolesGranted           UserRole[]           @relation("RoleGrantedBy")
+  documents              Document[]
+  comments               Comment[]
+  commentLikes           CommentLike[]
+  ratings                Rating[]
+  collections            Collection[]
+  courseFollows          CourseFollow[]
+  courseReviews          CourseReview[]
+  reportsFiled           Report[]             @relation("ReportsFiled")
+  reportsAgainst         Report[]             @relation("ReportsAgainst")
+  reportsResolved        Report[]             @relation("ReportsResolved")
+  moderationActions      ModerationLog[]      @relation("ModerationActor")
+  moderationTargets      ModerationLog[]      @relation("ModerationTarget")
+  auditLogs              AuditLog[]
+  notifications          Notification[]       @relation("NotificationsReceived")
+  notificationsTriggered Notification[]       @relation("NotificationsTriggered")
+  reputationEvents       ReputationEvent[]
+  badges                 UserBadge[]
+  messages               Message[]
+  messageReactions       MessageReaction[]
+  dmAsUserA              DirectConversation[] @relation("DmAsUserA")
+  dmAsUserB              DirectConversation[] @relation("DmAsUserB")
+  directMessages         DirectMessage[]
+  sanctions              UserSanction[]       @relation("SanctionsReceived")
+  sanctionsIssued        UserSanction[]       @relation("SanctionsIssued")
+  blocksMade             UserBlock[]          @relation("BlocksMade")
+  blocksReceived         UserBlock[]          @relation("BlocksReceived")
+  groupsOwned            StudyGroup[]
+  groupMemberships       StudyGroupMember[]
+  searchHistory          SearchHistory[]
+  downloads              DownloadLog[]
+  settingsUpdated        SystemSetting[]
+
+  @@index([facultyId])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String // "microsoft" | "email-otp"
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verifications")
+}
+
+model Role {
+  id          String   @id @default(uuid(7))
+  key         RoleKey  @unique
+  name        String
+  description String?
+  permissions String[] // vd ["document:moderate", "comment:hide", "chat:mute"]
+
+  users UserRole[]
+
+  @@map("roles")
+}
+
+// facultyId = null: vai trò toàn hệ thống; có giá trị: kiểm duyệt viên của một Viện.
+// Trùng lặp khi facultyId null được chặn bằng partial unique index trong file SQL.
+model UserRole {
+  id          String   @id @default(uuid(7))
+  userId      String
+  roleId      String
+  facultyId   String?
+  grantedById String?
+  createdAt   DateTime @default(now())
+
+  user      User     @relation("UserRoles", fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  faculty   Faculty? @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  grantedBy User?    @relation("RoleGrantedBy", fields: [grantedById], references: [id], onDelete: SetNull)
+
+  @@unique([userId, roleId, facultyId])
+  @@map("user_roles")
+}
+
+// ---------------------------------------------------------------------
+// DANH MỤC: VIỆN/TRƯỜNG/KHOA → HỌC PHẦN
+// ---------------------------------------------------------------------
+
+// parentId cho phép mô tả cấu trúc Trường → Khoa/Viện.
+model Faculty {
+  id          String   @id @default(uuid(7))
+  code        String   @unique // vd "SOICT"
+  slug        String   @unique
+  name        String
+  nameEn      String?
+  shortName   String?
+  description String?
+  parentId    String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent    Faculty?   @relation("FacultyTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Faculty[]  @relation("FacultyTree")
+  courses   Course[]
+  users     User[]
+  lecturers Lecturer[]
+  userRoles UserRole[]
+  chatRoom  ChatRoom?
+
+  @@map("faculties")
+}
+
+model Course {
+  id            String   @id @default(uuid(7))
+  code          String   @unique // mã học phần, vd "IT3011"
+  slug          String   @unique
+  name          String
+  nameEn        String?
+  credits       Int?
+  description   String?
+  // Cấu trúc điểm, vd [{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]
+  gradingScheme Json?
+  facultyId     String
+  difficultyAvg Float? // trung bình CourseReview.difficulty
+  reviewCount   Int      @default(0)
+  documentCount Int      @default(0)
+  followerCount Int      @default(0)
+  searchVector  Unsupported("tsvector")?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  faculty     Faculty          @relation(fields: [facultyId], references: [id], onDelete: Restrict)
+  documents   Document[]
+  lecturers   CourseLecturer[]
+  reviews     CourseReview[]
+  followers   CourseFollow[]
+  chatRoom    ChatRoom?
+  studyGroups StudyGroup[]
+
+  @@index([facultyId])
+  @@map("courses")
+}
+
+model Lecturer {
+  id        String   @id @default(uuid(7))
+  name      String
+  title     String? // TS., PGS.TS., ...
+  email     String?
+  facultyId String?
+  createdAt DateTime @default(now())
+
+  faculty Faculty?         @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  courses CourseLecturer[]
+
+  @@map("lecturers")
+}
+
+model CourseLecturer {
+  courseId       String
+  lecturerId     String
+  lastTaughtTerm String? // mã kỳ gần nhất, vd "20251"
+
+  course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lecturer Lecturer @relation(fields: [lecturerId], references: [id], onDelete: Cascade)
+
+  @@id([courseId, lecturerId])
+  @@index([lecturerId])
+  @@map("course_lecturers")
+}
+
+// Đánh giá độ khó học phần (khác với Rating của tài liệu)
+model CourseReview {
+  id         String   @id @default(uuid(7))
+  courseId   String
+  userId     String
+  difficulty Int // 1–5
+  workload   Int? // 1–5
+  term       String?
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, userId])
+  @@map("course_reviews")
+}
+
+model CourseFollow {
+  userId    String
+  courseId  String
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@id([userId, courseId])
+  @@index([courseId])
+  @@map("course_follows")
+}
+
+// ---------------------------------------------------------------------
+// TÀI LIỆU
+// ---------------------------------------------------------------------
+
+model Document {
+  id                  String             @id @default(uuid(7))
+  slug                String             @unique
+  title               String
+  description         String?
+  type                DocumentType
+  status              DocumentStatus     @default(DRAFT)
+  visibility          DocumentVisibility @default(PUBLIC)
+  courseId            String
+  uploaderId          String
+  groupId             String? // bắt buộc khi visibility = GROUP (CHECK trong SQL)
+  term                String? // mã kỳ HUST, vd "20251"
+  academicYear        Int? // năm bắt đầu năm học, vd 2025
+  language            String             @default("vi")
+  isAnonymous         Boolean            @default(false) // ẩn tên người đăng với công chúng
+  copyrightAcceptedAt DateTime // lúc người đăng xác nhận điều khoản bản quyền
+  currentVersionId    String?            @unique
+
+  // Hàng chờ kiểm duyệt: priority lấy từ trustLevel của người đăng,
+  // riskScore lấy từ kiểm tra tự động của phiên bản hiện tại.
+  priority   Int     @default(0)
+  riskScore  Int     @default(0)
+  reviewNote String? // lý do từ chối / yêu cầu sửa gần nhất, người đăng thấy
+
+  viewCount     Int   @default(0)
+  downloadCount Int   @default(0)
+  saveCount     Int   @default(0)
+  commentCount  Int   @default(0)
+  ratingCount   Int   @default(0)
+  ratingSum     Int   @default(0)
+  ratingScore   Float @default(0) // trung bình Bayes, dùng để sắp xếp "điểm cao"
+  hotScore      Float @default(0) // job tính lại mỗi giờ
+
+  featuredAt   DateTime?
+  publishedAt  DateTime?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+  deletedAt    DateTime?
+  searchVector Unsupported("tsvector")?
+
+  course         Course           @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  uploader       User             @relation(fields: [uploaderId], references: [id], onDelete: Restrict)
+  group          StudyGroup?      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  currentVersion DocumentVersion? @relation("CurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+
+  versions         DocumentVersion[]   @relation("DocumentVersions")
+  tags             DocumentTag[]
+  comments         Comment[]
+  ratings          Rating[]
+  collectionItems  CollectionItem[]
+  reports          Report[]
+  moderationLogs   ModerationLog[]
+  notifications    Notification[]
+  reputationEvents ReputationEvent[]
+  downloads        DownloadLog[]
+  dailyStats       DocumentDailyStat[]
+
+  @@index([status, courseId, type, publishedAt(sort: Desc)])
+  @@index([status, hotScore(sort: Desc)])
+  @@index([status, priority(sort: Desc), createdAt]) // hàng chờ kiểm duyệt
+  @@index([uploaderId, createdAt(sort: Desc)])
+  @@index([groupId])
+  @@map("documents")
+}
+
+// Mỗi lần người đăng gửi file mới (kể cả khi bị yêu cầu sửa) là một phiên bản.
+model DocumentVersion {
+  id               String           @id @default(uuid(7))
+  documentId       String
+  versionNumber    Int
+  changeNote       String?
+  originalName     String
+  storageKey       String           @unique // file gốc trong bucket
+  fileKind         FileKind
+  declaredMime     String // MIME trình duyệt khai báo
+  detectedMime     String? // MIME thật đọc từ magic bytes
+  sizeBytes        BigInt
+  sha256           String? // phát hiện trùng lặp
+  pageCount        Int?
+  previewPdfKey    String? // PDF để xem (Office được LibreOffice chuyển sang)
+  previewImageKeys String[] // ảnh WebP các trang đầu, dành cho khách
+  thumbnailKey     String?
+  watermarkedKey   String?
+  processingStatus ProcessingStatus @default(AWAITING_UPLOAD)
+  // Bảng này cũng là hàng đợi xử lý: worker nhận việc bằng SELECT ... FOR UPDATE SKIP LOCKED
+  attempts         Int              @default(0)
+  lockedAt         DateTime?
+  checkResults     Json? // kết quả từng bước: format, hash, virus, integrity, content
+  riskScore        Int              @default(0)
+  processingError  String?
+  uploadedAt       DateTime?
+  processedAt      DateTime?
+  createdAt        DateTime         @default(now())
+
+  document       Document         @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  currentOf      Document?        @relation("CurrentVersion")
+  content        DocumentContent?
+  chunks         DocumentChunk[]
+  moderationLogs ModerationLog[]
+  downloads      DownloadLog[]
+
+  @@unique([documentId, versionNumber])
+  @@index([sha256])
+  @@index([processingStatus, createdAt])
+  @@map("document_versions")
+}
+
+// Văn bản trích xuất, tách bảng riêng để không vô tình tải cùng danh sách.
+model DocumentContent {
+  versionId   String   @id
+  text        String
+  method      String // "pdftotext" | "ocr"
+  charCount   Int
+  extractedAt DateTime @default(now())
+
+  version DocumentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@map("document_contents")
+}
+
+// Giai đoạn 4 (RAG). Số chiều vector chốt khi chọn model embedding.
+model DocumentChunk {
+  id         String                 @id @default(uuid(7))
+  versionId  String
+  chunkIndex Int
+  content    String
+  pageFrom   Int?
+  pageTo     Int?
+  tokenCount Int?
+  embedding  Unsupported("vector")?
+
+  version DocumentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@unique([versionId, chunkIndex])
+  @@map("document_chunks")
+}
+
+model Tag {
+  id         String   @id @default(uuid(7))
+  name       String
+  slug       String   @unique
+  usageCount Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  documents DocumentTag[]
+
+  @@map("tags")
+}
+
+model DocumentTag {
+  documentId String
+  tagId      String
+  source     TagSource @default(USER)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, tagId])
+  @@index([tagId])
+  @@map("document_tags")
+}
+
+// ---------------------------------------------------------------------
+// CỘNG ĐỒNG: BÌNH LUẬN, ĐÁNH GIÁ, BỘ SƯU TẬP, UY TÍN
+// ---------------------------------------------------------------------
+
+// Lồng tối đa 3 cấp (depth 0–2). rootId giúp tải cả luồng bằng một truy vấn.
+model Comment {
+  id         String        @id @default(uuid(7))
+  documentId String
+  authorId   String
+  parentId   String?
+  rootId     String?
+  depth      Int           @default(0)
+  body       String
+  status     ContentStatus @default(VISIBLE)
+  likeCount  Int           @default(0)
+  replyCount Int           @default(0)
+  editedAt   DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  document       Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  author         User            @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent         Comment?        @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies        Comment[]       @relation("CommentReplies")
+  likes          CommentLike[]
+  reports        Report[]
+  moderationLogs ModerationLog[]
+
+  @@index([documentId, createdAt])
+  @@index([rootId])
+  @@map("comments")
+}
+
+model CommentLike {
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([commentId, userId])
+  @@index([userId])
+  @@map("comment_likes")
+}
+
+model Rating {
+  documentId String
+  userId     String
+  stars      Int // 1–5 (CHECK trong SQL)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, userId])
+  @@index([userId])
+  @@map("ratings")
+}
+
+model Collection {
+  id          String   @id @default(uuid(7))
+  ownerId     String
+  name        String
+  slug        String
+  description String?
+  isPublic    Boolean  @default(false)
+  isDefault   Boolean  @default(false) // bộ "Đã lưu" mặc định
+  itemCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items CollectionItem[]
+
+  @@unique([ownerId, slug])
+  @@map("collections")
+}
+
+model CollectionItem {
+  collectionId String
+  documentId   String
+  note         String?
+  addedAt      DateTime @default(now())
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  document   Document   @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, documentId])
+  @@index([documentId])
+  @@map("collection_items")
+}
+
+// Bảng xếp hạng tuần/tháng/học kỳ = SUM(delta) theo khoảng createdAt.
+model ReputationEvent {
+  id           String           @id @default(uuid(7))
+  userId       String
+  delta        Int
+  reason       ReputationReason
+  documentId   String?
+  sourceUserId String? // người gây ra sự kiện, dùng để chặn tự cộng điểm
+  createdAt    DateTime         @default(now())
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt, userId])
+  @@index([userId, createdAt])
+  @@map("reputation_events")
+}
+
+model Badge {
+  id          String @id @default(uuid(7))
+  key         String @unique
+  name        String
+  nameEn      String?
+  description String
+  icon        String
+  tier        Int    @default(1)
+  criteria    Json // vd {"type":"approved_documents","gte":10}
+
+  users UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+  @@map("user_badges")
+}
+
+model Notification {
+  id         String           @id @default(uuid(7))
+  userId     String
+  type       NotificationType
+  actorId    String?
+  documentId String?
+  data       Json             @default("{}") // tham số để dịch theo ngôn ngữ người nhận
+  link       String?
+  readAt     DateTime?
+  emailedAt  DateTime?
+  createdAt  DateTime         @default(now())
+
+  user     User      @relation("NotificationsReceived", fields: [userId], references: [id], onDelete: Cascade)
+  actor    User?     @relation("NotificationsTriggered", fields: [actorId], references: [id], onDelete: SetNull)
+  document Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+// ---------------------------------------------------------------------
+// KIỂM DUYỆT, BÁO CÁO, NHẬT KÝ
+// ---------------------------------------------------------------------
+
+// Một báo cáo trỏ tới đúng loại đối tượng qua các khóa ngoại tùy chọn
+// (giữ toàn vẹn tham chiếu thay vì cặp targetType/targetId tự do).
+model Report {
+  id              String       @id @default(uuid(7))
+  targetType      ReportTarget
+  reason          ReportReason
+  details         String?
+  evidence        Json? // ảnh chụp nội dung bị báo cáo; bắt buộc với tin nhắn riêng
+  status          ReportStatus @default(OPEN)
+  reporterId      String?
+  reporterEmail   String? // form gỡ bản quyền cho người ngoài trường
+  documentId      String?
+  commentId       String?
+  messageId       BigInt?
+  directMessageId BigInt?
+  reportedUserId  String?
+  resolvedById    String?
+  resolution      String?
+  createdAt       DateTime     @default(now())
+  resolvedAt      DateTime?
+
+  reporter       User?          @relation("ReportsFiled", fields: [reporterId], references: [id], onDelete: SetNull)
+  reportedUser   User?          @relation("ReportsAgainst", fields: [reportedUserId], references: [id], onDelete: SetNull)
+  resolvedBy     User?          @relation("ReportsResolved", fields: [resolvedById], references: [id], onDelete: SetNull)
+  document       Document?      @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  comment        Comment?       @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  message        Message?       @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  directMessage  DirectMessage? @relation(fields: [directMessageId], references: [id], onDelete: SetNull)
+  moderationLogs ModerationLog[]
+
+  @@index([status, createdAt])
+  @@index([documentId])
+  @@map("reports")
+}
+
+// Nhật ký quyết định kiểm duyệt nội dung. actorId null = hệ thống tự động.
+model ModerationLog {
+  id           String           @id @default(uuid(7))
+  action       ModerationAction
+  actorId      String?
+  documentId   String?
+  versionId    String?
+  commentId    String?
+  messageId    BigInt?
+  targetUserId String?
+  reportId     String?
+  reason       String? // lý do gửi người dùng
+  internalNote String? // ghi chú nội bộ, chỉ kiểm duyệt viên thấy
+  metadata     Json?
+  createdAt    DateTime         @default(now())
+
+  actor      User?            @relation("ModerationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  targetUser User?            @relation("ModerationTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  document   Document?        @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  version    DocumentVersion? @relation(fields: [versionId], references: [id], onDelete: SetNull)
+  comment    Comment?         @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  message    Message?         @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  report     Report?          @relation(fields: [reportId], references: [id], onDelete: SetNull)
+
+  @@index([documentId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+  @@map("moderation_logs")
+}
+
+// Nhật ký bảo mật/quản trị: đổi quyền, đổi cấu hình, xem danh tính ẩn danh...
+// Chỉ được ghi thêm (trigger trong SQL chặn UPDATE/DELETE).
+model AuditLog {
+  id         String   @id @default(uuid(7))
+  actorId    String?
+  action     String // vd "role.grant", "settings.update", "user.reveal_identity"
+  entityType String
+  entityId   String?
+  before     Json?
+  after      Json?
+  ipHash     String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+// Mute chat, cấm upload, khóa tài khoản — có thời hạn hoặc vĩnh viễn.
+model UserSanction {
+  id          String       @id @default(uuid(7))
+  userId      String
+  type        SanctionType
+  roomId      String? // mute trong một phòng; null = mọi phòng
+  reason      String
+  expiresAt   DateTime? // null = vĩnh viễn
+  createdById String?
+  revokedAt   DateTime?
+  createdAt   DateTime     @default(now())
+
+  user      User      @relation("SanctionsReceived", fields: [userId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("SanctionsIssued", fields: [createdById], references: [id], onDelete: SetNull)
+  room      ChatRoom? @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, expiresAt])
+  @@map("user_sanctions")
+}
+
+model UserBlock {
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("BlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlocksReceived", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("user_blocks")
+}
+
+// ---------------------------------------------------------------------
+// CHAT VÀ NHẮN TIN
+// ---------------------------------------------------------------------
+
+model ChatRoom {
+  id              String       @id @default(uuid(7))
+  type            ChatRoomType
+  slug            String       @unique
+  name            String
+  facultyId       String?      @unique
+  courseId        String?      @unique
+  groupId         String?      @unique
+  slowModeSeconds Int          @default(0)
+  isLocked        Boolean      @default(false)
+  lastMessageAt   DateTime?
+  createdAt       DateTime     @default(now())
+
+  faculty   Faculty?       @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  course    Course?        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  group     StudyGroup?    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  sanctions UserSanction[]
+
+  @@map("chat_rooms")
+}
+
+// authorId luôn được lưu kể cả khi ẩn danh, để kiểm duyệt viên truy vết.
+model Message {
+  id          BigInt        @id @default(autoincrement())
+  roomId      String
+  authorId    String
+  body        String
+  isAnonymous Boolean       @default(false)
+  alias       String? // biệt danh hiển thị khi ẩn danh
+  replyToId   BigInt?
+  attachments Json? // thẻ tài liệu: [{documentId, title, type, courseCode}]
+  status      ContentStatus @default(VISIBLE)
+  clientMsgId String? // chống hiện trùng khi gửi lại
+  editedAt    DateTime?
+  createdAt   DateTime      @default(now())
+
+  room           ChatRoom          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author         User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replyTo        Message?          @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies        Message[]         @relation("MessageReplies")
+  reactions      MessageReaction[]
+  reports        Report[]
+  moderationLogs ModerationLog[]
+
+  @@unique([authorId, clientMsgId])
+  @@index([roomId, id(sort: Desc)])
+  @@map("messages")
+}
+
+model MessageReaction {
+  messageId BigInt
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId, emoji])
+  @@map("message_reactions")
+}
+
+// Mỗi cặp người dùng có đúng một cuộc trò chuyện: userAId < userBId (CHECK trong SQL).
+model DirectConversation {
+  id              String    @id @default(uuid(7))
+  userAId         String
+  userBId         String
+  lastMessageAt   DateTime?
+  userALastReadId BigInt?
+  userBLastReadId BigInt?
+  createdAt       DateTime  @default(now())
+
+  userA    User            @relation("DmAsUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User            @relation("DmAsUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  messages DirectMessage[]
+
+  @@unique([userAId, userBId])
+  @@index([userBId])
+  @@map("direct_conversations")
+}
+
+model DirectMessage {
+  id             BigInt    @id @default(autoincrement())
+  conversationId String
+  senderId       String
+  body           String
+  replyToId      BigInt?
+  attachments    Json?
+  clientMsgId    String?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User               @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      DirectMessage?     @relation("DmReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      DirectMessage[]    @relation("DmReplies")
+  reports      Report[]
+
+  @@unique([senderId, clientMsgId])
+  @@index([conversationId, id(sort: Desc)])
+  @@map("direct_messages")
+}
+
+// ---------------------------------------------------------------------
+// NHÓM HỌC TẬP
+// ---------------------------------------------------------------------
+
+model StudyGroup {
+  id          String          @id @default(uuid(7))
+  name        String
+  slug        String          @unique
+  description String?
+  ownerId     String
+  courseId    String?
+  visibility  GroupVisibility @default(PRIVATE)
+  joinCode    String?         @unique
+  memberCount Int             @default(1)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  owner     User               @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  course    Course?            @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  members   StudyGroupMember[]
+  documents Document[]
+  chatRoom  ChatRoom?
+
+  @@index([courseId])
+  @@map("study_groups")
+}
+
+model StudyGroupMember {
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, userId])
+  @@index([userId])
+  @@map("study_group_members")
+}
+
+// ---------------------------------------------------------------------
+// TÌM KIẾM, THỐNG KÊ, CẤU HÌNH
+// ---------------------------------------------------------------------
+
+model SearchHistory {
+  id          String   @id @default(uuid(7))
+  userId      String
+  query       String
+  filters     Json?
+  resultCount Int?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("search_history")
+}
+
+model DownloadLog {
+  id          BigInt   @id @default(autoincrement())
+  userId      String
+  documentId  String
+  versionId   String
+  watermarked Boolean  @default(false)
+  ipHash      String?
+  createdAt   DateTime @default(now())
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  document Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  version  DocumentVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([documentId, createdAt])
+  @@map("download_logs")
+}
+
+// Số liệu theo ngày cho biểu đồ của từng tài liệu và dashboard admin.
+model DocumentDailyStat {
+  documentId String
+  date       DateTime @db.Date
+  views      Int      @default(0)
+  downloads  Int      @default(0)
+  saves      Int      @default(0)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@id([documentId, date])
+  @@index([date])
+  @@map("document_daily_stats")
+}
+
+model SiteDailyStat {
+  date        DateTime @id @db.Date
+  activeUsers Int      @default(0)
+  newUsers    Int      @default(0)
+  uploads     Int      @default(0)
+  approvals   Int      @default(0)
+  views       Int      @default(0)
+  downloads   Int      @default(0)
+  messages    Int      @default(0)
+
+  @@map("site_daily_stats")
+}
+
+// Cấu hình chỉnh được trong trang admin: dung lượng tối đa, định dạng cho phép,
+// hạn mức upload theo bậc, từ cấm, số trang xem trước cho khách...
+model SystemSetting {
+  key         String   @id
+  value       Json
+  description String?
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("system_settings")
+}
