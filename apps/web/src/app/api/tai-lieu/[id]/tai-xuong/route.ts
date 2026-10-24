@@ -40,11 +40,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // Kiểm duyệt viên và quản trị viên tải không giới hạn: không trừ lượt, không giới hạn số lần mỗi giờ
   const staff = isStaff(user);
   const limiter = getRateLimiter();
-  for (const [key, limit] of staff ? [] : [
-    [`download:user:${user.id}`, settings.rateLimitPerHourUser],
-    [`download:ip:${ipHash}`, settings.rateLimitPerHourIp],
-    [`download:device:${device}`, settings.rateLimitPerHourDevice],
-  ] as const)) {
+  const limits: [string, number][] = staff
+    ? []
+    : [
+        [`download:user:${user.id}`, settings.rateLimitPerHourUser],
+        [`download:ip:${ipHash}`, settings.rateLimitPerHourIp],
+        [`download:device:${device}`, settings.rateLimitPerHourDevice],
+      ];
+  for (const [key, limit] of limits) {
     const rate = await limiter.hit(key, limit, 3600);
     if (!rate.ok) return tooMany(rate.resetIn);
   }
