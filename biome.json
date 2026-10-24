@@ -9,7 +9,9 @@
       "!**/playwright-report",
       "!**/test-results",
       "!**/public/pdf.worker.min.mjs",
-      "!**/*.json"
+      "!**/*.json",
+      "!demo",
+      "!index.html"
     ]
   },
   "formatter": {
