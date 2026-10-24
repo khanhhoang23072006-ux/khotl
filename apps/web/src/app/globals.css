@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* Hệ nhận diện "Khung tên": lấy cảm hứng từ khung tên bản vẽ kỹ thuật.
+   Viền ngoài 2px, đường kẻ trong 1px (lưới có gap 1px trên nền mực), góc vuông.
+   Đỏ chỉ dùng cho hành động chính, dấu "ĐÃ DUYỆT" và cảnh báo. */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --paper: #f6f7f5;
+  --sheet: #ffffff;
+  --ink: #1b1f23;
+  --grid: #dfe5e9;
+  --pencil: #5e6670;
+  --stamp: #b3172b;
+  --stamp-ink: #ffffff;
+  --wash: #eef1ee;
+}
+
+.dark {
+  --paper: #121518;
+  --sheet: #1a1e22;
+  --ink: #e6e9ec;
+  --grid: #262c32;
+  --pencil: #a3abb4;
+  --stamp: #c8303f;
+  --stamp-ink: #ffffff;
+  --wash: #1f2428;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-sheet: var(--sheet);
+  --color-ink: var(--ink);
+  --color-grid: var(--grid);
+  --color-pencil: var(--pencil);
+  --color-stamp: var(--stamp);
+  --color-stamp-ink: var(--stamp-ink);
+  --color-wash: var(--wash);
+  --font-sans: var(--font-archivo), "Arial Narrow", system-ui, sans-serif;
+  --radius-none: 0;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.5;
+    font-variation-settings: "wdth" 100;
+  }
+  a {
+    color: inherit;
+  }
+  a:hover {
+    color: var(--stamp);
+  }
+  :focus-visible {
+    outline: 2px solid var(--stamp);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  /* Từ khóa khớp khi tìm kiếm: gạch chân đỏ, không tô nền */
+  mark {
+    background: transparent;
+    color: inherit;
+    text-decoration: underline 2px var(--stamp);
+    text-underline-offset: 3px;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+  [hidden] {
+    display: none !important;
+  }
+}
+
+/* Chữ hẹp đậm cho mã học phần, tiêu đề lớn, số liệu */
+@utility font-code {
+  font-stretch: 62.5%;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* Chữ hẹp vừa cho tiêu đề mục */
+@utility font-head {
+  font-stretch: 75%;
+  font-weight: 700;
+}
+
+/* Khung tên: lưới các ô ngăn nhau bằng đường 1px, viền ngoài 2px */
+@utility tb {
+  display: grid;
+  gap: 1px;
+  background: var(--ink);
+  border: 2px solid var(--ink);
+}
+
+/* Giấy kẻ ô: chỉ dùng ở vùng đầu trang */
+@utility grid-paper {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Dấu duyệt: chữ hoa duy nhất trong hệ thống */
+@utility stamp {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 2px solid var(--stamp);
+  color: var(--stamp);
+  font-stretch: 75%;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+@utility skeleton {
+  background: var(--wash);
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

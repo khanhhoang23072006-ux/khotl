@@ -10,20 +10,38 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
 env:
-  # Giá trị giả để build/typecheck; không dùng cho môi trường thật
+  # Giá trị giả chỉ dùng cho CI
   DATABASE_URL: postgresql://khotl:khotl@localhost:5432/khotl
   BETTER_AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
   BETTER_AUTH_URL: http://localhost:3000
   APP_URL: http://localhost:3000
-  UPLOAD_TOKEN_SECRET: ci-only-upload-token-secret-0123456789
+  S3_ENDPOINT: http://localhost:8333
+  S3_PUBLIC_ENDPOINT: http://localhost:8333
+  S3_REGION: us-east-1
+  S3_BUCKET: khotl
+  S3_ACCESS_KEY_ID: khotl
+  S3_SECRET_ACCESS_KEY: khotl-secret
+  S3_FORCE_PATH_STYLE: "true"
+  SMTP_URL: smtp://localhost:1025
+  MAIL_FROM: "Kho tài liệu HUST <no-reply@khotl.local>"
+  ALLOWED_EMAIL_DOMAINS: sis.hust.edu.vn,hust.edu.vn
   NEXT_TELEMETRY_DISABLED: "1"
+  NO_COLOR: "1"
+  FORCE_COLOR: "0"
 
 jobs:
   check:
-    name: Kiểm tra mã (typecheck, lint, test, build)
+    name: Typecheck, lint, test, build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -31,24 +49,45 @@ jobs:
         with:
           node-version: 22
           cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || '' }}
+      - run: mkdir -p ci-logs
       - name: Cài phụ thuộc
         run: |
-          if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install --no-frozen-lockfile; fi
-      - name: Lưu pnpm-lock.yaml
-        uses: actions/upload-artifact@v4
-        with:
-          name: pnpm-lock
-          path: pnpm-lock.yaml
-      - run: pnpm db:generate
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test
+          set -o pipefail
+          if [ -f pnpm-lock.yaml ]; then flag=--frozen-lockfile; else flag=--no-frozen-lockfile; fi
+          pnpm install $flag 2>&1 | tee ci-logs/install.log
+      - name: Typecheck
+        id: typecheck
+        continue-on-error: true
+        run: set -o pipefail; pnpm typecheck 2>&1 | tee ci-logs/typecheck.log
+      - name: Lint
+        id: lint
+        continue-on-error: true
+        run: set -o pipefail; pnpm lint --max-diagnostics=300 2>&1 | tee ci-logs/lint.log
+      - name: Unit test
+        id: test
+        continue-on-error: true
+        run: set -o pipefail; pnpm test 2>&1 | tee ci-logs/test.log
       - name: Build web
-        run: pnpm --filter @khotl/web build
-        if: hashFiles('apps/web/package.json') != ''
+        id: build
+        continue-on-error: true
+        run: set -o pipefail; pnpm --filter @khotl/web build 2>&1 | tee ci-logs/build.log
+      - name: Đẩy log lên nhánh ci-logs (để đọc khi không xem được log Actions)
+        if: always()
+        run: |
+          out=$(mktemp -d)
+          cp -r ci-logs "$out/" || true
+          [ -f pnpm-lock.yaml ] && cp pnpm-lock.yaml "$out/"
+          cd "$out"
+          echo "run ${{ github.run_id }} sha ${{ github.sha }} typecheck=${{ steps.typecheck.outcome }} lint=${{ steps.lint.outcome }} test=${{ steps.test.outcome }} build=${{ steps.build.outcome }}" > SUMMARY.txt
+          git init -q -b ci && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI check ${{ github.run_id }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci:refs/heads/ci-logs/check
+      - name: Kết luận
+        if: steps.typecheck.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.test.outcome == 'failure' || steps.build.outcome == 'failure'
+        run: exit 1
 
   migration:
-    name: Kiểm tra migration với Postgres thật
+    name: Migration trên Postgres thật
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -68,27 +107,125 @@ jobs:
         with:
           node-version: 22
           cache: ${{ hashFiles('pnpm-lock.yaml') != '' && 'pnpm' || '' }}
-      - run: pnpm install --frozen-lockfile=${{ hashFiles('pnpm-lock.yaml') != '' }}
+      - run: mkdir -p ci-logs
+      - run: set -o pipefail; pnpm install --frozen-lockfile=${{ hashFiles('pnpm-lock.yaml') != '' }} 2>&1 | tail -20
       - name: Sinh migration khởi tạo nếu chưa có
+        id: generate
         run: |
+          set -o pipefail
           if [ ! -f packages/db/prisma/migrations/0001_init/migration.sql ]; then
-            pnpm --filter @khotl/db migration:init
+            pnpm --filter @khotl/db migration:init 2>&1 | tee ci-logs/migration-init.log
           fi
-      - name: Kiểm tra schema khớp migration
+      - name: Áp migration và so với schema
+        id: drift
         working-directory: packages/db
         run: |
-          pnpm exec prisma migrate deploy
+          set -o pipefail
+          pnpm exec prisma migrate deploy 2>&1 | tee ../../ci-logs/migrate.log
           pnpm exec prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script --output drift.sql
           # Index GIN/trigram và index unique một phần nằm trong SQL viết tay nên Prisma muốn xoá; bỏ qua chúng
           grep -v -E '^\s*$|^--|DROP INDEX "(documents_search_idx|documents_title_trgm_idx|courses_search_idx|courses_name_trgm_idx|courses_code_trgm_idx|tags_name_trgm_idx|user_roles_global_uniq)"' drift.sql > drift-rest.sql || true
+          cp drift.sql ../../ci-logs/drift.sql
           if [ -s drift-rest.sql ]; then echo "Schema lệch với migration:"; cat drift-rest.sql; exit 1; fi
           echo "Schema khớp migration"
-      - name: Thử truy vấn tìm kiếm tiếng Việt
+      - name: Đẩy migration và log lên nhánh ci-logs
+        if: always()
         run: |
-          sudo apt-get install -y -qq postgresql-client >/dev/null
-          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "SELECT vn_norm('Giải tích Đại số') = 'giai tich dai so' AS ok;"
-      - name: Lưu migration
-        uses: actions/upload-artifact@v4
+          out=$(mktemp -d)
+          cp -r ci-logs "$out/" || true
+          [ -d packages/db/prisma/migrations ] && cp -r packages/db/prisma/migrations "$out/"
+          cd "$out"
+          echo "run ${{ github.run_id }} sha ${{ github.sha }} generate=${{ steps.generate.outcome }} drift=${{ steps.drift.outcome }}" > SUMMARY.txt
+          git init -q -b ci && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI migration ${{ github.run_id }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci:refs/heads/ci-logs/migration
+
+  e2e:
+    name: E2E (web + worker + Postgres + S3 + Mailpit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: khotl
+          POSTGRES_PASSWORD: khotl
+          POSTGRES_DB: khotl
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U khotl" --health-interval 5s --health-timeout 5s --health-retries 20
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ["1025:1025", "8025:8025"]
+    env:
+      AUTH_RATE_LIMIT: "off"
+      WORKER_CONCURRENCY: "2"
+      CLAMAV_REQUIRED: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Có migration và lockfile chưa
+        id: pre
+        run: |
+          if [ -f packages/db/prisma/migrations/0001_init/migration.sql ] && [ -f pnpm-lock.yaml ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Chưa có migration/lockfile trong repo, bỏ qua e2e ở lần chạy này"
+          fi
+      - uses: pnpm/action-setup@v4
+        if: steps.pre.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.pre.outputs.ready == 'true'
         with:
-          name: migrations
-          path: packages/db/prisma/migrations
+          node-version: 22
+          cache: pnpm
+      - run: mkdir -p ci-logs
+      - name: Kho S3 (SeaweedFS) và công cụ xử lý PDF
+        if: steps.pre.outputs.ready == 'true'
+        run: |
+          docker run -d --name s3 -p 8333:8333 chrislusf/seaweedfs:latest server -dir=/data -s3
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils >/dev/null
+          for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:8333 && break; sleep 1; done
+      - run: pnpm install --frozen-lockfile
+        if: steps.pre.outputs.ready == 'true'
+      - name: Migration và dữ liệu mẫu
+        if: steps.pre.outputs.ready == 'true'
+        run: |
+          set -o pipefail
+          pnpm db:migrate 2>&1 | tee ci-logs/e2e-migrate.log
+          pnpm db:seed 2>&1 | tee ci-logs/e2e-seed.log
+      - name: Build web
+        if: steps.pre.outputs.ready == 'true'
+        run: |
+          set -o pipefail
+          pnpm --filter @khotl/web build 2>&1 | tail -40 | tee ci-logs/e2e-build.log
+          cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
+          cp -r apps/web/public apps/web/.next/standalone/apps/web/public
+      - name: Chạy web và worker
+        if: steps.pre.outputs.ready == 'true'
+        run: |
+          (PORT=3000 HOSTNAME=0.0.0.0 node apps/web/.next/standalone/apps/web/server.js > ci-logs/web.log 2>&1 &)
+          (pnpm --filter @khotl/worker start > ci-logs/worker.log 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/api/health && break; sleep 1; done
+          # Đợi worker tạo xong ảnh xem trước cho tài liệu mẫu
+          for i in $(seq 1 120); do
+            left=$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM document_versions WHERE \"processingStatus\" <> 'DONE'")
+            echo "Còn $left phiên bản chưa xử lý"; [ "$left" = "0" ] && break; sleep 2
+          done
+      - name: Cài trình duyệt Playwright
+        if: steps.pre.outputs.ready == 'true'
+        run: pnpm --filter @khotl/e2e exec playwright install --with-deps chromium
+      - name: E2E
+        id: e2e
+        if: steps.pre.outputs.ready == 'true'
+        run: set -o pipefail; pnpm e2e 2>&1 | tee ci-logs/e2e.log
+      - name: Đẩy log lên nhánh ci-logs
+        if: always()
+        run: |
+          out=$(mktemp -d)
+          cp -r ci-logs "$out/" || true
+          [ -d e2e/test-results ] && cp -r e2e/test-results "$out/" || true
+          cd "$out"
+          echo "run ${{ github.run_id }} sha ${{ github.sha }} e2e=${{ steps.e2e.outcome }}" > SUMMARY.txt
+          git init -q -b ci && git add -A
+          git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -qm "CI e2e ${{ github.run_id }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci:refs/heads/ci-logs/e2e

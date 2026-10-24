@@ -22,7 +22,7 @@ export type UploadStartInput = z.infer<typeof uploadStartSchema>;
 export const uploadSubmitSchema = z.object({
   token: z.string().min(20),
   courseId: z.string().min(1, "Chọn học phần"),
-  type: z.enum(DOCUMENT_TYPES),
+  type: z.enum(DOCUMENT_TYPES, { message: "Chọn loại tài liệu" }),
   term: z
     .string()
     .trim()

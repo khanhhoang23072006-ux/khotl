@@ -1,7 +1,7 @@
 -- =====================================================================
 -- Phần bổ sung cho migration đầu tiên (Prisma không diễn đạt được).
--- Ở Giai đoạn 1: `prisma migrate dev --create-only`, rồi dán file này
--- vào cuối migration.sql được sinh ra.
+-- Được ghép vào migration đầu tiên bởi scripts/build-init-migration.mjs
+-- (pnpm --filter @khotl/db migration:init).
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
