@@ -5,7 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getStorage } from "@khotl/adapters";
 import {
+  isStaff,
   isTooShort,
+  type RoleName,
   NEAR_DUPLICATE_MAX_DISTANCE,
   simhash,
   assessContentRisk,
@@ -61,7 +63,14 @@ function loadVersion(versionId: string) {
           visibility: true,
           uploaderId: true,
           publishedAt: true,
-          uploader: { select: { trustLevel: true } },
+          slug: true,
+          courseId: true,
+          uploader: {
+            select: {
+              trustLevel: true,
+              roles: { select: { facultyId: true, role: { select: { key: true } } } },
+            },
+          },
         },
       },
     },
@@ -314,8 +323,20 @@ interface SuccessData {
 async function finalizeSuccess(version: VersionWithDocument, data: SuccessData): Promise<void> {
   const doc = version.document;
   // Tài liệu của nhóm học tập không qua hàng chờ thủ công; tài liệu đã duyệt (vd dữ liệu mẫu) giữ nguyên trạng thái.
+  // Kiểm duyệt viên và quản trị viên đăng thì công khai ngay sau kiểm tra tự động, không vào hàng chờ.
+  const staffUpload = isStaff({
+    roles: doc.uploader.roles.map((assignment) => ({
+      key: assignment.role.key as RoleName,
+      facultyId: assignment.facultyId,
+    })),
+  });
+  const autoPublish = doc.status === "PROCESSING" && doc.visibility === "PUBLIC" && staffUpload;
   const nextStatus =
-    doc.status === "PROCESSING" ? (doc.visibility === "GROUP" ? "APPROVED" : "PENDING_REVIEW") : doc.status;
+    doc.status === "PROCESSING"
+      ? doc.visibility === "GROUP" || autoPublish
+        ? "APPROVED"
+        : "PENDING_REVIEW"
+      : doc.status;
 
   await prisma.$transaction(async (tx) => {
     await tx.documentVersion.update({
@@ -381,6 +402,35 @@ async function finalizeSuccess(version: VersionWithDocument, data: SuccessData):
         metadata: { riskScore: data.riskScore, reasons: data.riskReasons },
       },
     });
+
+    if (autoPublish) {
+      // Ghi nhận như một lần duyệt để số liệu học phần, người đăng và nhật ký vẫn đúng.
+      // Không cộng uy tín, không cộng lượt thưởng (nhân sự tự đăng, tải không giới hạn).
+      await tx.course.update({ where: { id: doc.courseId }, data: { documentCount: { increment: 1 } } });
+      await tx.user.update({
+        where: { id: doc.uploaderId },
+        data: { approvedDocumentCount: { increment: 1 } },
+      });
+      await tx.moderationLog.create({
+        data: {
+          action: "APPROVE",
+          actorId: doc.uploaderId,
+          documentId: doc.id,
+          versionId: version.id,
+          targetUserId: doc.uploaderId,
+          internalNote: "Tự động công khai: người đăng là kiểm duyệt viên hoặc quản trị viên",
+        },
+      });
+      await tx.notification.create({
+        data: {
+          userId: doc.uploaderId,
+          documentId: doc.id,
+          type: "DOCUMENT_APPROVED",
+          data: { title: doc.title },
+          link: `/tai-lieu/${doc.slug}`,
+        },
+      });
+    }
   });
 
   // Cập nhật vector tìm kiếm (tiêu đề, học phần, tag, nội dung vừa trích).

@@ -1,4 +1,4 @@
-import { can, PERMISSIONS } from "@khotl/core";
+import { can, isStaff, PERMISSIONS } from "@khotl/core";
 import { prisma } from "@khotl/db";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
@@ -85,7 +85,7 @@ export async function SiteHeader() {
           </div>
           {user ? (
             <>
-              {credits ? <CreditMeter status={credits} /> : null}
+              {credits ? <CreditMeter status={credits} unlimited={isStaff(user)} /> : null}
               <Link
                 href="/thong-bao"
                 className="relative flex h-11 w-11 items-center justify-center hover:bg-wash hover:text-ink"

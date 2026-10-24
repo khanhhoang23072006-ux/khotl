@@ -88,3 +88,11 @@ export function moderationScope(subject: Subject): string[] | null {
 export function hasRole(subject: Subject, key: RoleName): boolean {
   return subject.roles.some((role) => role.key === key);
 }
+
+/**
+ * Kiểm duyệt viên (mọi phạm vi Viện) và quản trị viên:
+ * tải tài liệu không giới hạn lượt, tài liệu họ đăng được công khai ngay sau kiểm tra tự động.
+ */
+export function isStaff(subject: Subject): boolean {
+  return hasRole(subject, "MODERATOR") || hasRole(subject, "ADMIN");
+}

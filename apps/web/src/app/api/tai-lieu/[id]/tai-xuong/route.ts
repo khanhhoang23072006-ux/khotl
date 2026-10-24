@@ -1,5 +1,5 @@
 import { getRateLimiter } from "@khotl/adapters";
-import { can, PERMISSIONS } from "@khotl/core";
+import { can, isStaff, PERMISSIONS } from "@khotl/core";
 import { prisma } from "@khotl/db";
 import { NextResponse } from "next/server";
 import { deviceHash } from "@/lib/device";
@@ -37,12 +37,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   const settings = await getCreditSettings();
   const [ipHash, device] = await Promise.all([hashedIp(), deviceHash()]);
+  // Kiểm duyệt viên và quản trị viên tải không giới hạn: không trừ lượt, không giới hạn số lần mỗi giờ
+  const staff = isStaff(user);
   const limiter = getRateLimiter();
-  for (const [key, limit] of [
+  for (const [key, limit] of staff ? [] : [
     [`download:user:${user.id}`, settings.rateLimitPerHourUser],
     [`download:ip:${ipHash}`, settings.rateLimitPerHourIp],
     [`download:device:${device}`, settings.rateLimitPerHourDevice],
-  ] as const) {
+  ] as const)) {
     const rate = await limiter.hit(key, limit, 3600);
     if (!rate.ok) return tooMany(rate.resetIn);
   }
@@ -67,8 +69,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   }
 
   // Người đăng, kiểm duyệt viên và tài liệu chưa công khai không tính lượt
-  const exempt = access !== "public" || doc.uploaderId === user.id || doc.status !== "APPROVED";
-  await recordDevice({ userId: user.id, deviceHash: device, ipHash });
+  const exempt = staff || access !== "public" || doc.uploaderId === user.id || doc.status !== "APPROVED";
+  if (!staff) await recordDevice({ userId: user.id, deviceHash: device, ipHash });
   const result = await chargeDownload({
     userId: user.id,
     documentId: doc.id,

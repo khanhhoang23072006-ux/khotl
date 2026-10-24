@@ -1,4 +1,4 @@
-import { formatDateTime } from "@khotl/core";
+import { formatDateTime, isStaff } from "@khotl/core";
 import { prisma } from "@khotl/db";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -45,6 +45,11 @@ export default async function CreditHistoryPage({
   return (
     <>
       <PageHeader title={t("historyTitle")}>
+        {isStaff(user) ? (
+          <p role="status" className="border-2 border-ink bg-sheet px-3 py-2 text-sm font-semibold">
+            {t("staffUnlimited")}
+          </p>
+        ) : null}
         <TitleBlock className="grid-cols-2 md:grid-cols-4">
           <Cell label={t("todayFree")}>
             <span className="font-code text-3xl">

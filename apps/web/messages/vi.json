@@ -286,7 +286,8 @@
     "submittedTitle": "Đã nhận tài liệu của bạn",
     "submittedBody": "Hệ thống đang kiểm tra file. Sau đó kiểm duyệt viên sẽ xem và bạn sẽ được báo kết quả.",
     "uploadAnother": "Tải thêm tài liệu khác",
-    "viewMine": "Xem tài liệu của tôi"
+    "viewMine": "Xem tài liệu của tôi",
+    "introStaff": "Bạn là kiểm duyệt viên hoặc quản trị viên: tài liệu được kiểm tra tự động rồi công khai ngay, không cần chờ duyệt."
   },
   "mine": {
     "title": "Tài liệu của tôi",
@@ -638,6 +639,9 @@
         "multiAccountThreshold": "Khóa thưởng khi một thiết bị có từ bao nhiêu tài khoản",
         "violationLockThreshold": "Khóa thưởng sau bao nhiêu lần bị gỡ vì vi phạm"
       }
-    }
+    },
+    "unlimited": "Tải không giới hạn",
+    "unlimitedLabel": "Lượt tải: không giới hạn (kiểm duyệt viên, quản trị viên)",
+    "staffUnlimited": "Kiểm duyệt viên và quản trị viên tải không giới hạn, không trừ lượt."
   }
 }

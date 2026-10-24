@@ -286,7 +286,8 @@
     "submittedTitle": "We received your document",
     "submittedBody": "The file is being checked. A moderator will review it next and you will be told the result.",
     "uploadAnother": "Upload another document",
-    "viewMine": "View my documents"
+    "viewMine": "View my documents",
+    "introStaff": "As a moderator or administrator, your documents are published right after the automatic checks, without manual review."
   },
   "mine": {
     "title": "My documents",
@@ -638,6 +639,9 @@
         "multiAccountThreshold": "Lock rewards when one device has N accounts",
         "violationLockThreshold": "Lock rewards after N removals for violations"
       }
-    }
+    },
+    "unlimited": "Unlimited downloads",
+    "unlimitedLabel": "Downloads: unlimited (moderators and administrators)",
+    "staffUnlimited": "Moderators and administrators download without limits."
   }
 }

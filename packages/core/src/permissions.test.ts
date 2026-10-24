@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { can, hasRole, moderationScope, PERMISSIONS } from "./permissions";
+import { can, hasRole, isStaff, moderationScope, PERMISSIONS } from "./permissions";
 
 const student = { roles: [{ key: "STUDENT" as const, facultyId: null }] };
 const soictModerator = {
@@ -47,5 +47,13 @@ describe("hasRole", () => {
   it("nhận ra vai trò", () => {
     expect(hasRole(admin, "ADMIN")).toBe(true);
     expect(hasRole(student, "ADMIN")).toBe(false);
+  });
+});
+
+describe("isStaff", () => {
+  it("kiểm duyệt viên (kể cả theo Viện) và quản trị viên là nhân sự, sinh viên thì không", () => {
+    expect(isStaff(admin)).toBe(true);
+    expect(isStaff(soictModerator)).toBe(true);
+    expect(isStaff(student)).toBe(false);
   });
 });

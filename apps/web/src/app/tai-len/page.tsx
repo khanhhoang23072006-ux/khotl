@@ -1,4 +1,4 @@
-import { DOCUMENT_TYPES, documentTypeLabel, recentTerms } from "@khotl/core";
+import { DOCUMENT_TYPES, documentTypeLabel, isStaff, recentTerms } from "@khotl/core";
 import { prisma } from "@khotl/db";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
@@ -32,7 +32,7 @@ export default async function UploadPage({ searchParams }: { searchParams: Promi
         <div className="mx-auto flex max-w-3xl flex-wrap items-end justify-between gap-4 px-4 py-6">
           <div>
             <h1 className="font-code text-5xl leading-[0.95]">{t("pageTitle")}</h1>
-            <p className="mt-2 max-w-lg text-sm">{t("intro")}</p>
+            <p className="mt-2 max-w-lg text-sm">{isStaff(user) ? t("introStaff") : t("intro")}</p>
           </div>
           <div className="tb grid-cols-1">
             <div className="bg-sheet px-3 py-2">

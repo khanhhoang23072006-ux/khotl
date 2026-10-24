@@ -8,6 +8,7 @@ import {
   formatDate,
   formatDateTime,
   formatRating,
+  isStaff,
   PERMISSIONS,
   vietnamDay,
 } from "@khotl/core";
@@ -97,13 +98,16 @@ export default async function DocumentPage({ params }: { params: Params }) {
   }
 
   // Lần tải tới sẽ tính lượt thế nào (người đăng, kiểm duyệt viên, tài liệu chưa công khai: không tính)
-  const exempt = access !== "public" || user?.id === doc.uploaderId || doc.status !== "APPROVED";
+  const staff = user ? isStaff(user) : false;
+  const exempt = staff || access !== "public" || user?.id === doc.uploaderId || doc.status !== "APPROVED";
   const charge = user && version && !exempt ? await previewCharge(user.id, doc.id) : null;
   const tc = await getTranslations("credits");
   const downloadNote = !user
     ? null
-    : exempt
-      ? tc("exemptFree")
+    : staff
+      ? tc("staffUnlimited")
+      : exempt
+        ? tc("exemptFree")
       : charge?.decision === "REPEAT"
         ? tc("repeatFree", { hours: charge.settings.redownloadWindowHours })
         : charge?.decision === "FREE"
