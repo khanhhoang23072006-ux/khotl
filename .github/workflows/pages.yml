@@ -74,6 +74,12 @@ jobs:
           done
       - name: Chụp trang tĩnh
         run: SNAPSHOT_BASE="${{ steps.pages.outputs.base_path }}" node infra/static-demo/snapshot.mjs
+      - name: Log khi lỗi
+        if: failure()
+        run: |
+          for f in web.log worker.log; do
+            [ -f "$f" ] && echo "::error title=$f::$(tail -c 3000 "$f" | sed ':a;N;$!ba;s/\n/%0A/g')"
+          done
       - uses: actions/upload-pages-artifact@v3
         with:
           path: static-demo
