@@ -18,14 +18,14 @@
 }
 
 .dark {
-  --paper: #121518;
-  --sheet: #1a1e22;
-  --ink: #e6e9ec;
-  --grid: #262c32;
-  --pencil: #a3abb4;
-  --stamp: #c8303f;
+  --paper: #0a0d14;
+  --sheet: #121824;
+  --ink: #f0f6fc;
+  --grid: #16202c;
+  --pencil: #8b9bae;
+  --stamp: #fa384c;
   --stamp-ink: #ffffff;
-  --wash: #1f2428;
+  --wash: #1a2332;
 }
 
 @theme inline {
