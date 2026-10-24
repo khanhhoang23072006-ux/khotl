@@ -1,0 +1,15 @@
+
+> khotl@ db:seed /home/runner/work/khotl/khotl
+> pnpm --filter @khotl/db seed
+
+
+> @khotl/db@ seed /home/runner/work/khotl/khotl/packages/db
+> prisma db seed
+
+Loaded Prisma config from prisma.config.ts.
+
+Running seed command `tsx prisma/seed.ts` ...
+Đã tạo 60 tài liệu mẫu
+Seed xong
+
+🌱  The seed command has been executed.

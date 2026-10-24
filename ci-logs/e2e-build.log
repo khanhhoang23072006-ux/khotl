@@ -1,0 +1,40 @@
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/[...all]
+├ ƒ /api/goi-y
+├ ƒ /api/health
+├ ƒ /api/tai-lieu/[id]/anh/[index]
+├ ƒ /api/tai-lieu/[id]/tai-xuong
+├ ƒ /api/tai-lieu/[id]/xem
+├ ƒ /dang-nhap
+├ ƒ /dieu-khoan
+├ ƒ /go-tai-lieu
+├ ƒ /hoan-thien-ho-so
+├ ƒ /hoc-phan/[code]
+├ ○ /icon.svg
+├ ƒ /kiem-duyet
+├ ƒ /kiem-duyet/[id]
+├ ƒ /kiem-duyet/bao-cao
+├ ○ /manifest.webmanifest
+├ ƒ /quan-tri
+├ ƒ /quan-tri/hoc-phan
+├ ƒ /quan-tri/nguoi-dung
+├ ƒ /quyen-rieng-tu
+├ ○ /robots.txt
+├ ƒ /sitemap.xml
+├ ƒ /tai-len
+├ ƒ /tai-lieu-cua-toi
+├ ƒ /tai-lieu-cua-toi/[id]/sua
+├ ƒ /tai-lieu/[slug]
+├ ƒ /thong-bao
+├ ƒ /tim-kiem
+├ ƒ /vien
+└ ƒ /vien/[slug]
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

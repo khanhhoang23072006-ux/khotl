@@ -1,0 +1,70 @@
+
+> @khotl/worker@ start /home/runner/work/khotl/khotl/apps/worker
+> tsx src/index.ts
+
+{"time":"2026-10-24T08:52:22.228Z","level":"info","message":"Worker khởi động","tools":{"poppler":true,"libreoffice":false,"unzip":true},"concurrency":2,"clamav":false}
+{"time":"2026-10-24T08:52:22.228Z","level":"warn","message":"Thiếu LibreOffice: DOCX/PPTX/XLSX sẽ không xem trước được"}
+{"time":"2026-10-24T08:52:23.320Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2c9e-7268-90a1-d922ce35c203","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:23.321Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2c8e-7592-8a82-e7e8a673daa7","ms":939}
+{"time":"2026-10-24T08:52:24.034Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2cb3-742c-be73-810ee40ed43e","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:24.035Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2cc0-74fe-991a-8f0478a86e40","ms":711}
+{"time":"2026-10-24T08:52:24.719Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2cc9-70fb-bb64-fac6aa49326c","ms":683}
+{"time":"2026-10-24T08:52:24.725Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2cd5-74a1-8824-a92983897cd0","ms":689}
+{"time":"2026-10-24T08:52:25.401Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2cee-768a-97db-93ed885deb01","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:25.402Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2ce2-7653-a529-e4492fcf4bfb","ms":683}
+{"time":"2026-10-24T08:52:26.092Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2cf8-74ac-ae81-ddaed09362d6","ms":689}
+{"time":"2026-10-24T08:52:26.107Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d02-74fc-bec8-d0c144ad5cd3","ms":704}
+{"time":"2026-10-24T08:52:26.903Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2d12-75cf-b6fb-b7b37b540ea3","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:26.904Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d09-7509-8dde-aec63e3ab1cd","ms":811}
+{"time":"2026-10-24T08:52:27.639Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d1f-77d4-9ae7-669565fa2d62","ms":734}
+{"time":"2026-10-24T08:52:27.643Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d28-7757-bbb6-166bf6c9806e","ms":738}
+{"time":"2026-10-24T08:52:28.352Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2d3d-754b-bd26-8daf3b8416bf","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:28.353Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d32-7028-af7c-029a0988b66f","ms":713}
+{"time":"2026-10-24T08:52:29.064Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d47-712b-9835-151ee048b187","ms":710}
+{"time":"2026-10-24T08:52:29.065Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d50-7100-83f2-d0b2408d90e3","ms":711}
+{"time":"2026-10-24T08:52:29.770Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2d65-761d-a2fa-cd16548c5774","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:29.772Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d5d-7659-8ab3-f825e67a8c68","ms":707}
+{"time":"2026-10-24T08:52:30.465Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d7a-70e3-94dd-b0a7d26d8126","ms":692}
+{"time":"2026-10-24T08:52:30.480Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d71-701a-8090-4d5a66de8a55","ms":708}
+{"time":"2026-10-24T08:52:31.160Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2d8a-73e0-950b-d785472c531c","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:31.164Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d82-70f5-bfaf-620d718e4bce","ms":698}
+{"time":"2026-10-24T08:52:31.869Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2d94-729b-98d3-d61772e1e9cc","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:31.870Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d9c-752b-a2ea-887626024a85","ms":696}
+{"time":"2026-10-24T08:52:32.609Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2dad-7512-a930-ebcf0e10fe7e","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:32.610Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2da5-76b9-bc3e-90db8714a34e","ms":739}
+{"time":"2026-10-24T08:52:33.358Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2dbf-7301-8b4d-13902bd8d078","ms":747}
+{"time":"2026-10-24T08:52:33.384Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2db7-7738-a19e-ddd8d0106d85","ms":774}
+{"time":"2026-10-24T08:52:34.070Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2dc7-73a3-bfb1-1b15464b9cfd","ms":710}
+{"time":"2026-10-24T08:52:34.087Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2dcf-70b5-8942-959ee17448bb","ms":702}
+{"time":"2026-10-24T08:52:34.765Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2de1-7268-8ca5-4cbfbb8d95da","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:34.766Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2dd7-743f-8acf-923d4ff0c7c7","ms":696}
+{"time":"2026-10-24T08:52:35.466Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2df1-706b-b501-5930509ef6c5","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:35.466Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2de9-7729-81ec-8e21196b5997","ms":700}
+{"time":"2026-10-24T08:52:36.147Z","level":"warn","message":"Xử lý lỗi, sẽ thử lại","versionId":"01a16d1c-2e07-70e1-ad74-859d20ab7387","attempt":1,"error":"\nInvalid `tx.tag.upsert()` invocation in\n/home/runner/work/khotl/khotl/apps/worker/src/pipeline/process-version.ts:322:35\n\n  319 }\n  320 \n  321 for (const tag of data.tags) {\n→ 322   const record = await tx.tag.upsert(\nUnique constraint failed on the constraint: `tags_slug_key`"}
+{"time":"2026-10-24T08:52:36.148Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2dfa-73e3-a71b-e98b935c0504","ms":681}
+{"time":"2026-10-24T08:52:36.830Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e17-777c-bd2a-2c752b3998e5","ms":681}
+{"time":"2026-10-24T08:52:36.865Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e0f-754a-a2ad-c5a70be83e82","ms":716}
+{"time":"2026-10-24T08:52:37.526Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e1e-738f-a388-02145affb701","ms":695}
+{"time":"2026-10-24T08:52:37.604Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e25-728d-bcc6-d7e481dfb0c5","ms":738}
+{"time":"2026-10-24T08:52:38.300Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e2d-751b-b2a7-7f7b9ba1b2a6","ms":774}
+{"time":"2026-10-24T08:52:38.394Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e35-7678-a9ee-81888b07f662","ms":790}
+{"time":"2026-10-24T08:52:39.091Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e3c-770b-8ff7-809d55b255ed","ms":790}
+{"time":"2026-10-24T08:52:39.154Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e42-7297-bd4b-0ba3fba18099","ms":760}
+{"time":"2026-10-24T08:52:39.809Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e49-75bc-b277-f0b5db0d555f","ms":718}
+{"time":"2026-10-24T08:52:39.881Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e4f-723e-b34a-80bf4240712c","ms":726}
+{"time":"2026-10-24T08:52:40.502Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e59-7313-acef-55ea622558ff","ms":692}
+{"time":"2026-10-24T08:52:40.581Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e5f-749e-8d2f-1fe05c5c0f23","ms":699}
+{"time":"2026-10-24T08:52:41.195Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e66-776d-aae1-bb15c9dbadd1","ms":692}
+{"time":"2026-10-24T08:52:41.296Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e6d-724b-ad8f-a5a897aff633","ms":714}
+{"time":"2026-10-24T08:52:41.919Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e75-703b-ac21-ecfa90258ca9","ms":723}
+{"time":"2026-10-24T08:52:42.049Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e7d-720a-a79c-27cbbd385ad2","ms":753}
+{"time":"2026-10-24T08:52:42.654Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e83-77a0-abaa-cc023e2af936","ms":735}
+{"time":"2026-10-24T08:52:42.783Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e8a-771a-890d-f87715b5931a","ms":732}
+{"time":"2026-10-24T08:52:43.387Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e91-76de-a6d2-03da52daaa0d","ms":733}
+{"time":"2026-10-24T08:52:43.524Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e98-75bf-805a-1435b385efbe","ms":740}
+{"time":"2026-10-24T08:52:44.112Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2e9f-7397-889f-4df31ec8f48c","ms":724}
+{"time":"2026-10-24T08:52:44.242Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2ea8-736f-86df-551702432d25","ms":717}
+{"time":"2026-10-24T08:53:24.857Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2c9e-7268-90a1-d922ce35c203","ms":679}
+{"time":"2026-10-24T08:53:24.957Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2cb3-742c-be73-810ee40ed43e","ms":679}
+{"time":"2026-10-24T08:53:27.538Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2cee-768a-97db-93ed885deb01","ms":679}
+{"time":"2026-10-24T08:53:27.720Z","level":"info","message":"Đã xử lý tài liệu","versionId":"01a16d1c-2d12-75cf-b6fb-b7b37b540ea3","ms":761}
