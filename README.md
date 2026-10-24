@@ -18,6 +18,12 @@ infra             Docker Compose và Dockerfile
 
 Luồng tải lên: trình duyệt xin URL ký sẵn → PUT file thẳng lên kho S3 → gửi thông tin tài liệu → web ghi `Document` (PROCESSING) và `DocumentVersion` (QUEUED) trong một transaction → worker nhận việc bằng `FOR UPDATE SKIP LOCKED` → qua kiểm tra thì vào hàng chờ kiểm duyệt.
 
+## Dùng thử ngay trên trình duyệt (GitHub Codespaces)
+
+[![Mở trong GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/khanhhoang23072006-ux/khotl?quickstart=1)
+
+Bấm nút trên, chờ khoảng 5 phút lần đầu (cài thư viện, tạo dữ liệu mẫu, build). Khi terminal hiện khung "Web: https://…", trang web tự mở ở tab mới. Mã đăng nhập OTP xem ở tab **Ports → cổng 8025** (hộp thư Mailpit). Lần sau mở lại Codespace chỉ mất khoảng 1 phút.
+
 ## Chạy trên máy
 
 Cần Node.js 22.12 trở lên, pnpm 10 (`corepack enable`), Docker.
@@ -91,6 +97,7 @@ Chạy toàn bộ bằng Docker (không cần Node trên máy): `docker compose 
 | `GUEST_PREVIEW_PAGES` | không | Số trang khách xem được, mặc định 3 |
 | `SEED_DEMO_USERS` | không | `false` để seed không tạo tài khoản và tài liệu demo |
 | `AUTH_RATE_LIMIT` | không | `off` chỉ khi chạy e2e |
+| `S3_PROXY_TARGET` | không | Cho trình duyệt dùng kho file qua `/s3` của web (Codespaces); khi đó `S3_PUBLIC_ENDPOINT` = `APP_URL/s3` |
 
 ## Kiểm thử
 

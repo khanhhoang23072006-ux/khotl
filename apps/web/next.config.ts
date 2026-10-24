@@ -54,6 +54,15 @@ const securityHeaders = [
     : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
 ];
 
+/** Host của web khi chạy sau proxy (Codespaces, reverse proxy) để server action chấp nhận Origin. */
+const appHost = (() => {
+  try {
+    return new URL(process.env.APP_URL ?? "").host;
+  } catch {
+    return "";
+  }
+})();
+
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: repoRoot,
@@ -62,7 +71,13 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@khotl/core", "@khotl/db", "@khotl/adapters"],
   serverExternalPackages: ["@prisma/client", "@prisma/adapter-pg", "pg"],
   experimental: {
-    serverActions: { bodySizeLimit: "2mb" },
+    serverActions: { bodySizeLimit: "2mb", allowedOrigins: appHost ? [appHost] : [] },
+  },
+  // S3_PROXY_TARGET: cho trình duyệt dùng kho file qua đường /s3 của chính web
+  // (khi kho file không mở ra ngoài, ví dụ Codespaces). Bình thường để trống.
+  async rewrites() {
+    const target = process.env.S3_PROXY_TARGET;
+    return target ? [{ source: "/s3/:path*", destination: `${target.replace(/\/$/, "")}/:path*` }] : [];
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
