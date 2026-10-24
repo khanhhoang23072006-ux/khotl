@@ -1,0 +1,21 @@
+{
+  "name": "HUSTDOCU: tài liệu học tập Bách khoa",
+  "short_name": "HUSTDOCU",
+  "description": "Đề thi, slide, bài giải do sinh viên Đại học Bách khoa Hà Nội chia sẻ, có kiểm duyệt.",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F7F5",
+  "theme_color": "#B3172B",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Tìm kiếm", "url": "./#/tim-kiem" },
+    { "name": "Chat", "url": "./#/chat" },
+    { "name": "Trợ lý AI", "url": "./#/tro-ly" }
+  ]
+}

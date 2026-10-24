@@ -11,7 +11,9 @@
       "!**/public/pdf.worker.min.mjs",
       "!**/*.json",
       "!demo",
-      "!index.html"
+      "!index.html",
+      "!sw.js",
+      "!manifest.webmanifest"
     ]
   },
   "formatter": {
