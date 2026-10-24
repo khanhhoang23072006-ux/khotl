@@ -43,7 +43,7 @@ function clientIp(headers: Headers | undefined): string {
 }
 
 export const auth = betterAuth({
-  appName: "Kho tài liệu HUST",
+  appName: "HUSTDOCU",
   baseURL: process.env.BETTER_AUTH_URL ?? serverEnv.appUrl,
   secret: serverEnv.authSecret || undefined,
   trustedOrigins: [serverEnv.appUrl],
@@ -143,7 +143,7 @@ export const auth = betterAuth({
       async sendVerificationOTP({ email, otp }) {
         await getMailer().send({
           to: email,
-          subject: `${otp} là mã đăng nhập Kho tài liệu HUST`,
+          subject: `${otp} là mã đăng nhập HUSTDOCU`,
           text: [
             "Chào bạn,",
             "",
@@ -152,7 +152,7 @@ export const auth = betterAuth({
             "",
             "Nếu bạn không yêu cầu, hãy bỏ qua email này.",
             "",
-            "Kho tài liệu HUST",
+            "HUSTDOCU",
           ].join("\n"),
         });
       },

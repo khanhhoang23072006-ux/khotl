@@ -1,4 +1,4 @@
--- Migration đầu tiên của Kho tài liệu HUST.
+-- Migration đầu tiên của HUSTDOCU.
 -- Phần 1: extension. Phần 2: DDL do `prisma migrate diff` sinh. Phần 3: SQL viết tay.
 
 CREATE EXTENSION IF NOT EXISTS unaccent;

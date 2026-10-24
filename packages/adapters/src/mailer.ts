@@ -38,7 +38,7 @@ let shared: Mailer | undefined;
 
 export function getMailer(env: NodeJS.ProcessEnv = process.env): Mailer {
   if (!shared) {
-    const from = env.MAIL_FROM || "Kho tài liệu HUST <no-reply@khotl.local>";
+    const from = env.MAIL_FROM || "HUSTDOCU <no-reply@khotl.local>";
     shared = env.SMTP_URL ? new SmtpMailer(env.SMTP_URL, from) : new ConsoleMailer();
   }
   return shared;

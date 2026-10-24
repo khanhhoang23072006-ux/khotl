@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "HUST Study Library",
-    "short": "HUST Library",
+    "title": "HUSTDOCU",
+    "short": "HUSTDOCU",
     "description": "Exams, slides, solutions and notes shared by Hanoi University of Science and Technology students, all reviewed before publishing. Search by course code, with or without Vietnamese diacritics."
   },
   "common": {
-    "appName": "HUST Library",
+    "appName": "HUSTDOCU",
     "skipToContent": "Skip to main content",
     "switchLanguage": "Switch to Vietnamese",
     "themeLight": "Switch to light theme",
@@ -34,7 +34,7 @@
   },
   "footer": {
     "project": "Project",
-    "name": "HUST Study Library",
+    "name": "HUSTDOCU",
     "tagline": "Shared by HUST students, for HUST students. Every upload is reviewed.",
     "rules": "Rules",
     "terms": "Terms of use",
@@ -463,8 +463,8 @@
     "privacyTitle": "Privacy",
     "terms": {
       "s1": {
-        "title": "What this library is",
-        "body": "HUST Study Library is where students of Hanoi University of Science and Technology share study materials: exams, slides, solutions, notes and syllabi.\n\nIt is a student project, not an official channel of the university."
+        "title": "What HUSTDOCU is",
+        "body": "HUSTDOCU is where students of Hanoi University of Science and Technology share study materials: exams, slides, solutions, notes and syllabi.\n\nIt is a student project, not an official channel of the university."
       },
       "s2": {
         "title": "Accounts",

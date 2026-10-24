@@ -1,4 +1,4 @@
-# Kho tài liệu học tập HUST
+# HUSTDOCU
 
 Nơi sinh viên Đại học Bách khoa Hà Nội chia sẻ, tìm kiếm tài liệu học tập. Mọi tài liệu đều qua kiểm tra tự động (định dạng, trùng lặp, mã độc, nội dung) rồi đến kiểm duyệt viên trước khi công khai.
 

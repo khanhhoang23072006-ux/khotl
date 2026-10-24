@@ -58,7 +58,7 @@ function buildMessage(row: PendingRow): { subject: string; text: string } | null
   const title = data.title ?? "tài liệu của bạn";
   const link = `${config.appUrl}${row.link ?? "/tai-lieu-cua-toi"}`;
   const greeting = `Chào ${row.name || "bạn"},`;
-  const footer = "\n\nKho tài liệu HUST\nBạn nhận email này vì đã đăng tài liệu lên Kho tài liệu HUST.";
+  const footer = "\n\nHUSTDOCU\nBạn nhận email này vì đã đăng tài liệu lên HUSTDOCU.";
 
   switch (row.type) {
     case "DOCUMENT_APPROVED":

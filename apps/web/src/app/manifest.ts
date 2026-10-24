@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Kho tài liệu học tập HUST",
-    short_name: "Kho TL HUST",
+    name: "HUSTDOCU",
+    short_name: "HUSTDOCU",
     description: "Tài liệu học tập do sinh viên Bách khoa chia sẻ, đã qua kiểm duyệt.",
     start_url: "/",
     display: "standalone",

@@ -25,7 +25,7 @@ execFileSync(
 const generated = readFileSync(generatedPath, "utf8");
 const custom = readFileSync("prisma/sql/001_search_and_constraints.sql", "utf8");
 
-const header = `-- Migration đầu tiên của Kho tài liệu HUST.
+const header = `-- Migration đầu tiên của HUSTDOCU.
 -- Phần 1: extension. Phần 2: DDL do \`prisma migrate diff\` sinh. Phần 3: SQL viết tay.
 
 CREATE EXTENSION IF NOT EXISTS unaccent;

@@ -1,11 +1,11 @@
 {
   "meta": {
-    "title": "Kho tài liệu học tập HUST",
-    "short": "Kho tài liệu HUST",
+    "title": "HUSTDOCU",
+    "short": "HUSTDOCU",
     "description": "Đề thi, slide, bài giải và ghi chú do sinh viên Đại học Bách khoa Hà Nội chia sẻ, đã qua kiểm duyệt. Tìm theo mã học phần, gõ không dấu vẫn ra."
   },
   "common": {
-    "appName": "Kho tài liệu HUST",
+    "appName": "HUSTDOCU",
     "skipToContent": "Bỏ qua, tới nội dung chính",
     "switchLanguage": "Chuyển sang tiếng Anh",
     "themeLight": "Chuyển sang nền sáng",
@@ -34,7 +34,7 @@
   },
   "footer": {
     "project": "Công trình",
-    "name": "Kho tài liệu học tập HUST",
+    "name": "HUSTDOCU",
     "tagline": "Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.",
     "rules": "Quy định",
     "terms": "Điều khoản sử dụng",
@@ -463,8 +463,8 @@
     "privacyTitle": "Quyền riêng tư",
     "terms": {
       "s1": {
-        "title": "Kho tài liệu là gì",
-        "body": "Kho tài liệu học tập HUST là nơi sinh viên Đại học Bách khoa Hà Nội chia sẻ tài liệu phục vụ học tập: đề thi, slide, bài giải, ghi chú, đề cương.\n\nĐây là dự án của sinh viên, không phải kênh chính thức của Nhà trường."
+        "title": "HUSTDOCU là gì",
+        "body": "HUSTDOCU là nơi sinh viên Đại học Bách khoa Hà Nội chia sẻ tài liệu phục vụ học tập: đề thi, slide, bài giải, ghi chú, đề cương.\n\nĐây là dự án của sinh viên, không phải kênh chính thức của Nhà trường."
       },
       "s2": {
         "title": "Tài khoản",
