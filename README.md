@@ -20,9 +20,11 @@ Luồng tải lên: trình duyệt xin URL ký sẵn → PUT file thẳng lên k
 
 ## Xem nhanh giao diện
 
-Bản tĩnh với dữ liệu mẫu (chỉ xem, không đăng nhập hay tải lên được): https://khanhhoang23072006-ux.github.io/khotl/
+Bản demo một trang: https://khanhhoang23072006-ux.github.io/khotl/
 
-Workflow `.github/workflows/pages.yml` tự dựng lại bản này mỗi lần push lên `main`. Cần bật một lần: Settings → Pages → Source: **GitHub Actions**.
+Một file HTML duy nhất (`demo/index.html`), dữ liệu mẫu nhúng sẵn (10 Viện, 40 học phần, hơn 50 tài liệu), chạy hoàn toàn trên trình duyệt: tìm kiếm không dấu, đăng nhập bằng mã (hiện trong hộp thư demo), tải lên với kiểm tra tự động (định dạng thật, trùng SHA-256, mẫu virus EICAR, điểm rủi ro), hàng chờ kiểm duyệt, báo cáo vi phạm, quản trị học phần và phân quyền. Thanh trên cùng có nút vào nhanh bằng tài khoản Sinh viên, Kiểm duyệt viên, Quản trị. Dữ liệu thay đổi chỉ lưu trên máy người dùng.
+
+Sửa `demo/template.html` rồi chạy `pnpm demo:build`; workflow `pages.yml` tự đăng lại khi push lên `main` (cần bật một lần: Settings → Pages → Source: GitHub Actions).
 
 ## Dùng thử ngay trên trình duyệt (GitHub Codespaces)
 
