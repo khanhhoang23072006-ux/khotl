@@ -1,6 +1,7 @@
 # Hạ tầng cho môi trường dev. Web chạy trên máy bằng `pnpm dev`.
 # Chạy: pnpm infra:up      Dừng: pnpm infra:down
-# Muốn chạy cả worker trong Docker (đủ LibreOffice, poppler): docker compose -f infra/compose/docker-compose.dev.yml --profile worker up -d
+# Chạy worker trong Docker (đủ LibreOffice, poppler):  docker compose -f infra/compose/docker-compose.dev.yml --profile worker up -d
+# Chạy toàn bộ bằng Docker (web + worker + migration): docker compose -f infra/compose/docker-compose.dev.yml --profile app up -d --build
 name: khotl
 
 services:
@@ -47,8 +48,42 @@ services:
     ports:
       - "3310:3310"
 
+  # Chạy migration và seed một lần rồi thoát
+  migrate:
+    profiles: ["app"]
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.worker
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql://khotl:khotl@postgres:5432/khotl
+      S3_ENDPOINT: http://s3:8333
+    command: ["sh", "-c", "pnpm db:migrate && pnpm db:seed"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      s3:
+        condition: service_started
+
+  web:
+    profiles: ["app"]
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.web
+    env_file: ../../.env
+    environment:
+      DATABASE_URL: postgresql://khotl:khotl@postgres:5432/khotl
+      S3_ENDPOINT: http://s3:8333
+      SMTP_URL: smtp://mailpit:1025
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   worker:
-    profiles: ["worker"]
+    profiles: ["worker", "app"]
     build:
       context: ../..
       dockerfile: infra/docker/Dockerfile.worker

@@ -19,18 +19,20 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
   const [error, setError] = useState(false);
   const [width, setWidth] = useState(0);
   const [scale, setScale] = useState(1);
-  const [ratio, setRatio] = useState(1.414);
+  const [ratio, setRatio] = useState(Math.SQRT2);
   const [current, setCurrent] = useState(1);
 
   useEffect(() => {
     let cancelled = false;
-    let loaded: PDFDocumentProxy | null = null;
+    let destroy: (() => Promise<void>) | null = null;
     (async () => {
       try {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
         // URL /api/.../xem chuyển hướng tới URL ký sẵn trên kho file
-        loaded = await pdfjs.getDocument({ url: src, disableRange: true, isEvalSupported: false }).promise;
+        const task = pdfjs.getDocument({ url: src, disableRange: true });
+        destroy = () => task.destroy();
+        const loaded = await task.promise;
         if (cancelled) return;
         const first = await loaded.getPage(1);
         const viewport = first.getViewport({ scale: 1 });
@@ -42,7 +44,7 @@ export function PdfViewer({ src, title }: { src: string; title: string }) {
     })();
     return () => {
       cancelled = true;
-      void loaded?.destroy();
+      void destroy?.();
     };
   }, [src]);
 

@@ -195,6 +195,7 @@ export function UploadForm({ mode, types, terms, limits, initial }: UploadFormPr
         submit();
       }}
     >
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: kéo thả chỉ là lối tắt, nút "Chọn file" bên trong dùng được bằng bàn phím */}
       <div
         className={cn(
           "flex flex-col items-center justify-center gap-2 border-2 border-dashed border-ink bg-sheet px-4 py-8 text-center",

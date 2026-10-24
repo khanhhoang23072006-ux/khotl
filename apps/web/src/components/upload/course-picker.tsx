@@ -120,16 +120,17 @@ export function CoursePicker({
         }}
       />
       {showList ? (
-        <ul
+        <div
           id={listId}
           role="listbox"
           className="absolute inset-x-0 top-full z-30 -mt-0.5 max-h-72 overflow-auto border-2 border-ink bg-sheet shadow-[4px_4px_0_var(--ink)]"
         >
           {items.map((item, index) => (
-            <li
+            <div
               key={item.id}
               id={`${listId}-${index}`}
               role="option"
+              tabIndex={-1}
               aria-selected={index === active}
               className={cn(
                 "flex cursor-pointer items-baseline gap-3 border-b border-grid px-3 py-2 last:border-b-0",
@@ -142,9 +143,9 @@ export function CoursePicker({
             >
               <span className="font-code text-lg leading-none">{item.code}</span>
               <span className="truncate text-[13px]">{item.name}</span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : null}
     </div>
   );

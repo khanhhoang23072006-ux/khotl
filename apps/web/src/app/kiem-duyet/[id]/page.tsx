@@ -57,7 +57,7 @@ export default async function ModerationDetailPage({ params }: { params: Promise
   const td = await getTranslations("doc");
   const locale = await currentLocale();
   const version = doc.currentVersion;
-  const checks = (version?.checkResults ?? {}) as Record<string, CheckEntry>;
+  const checks = (version?.checkResults ?? {}) as unknown as Record<string, CheckEntry>;
   const scope = moderationScope(user);
   const next = await prisma.document.findFirst({
     where: {

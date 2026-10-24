@@ -87,13 +87,8 @@ export function SearchBox({
   const big = size === "lg";
 
   return (
-    <form
-      action="/tim-kiem"
-      method="get"
-      role="search"
-      className="relative"
-      onSubmit={() => setOpen(false)}
-    >
+    <search>
+    <form action="/tim-kiem" method="get" className="relative" onSubmit={() => setOpen(false)}>
       {Object.entries(hiddenFields).map(([name, fieldValue]) =>
         fieldValue ? <input key={name} type="hidden" name={name} value={fieldValue} /> : null,
       )}
@@ -153,17 +148,18 @@ export function SearchBox({
         </button>
       </div>
       {showList ? (
-        <ul
+        <div
           id={listId}
           role="listbox"
           aria-label={t("suggestions")}
           className="absolute inset-x-0 top-full z-40 -mt-0.5 border-2 border-ink bg-sheet shadow-[4px_4px_0_var(--ink)]"
         >
           {items.map((item, index) => (
-            <li
+            <div
               key={`${item.kind}-${item.href}`}
               id={`${listId}-${index}`}
               role="option"
+              tabIndex={-1}
               aria-selected={index === active}
               className={cn(
                 "flex cursor-pointer items-baseline gap-3 border-b border-grid px-3 py-2 last:border-b-0",
@@ -186,10 +182,11 @@ export function SearchBox({
                   <span className="font-head text-[12px] opacity-70">{item.secondary}</span>
                 </>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : null}
     </form>
+    </search>
   );
 }
