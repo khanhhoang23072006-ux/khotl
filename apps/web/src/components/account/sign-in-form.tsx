@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ export function SignInForm({
   microsoftEnabled: boolean;
 }) {
   const t = useTranslations("auth");
-  const router = useRouter();
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -57,9 +55,9 @@ export function SignInForm({
         setError(result.error.status === 429 ? t("tooMany") : t("invalidCode"));
         return;
       }
-      // Trang hoàn thiện hồ sơ tự chuyển tiếp nếu hồ sơ đã đủ
-      router.push(`/hoan-thien-ho-so?next=${encodeURIComponent(next)}&tu=dang-nhap`);
-      router.refresh();
+      // Tải lại hẳn trang để phần đầu trang (nằm trong layout gốc) nhận phiên mới.
+      // Trang hoàn thiện hồ sơ tự chuyển tiếp nếu hồ sơ đã đủ.
+      window.location.assign(`/hoan-thien-ho-so?next=${encodeURIComponent(next)}&tu=dang-nhap`);
     });
 
   return (

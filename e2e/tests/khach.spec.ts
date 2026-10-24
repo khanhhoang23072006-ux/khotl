@@ -4,7 +4,7 @@ test.describe("khách chưa đăng nhập", () => {
   test("trang chủ hiển thị số liệu và tài liệu mới duyệt", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1, name: "Hôm nay ôn môn gì?" })).toBeVisible();
-    await expect(page.getByText("Tài liệu đã duyệt")).toBeVisible();
+    await expect(page.getByText("Tài liệu đã duyệt", { exact: true })).toBeVisible();
     await expect(page.locator('a[href^="/tai-lieu/"]').first()).toBeVisible();
   });
 
@@ -24,7 +24,7 @@ test.describe("khách chưa đăng nhập", () => {
   test("gợi ý mã học phần khi gõ", async ({ page }) => {
     await page.goto("/tim-kiem");
     await page.getByRole("combobox", { name: "Tìm tài liệu" }).fill("MI11");
-    await expect(page.getByRole("option").filter({ hasText: "MI1111" })).toBeVisible();
+    await expect(page.getByRole("option", { name: /^MI1111/ })).toBeVisible();
   });
 
   test("trang học phần và trang tài liệu chỉ cho xem vài trang đầu", async ({ page }) => {

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -23,7 +22,6 @@ interface Props {
 
 export function ProfileForm({ next, faculties, initial }: Props) {
   const t = useTranslations("profile");
-  const router = useRouter();
   const [values, setValues] = useState(initial);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -52,8 +50,7 @@ export function ProfileForm({ next, faculties, initial }: Props) {
             setFormError(result.error);
             return;
           }
-          router.push(next);
-          router.refresh();
+          window.location.assign(next);
         });
       }}
     >

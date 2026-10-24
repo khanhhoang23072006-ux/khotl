@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useRef } from "react";
 import { authClient } from "@/lib/auth-client";
@@ -16,7 +15,6 @@ interface Props {
 /** Menu tài khoản dùng <details> nên vẫn mở được khi JavaScript chưa tải xong. */
 export function UserMenu({ initials, name, email, links }: Props) {
   const t = useTranslations("nav");
-  const router = useRouter();
   const ref = useRef<HTMLDetailsElement>(null);
   const close = () => ref.current?.removeAttribute("open");
 
@@ -54,8 +52,7 @@ export function UserMenu({ initials, name, email, links }: Props) {
               onClick={async () => {
                 close();
                 await authClient.signOut();
-                router.push("/");
-                router.refresh();
+                window.location.assign("/");
               }}
             >
               {t("signOut")}

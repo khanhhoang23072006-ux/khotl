@@ -67,11 +67,18 @@ export class Storage {
       accessKeyId: config.accessKeyId,
       secretAccessKey: config.secretAccessKey,
     };
+    // AWS SDK v3 mặc định gắn checksum CRC32 (của body rỗng) vào URL ký sẵn, khiến PUT từ trình duyệt
+    // bị SeaweedFS/R2 từ chối (400). Chỉ tính checksum khi API bắt buộc.
+    const checksums = {
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
+    } as const;
     this.client = new S3Client({
       region: config.region,
       endpoint: config.endpoint,
       forcePathStyle: config.forcePathStyle,
       credentials,
+      ...checksums,
     });
     // URL ký sẵn phải mang host mà trình duyệt truy cập được, vì host nằm trong chữ ký.
     this.signer =
@@ -81,6 +88,7 @@ export class Storage {
             endpoint: config.publicEndpoint,
             forcePathStyle: config.forcePathStyle,
             credentials,
+            ...checksums,
           })
         : this.client;
   }

@@ -92,7 +92,12 @@ export function SearchBox({
       {Object.entries(hiddenFields).map(([name, fieldValue]) =>
         fieldValue ? <input key={name} type="hidden" name={name} value={fieldValue} /> : null,
       )}
-      <div className={cn("flex border-2 border-ink bg-sheet", big ? "h-[52px]" : "h-11")}>
+      <div
+        className={cn(
+          "flex border-2 border-ink bg-sheet focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-stamp",
+          big ? "h-[52px]" : "h-11",
+        )}
+      >
         <label className="flex min-w-0 flex-1 items-center gap-2.5 px-3 text-pencil">
           <SearchIcon />
           <span className="sr-only">{t("label")}</span>
