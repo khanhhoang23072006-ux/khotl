@@ -18,6 +18,12 @@ infra             Docker Compose và Dockerfile
 
 Luồng tải lên: trình duyệt xin URL ký sẵn → PUT file thẳng lên kho S3 → gửi thông tin tài liệu → web ghi `Document` (PROCESSING) và `DocumentVersion` (QUEUED) trong một transaction → worker nhận việc bằng `FOR UPDATE SKIP LOCKED` → qua kiểm tra thì vào hàng chờ kiểm duyệt.
 
+## Xem nhanh giao diện
+
+Bản tĩnh với dữ liệu mẫu (chỉ xem, không đăng nhập hay tải lên được): https://khanhhoang23072006-ux.github.io/khotl/
+
+Workflow `.github/workflows/pages.yml` tự dựng lại bản này mỗi lần push lên `main`. Cần bật một lần: Settings → Pages → Source: **GitHub Actions**.
+
 ## Dùng thử ngay trên trình duyệt (GitHub Codespaces)
 
 [![Mở trong GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/khanhhoang23072006-ux/khotl?quickstart=1)

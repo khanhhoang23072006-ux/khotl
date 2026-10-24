@@ -1,0 +1,89 @@
+name: Bản xem tĩnh trên GitHub Pages
+
+# Dựng web với dữ liệu mẫu, chụp thành trang tĩnh rồi đăng lên GitHub Pages.
+# Cần bật một lần: Settings → Pages → Source: GitHub Actions.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  DATABASE_URL: postgresql://khotl:khotl@localhost:5432/khotl
+  BETTER_AUTH_SECRET: static-demo-secret-static-demo-secret-0123
+  BETTER_AUTH_URL: http://localhost:3000
+  APP_URL: http://localhost:3000
+  S3_ENDPOINT: http://localhost:8333
+  S3_PUBLIC_ENDPOINT: http://localhost:8333
+  S3_REGION: us-east-1
+  S3_BUCKET: khotl
+  S3_ACCESS_KEY_ID: khotl
+  S3_SECRET_ACCESS_KEY: khotl-secret
+  S3_FORCE_PATH_STYLE: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: khotl
+          POSTGRES_PASSWORD: khotl
+          POSTGRES_DB: khotl
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U khotl" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Kho file và công cụ xử lý PDF
+        run: |
+          docker run -d --name s3 -p 8333:8333 chrislusf/seaweedfs:latest server -dir=/data -s3
+          sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils >/dev/null
+          for i in $(seq 1 60); do curl -s -o /dev/null http://localhost:8333 && break; sleep 1; done
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:migrate && pnpm db:seed
+      - name: Build và chạy web, worker
+        run: |
+          pnpm --filter @khotl/web build
+          cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
+          cp -r apps/web/public apps/web/.next/standalone/apps/web/public
+          (PORT=3000 HOSTNAME=0.0.0.0 node apps/web/.next/standalone/apps/web/server.js > web.log 2>&1 &)
+          (pnpm --filter @khotl/worker start > worker.log 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/api/health && break; sleep 1; done
+          for i in $(seq 1 120); do
+            left=$(psql "$DATABASE_URL" -tAc "SELECT count(*) FROM document_versions WHERE \"processingStatus\" <> 'DONE'")
+            [ "$left" = "0" ] && break; sleep 2
+          done
+      - name: Chụp trang tĩnh
+        run: SNAPSHOT_BASE="${{ steps.pages.outputs.base_path }}" node infra/static-demo/snapshot.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: static-demo
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
