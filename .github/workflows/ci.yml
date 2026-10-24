@@ -224,6 +224,7 @@ jobs:
           out=$(mktemp -d)
           cp -r ci-logs "$out/" || true
           [ -d e2e/test-results ] && cp -r e2e/test-results "$out/" || true
+          [ -d e2e/screenshots ] && cp -r e2e/screenshots "$out/" || true
           cd "$out"
           echo "run ${{ github.run_id }} sha ${{ github.sha }} e2e=${{ steps.e2e.outcome }}" > SUMMARY.txt
           git init -q -b ci && git add -A
