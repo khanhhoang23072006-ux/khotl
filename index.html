@@ -3045,38 +3045,84 @@ function startTicker(get, u, inRoom) {
 }
 function membersHtml(t) {
   const now = Date.now();
-  const online = Object.entries(t.presence).filter(([, at]) => now - at < 30e3).map(([e]) => e);
-  const status = t.state.phase === "focus" && t.state.pausedLeft === null ? "đang tập trung" : t.state.phase === "break" ? "đang nghỉ" : "đang chờ";
   const vm = currentVoiceRoom && currentVoiceRoom.roomId === t.id ? currentVoiceRoom : null;
   const myEmail = me()?.email;
 
-  return `<ul class="tb" style="list-style:none;margin:0;padding:0">${online
-    .map((e) => {
-      const isMe = e === myEmail;
-      const isMicOn = isMe ? (vm?.isMicOn) : (vm && Array.from(vm.peers.values()).some(p => p.email === e && p.mic));
-      const isSpeaking = isMe ? (vm?.isSpeaking) : (vm && Array.from(vm.peers.values()).some(p => p.email === e && p.speaking));
+  // Hợp nhất danh sách thành viên trên toàn bộ các thiết bị (Cloud sync + Local presence)
+  const memberMap = new Map();
+  if (myEmail) {
+    memberMap.set(myEmail, {
+      email: myEmail,
+      name: displayName(me()),
+      isMe: true,
+      isMicOn: !!(vm?.isMicOn),
+      isSpeaking: !!(vm?.isSpeaking),
+      status: t.state.phase === "focus" && t.state.pausedLeft === null ? "đang tập trung" : t.state.phase === "break" ? "đang nghỉ" : "đang chờ"
+    });
+  }
 
-      const voiceBadge = isSpeaking
+  // Lấy các bạn học từ VoiceRoomManager (đồng bộ từ máy chủ đám mây)
+  if (vm && vm.peers) {
+    vm.peers.forEach((p, pId) => {
+      const em = p.email || pId;
+      if (!memberMap.has(em)) {
+        memberMap.set(em, {
+          email: em,
+          name: p.name || em.split("@")[0],
+          isMe: em === myEmail,
+          isMicOn: !!p.mic,
+          isSpeaking: !!p.speaking,
+          status: "đang kết nối voice"
+        });
+      } else {
+        const item = memberMap.get(em);
+        if (!item.isMe) {
+          item.isMicOn = !!p.mic;
+          item.isSpeaking = !!p.speaking;
+        }
+      }
+    });
+  }
+
+  // Lấy các bạn có presence gần đây
+  Object.entries(t.presence || {}).forEach(([e, at]) => {
+    if (now - at < 35e3 && !memberMap.has(e)) {
+      memberMap.set(e, {
+        email: e,
+        name: displayName(userBy(e) || { name: e }),
+        isMe: e === myEmail,
+        isMicOn: false,
+        isSpeaking: false,
+        status: t.state.phase === "focus" ? "đang tập trung" : "đang chờ"
+      });
+    }
+  });
+
+  const members = Array.from(memberMap.values());
+
+  return `<ul class="tb" style="list-style:none;margin:0;padding:0">${members
+    .map((m) => {
+      const voiceBadge = m.isSpeaking
         ? `<span class="badge" style="background:#10B981;color:#fff;border-color:#10B981;font-size:11px;padding:1px 6px">🎙️ Đang nói</span>`
-        : isMicOn
+        : m.isMicOn
         ? `<span class="badge" style="background:var(--wash);color:var(--stamp);border-color:var(--stamp);font-size:11px;padding:1px 6px">🎙️ Mở mic</span>`
         : `<span class="badge" style="background:var(--wash);color:var(--pencil);border-color:var(--grid);font-size:11px;padding:1px 6px">🔇 Tắt mic</span>`;
 
-      const avatarClass = isSpeaking ? "avatar voice-speaking-ring" : "avatar";
+      const avatarClass = m.isSpeaking ? "avatar voice-speaking-ring" : "avatar";
 
       return `<li style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px">
         <span style="display:flex;align-items:center;gap:8px">
-          <span class="${avatarClass}" style="width:26px;height:26px;font-size:11px;display:inline-flex;vertical-align:middle;transition:all 0.15s">${esc(initials(displayName(userBy(e) || { name: e })))}</span>
-          <span><b>${esc(displayName(userBy(e) || { name: e }))}</b>${isMe ? " <span class=\"tiny muted\">(bạn)</span>" : ""}</span>
+          <span class="${avatarClass}" style="width:26px;height:26px;font-size:11px;display:inline-flex;vertical-align:middle;transition:all 0.15s">${esc(initials(m.name))}</span>
+          <span><b>${esc(m.name)}</b>${m.isMe ? " <span class=\"tiny muted\">(bạn)</span>" : ""}</span>
         </span>
         <div style="display:flex;align-items:center;gap:8px">
           ${voiceBadge}
-          <span class="tiny muted">${status}</span>
+          <span class="tiny muted">${m.status}</span>
         </div>
       </li>`;
     })
     .join("")}</ul>
-  <p class="tiny muted" style="margin:6px 0 0">${online.length} người đang có mặt trong phòng. Bật voice mic để đàm thoại trực tiếp với bạn học.</p>`;
+  <p class="tiny muted" style="margin:6px 0 0">${members.length} người đang có mặt trong phòng. Voice chat đồng bộ theo thời gian thực nhiều người.</p>`;
 }
 /** get() luôn lấy bản mới nhất: tab khác có thể vừa cập nhật dữ liệu (sự kiện storage nạp lại S). */
 function bindTimer(root, get, u) {
@@ -3099,7 +3145,7 @@ class VoiceRoomManager {
   constructor(roomId, user) {
     this.roomId = roomId;
     this.user = user;
-    this.peerId = `${user.email}_${Math.random().toString(36).slice(2, 8)}`;
+    this.peerId = `${(user.email || "user").replace(/[^a-zA-Z0-9]/g, "_")}_${Math.random().toString(36).slice(2, 8)}`;
     this.stream = null;
     this.audioCtx = null;
     this.sourceNode = null;
@@ -3110,12 +3156,21 @@ class VoiceRoomManager {
     this.isDeafened = false;
     this.isLoopbackOn = false;
     this.isSimulated = false;
-    this.simBotSpeaking = null;
     this.animId = null;
     this.speakingDebounce = null;
     this.peers = new Map();
     this.channel = null;
     this.storageKey = `hustdocu_voice_${this.roomId}`;
+    this.lastSignalId = 0;
+    this.pollTimer = null;
+    this.isPolling = false;
+    this.rtcConfig = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun.cloudflare.com:3478" }
+      ]
+    };
     this.boundKeydown = this.onKeyDown.bind(this);
     this.boundStorage = this.onStorage.bind(this);
     this.initChannel();
@@ -3123,13 +3178,47 @@ class VoiceRoomManager {
     window.addEventListener("storage", this.boundStorage);
   }
 
-  initChannel() {
+  async initChannel() {
+    // 1. Kênh BroadcastChannel cục bộ (cho các tab trên cùng máy)
     try {
       if ("BroadcastChannel" in window) {
         this.channel = new BroadcastChannel(`hustdocu-voice-${this.roomId}`);
         this.channel.onmessage = (e) => this.handleMessage(e.data);
       }
     } catch (err) {}
+
+    // 2. Kênh Cloud Signaling qua máy chủ (đồng bộ giữa các máy tính, điện thoại khác nhau)
+    try {
+      const res = await fetch("/api/voice_signal.php?action=join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: this.roomId,
+          peerId: this.peerId,
+          email: this.user.email,
+          name: displayName(this.user),
+          mic: this.isMicOn ? 1 : 0,
+          speaking: 0
+        })
+      });
+      const data = await res.json();
+      if (data?.peers) {
+        data.peers.forEach(p => {
+          if (p.peerId !== this.peerId) {
+            this.peers.set(p.peerId, {
+              peerId: p.peerId,
+              email: p.email,
+              name: p.name,
+              mic: p.mic == 1 || p.mic === true,
+              speaking: p.speaking == 1 || p.speaking === true
+            });
+          }
+        });
+        this.updateSpeakerBadges();
+      }
+    } catch (err) {}
+
+    this.startPolling();
     this.broadcast({
       type: "join",
       peerId: this.peerId,
@@ -3139,6 +3228,89 @@ class VoiceRoomManager {
       speaking: false
     });
     this.syncStorage();
+  }
+
+  startPolling() {
+    if (this.pollTimer) clearInterval(this.pollTimer);
+    this.pollTimer = setInterval(async () => {
+      if (this.isPolling) return;
+      this.isPolling = true;
+      try {
+        const res = await fetch(`/api/voice_signal.php?action=poll&roomId=${encodeURIComponent(this.roomId)}&peerId=${encodeURIComponent(this.peerId)}&since=${this.lastSignalId}`);
+        const data = await res.json();
+        if (data?.ok) {
+          if (data.maxId) this.lastSignalId = data.maxId;
+
+          // Đồng bộ danh sách bạn học đang online trong phòng từ máy chủ
+          if (data.peers) {
+            const activeIds = new Set(data.peers.map(p => p.peerId));
+            this.peers.forEach((peer, pId) => {
+              if (!activeIds.has(pId)) {
+                this.closePeer(pId);
+                this.peers.delete(pId);
+              }
+            });
+            data.peers.forEach(p => {
+              if (p.peerId !== this.peerId) {
+                const existing = this.peers.get(p.peerId);
+                const mic = p.mic == 1 || p.mic === true;
+                const speaking = p.speaking == 1 || p.speaking === true;
+                if (existing) {
+                  existing.mic = mic;
+                  existing.speaking = speaking;
+                  if (p.name) existing.name = p.name;
+                  if (p.email) existing.email = p.email;
+                } else {
+                  this.peers.set(p.peerId, {
+                    peerId: p.peerId,
+                    email: p.email,
+                    name: p.name,
+                    mic,
+                    speaking
+                  });
+                  // Khi có người mới vào phòng và mic ta đang bật, kết nối WebRTC tới họ
+                  if (this.isMicOn && this.stream) {
+                    this.createPeerConnection(p.peerId, true);
+                  }
+                }
+              }
+            });
+            this.updateSpeakerBadges();
+          }
+
+          // Xử lý các tín hiệu WebRTC (Offer, Answer, ICE, State)
+          if (data.signals && data.signals.length > 0) {
+            for (const sig of data.signals) {
+              const msg = {
+                type: sig.type,
+                from: sig.from,
+                to: sig.to,
+                peerId: sig.from,
+                ...(sig.payload || {})
+              };
+              this.handleMessage(msg);
+            }
+          }
+        }
+      } catch (err) {
+      } finally {
+        this.isPolling = false;
+      }
+    }, 700);
+  }
+
+  sendSignal(toPeer, msgType, payload) {
+    fetch("/api/voice_signal.php?action=send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        roomId: this.roomId,
+        fromPeer: this.peerId,
+        toPeer: toPeer || "ALL",
+        msgType,
+        payload
+      })
+    }).catch(() => {});
   }
 
   playChime(type) {
@@ -3159,12 +3331,6 @@ class VoiceRoomManager {
         osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
         gain.gain.setValueAtTime(0.1, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-      } else if (type === "bot") {
-        osc.frequency.setValueAtTime(523.25, now);
-        osc.frequency.setValueAtTime(659.25, now + 0.08);
-        osc.frequency.setValueAtTime(783.99, now + 0.16);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
       }
       osc.connect(gain).connect(this.audioCtx.destination);
       osc.start(now);
@@ -3209,10 +3375,10 @@ class VoiceRoomManager {
       this.startVisualizer();
       this.broadcastState();
       this.updateUI();
-      toast("🎙️ Đã bật micro! Bạn đang nói trực tiếp trong phòng.");
+      toast("🎙️ Đã bật micro! Bạn đang nói chuyện trực tiếp với cả phòng.");
       this.initiatePeerCalls();
     } catch (err) {
-      console.warn("Hardware mic not accessible, falling back to simulated audio mode:", err);
+      console.warn("Hardware mic not accessible, fallback mode:", err);
       this.startSimulatedMic();
     }
   }
@@ -3263,7 +3429,7 @@ class VoiceRoomManager {
 
   toggleLoopback() {
     if (!this.isMicOn) {
-      toast("Vui lòng bật micro trước khi bật thử nghe lại giọng.");
+      toast("Vui lòng bật micro trước khi thử nghe lại giọng.");
       return;
     }
     this.isLoopbackOn = !this.isLoopbackOn;
@@ -3273,7 +3439,7 @@ class VoiceRoomManager {
         this.loopbackGain.gain.value = 0.8;
         this.sourceNode.connect(this.loopbackGain).connect(this.audioCtx.destination);
       }
-      toast("🎧 Bật thử mic: Bạn sẽ nghe thấy âm thanh mic của chính mình.");
+      toast("🎧 Bật thử mic: Bạn đang nghe chính giọng mình qua loa/tai nghe.");
     } else {
       if (this.loopbackGain) {
         try { this.loopbackGain.disconnect(); } catch {}
@@ -3282,20 +3448,6 @@ class VoiceRoomManager {
       toast("Đã tắt chế độ thử mic.");
     }
     this.updateUI();
-  }
-
-  simulateBotSpeak() {
-    const room = ST().rooms.find(x => x.id === this.roomId);
-    if (!room || !room.bots.length) return;
-    const bot = room.bots[0];
-    this.simBotSpeaking = bot;
-    this.playChime("bot");
-    toast(`🎙️ ${bot} vừa phát biểu: "Chào các bạn, phiên này mình cùng ôn bài nhé!"`);
-    this.updateSpeakerBadges();
-    setTimeout(() => {
-      this.simBotSpeaking = null;
-      this.updateSpeakerBadges();
-    }, 3500);
   }
 
   startVisualizer() {
@@ -3375,6 +3527,7 @@ class VoiceRoomManager {
     if (this.channel) {
       try { this.channel.postMessage(msg); } catch {}
     }
+    this.sendSignal(msg.to || "ALL", msg.type, msg);
   }
 
   broadcastState() {
@@ -3424,35 +3577,49 @@ class VoiceRoomManager {
   }
 
   handleMessage(msg) {
-    if (!msg || msg.peerId === this.peerId) return;
+    if (!msg || msg.peerId === this.peerId || msg.from === this.peerId) return;
+    const fromId = msg.from || msg.peerId;
+
     if (msg.type === "join") {
-      this.peers.set(msg.peerId, { email: msg.email, name: msg.name, mic: msg.mic, speaking: msg.speaking });
+      this.peers.set(fromId, {
+        peerId: fromId,
+        email: msg.email,
+        name: msg.name,
+        mic: msg.mic,
+        speaking: msg.speaking
+      });
       this.broadcast({
         type: "welcome",
-        to: msg.peerId,
+        to: fromId,
         peerId: this.peerId,
         email: this.user.email,
         name: displayName(this.user),
         mic: this.isMicOn,
         speaking: this.isSpeaking
       });
-      if (this.isMicOn && this.stream) this.createPeerConnection(msg.peerId, true);
+      if (this.isMicOn && this.stream) this.createPeerConnection(fromId, true);
       this.updateSpeakerBadges();
-    } else if (msg.type === "welcome" && msg.to === this.peerId) {
-      this.peers.set(msg.peerId, { email: msg.email, name: msg.name, mic: msg.mic, speaking: msg.speaking });
-      if (this.isMicOn && this.stream) this.createPeerConnection(msg.peerId, true);
+    } else if (msg.type === "welcome" && (msg.to === this.peerId || msg.to === "ALL")) {
+      this.peers.set(fromId, {
+        peerId: fromId,
+        email: msg.email,
+        name: msg.name,
+        mic: msg.mic,
+        speaking: msg.speaking
+      });
+      if (this.isMicOn && this.stream) this.createPeerConnection(fromId, true);
       this.updateSpeakerBadges();
     } else if (msg.type === "state") {
-      const p = this.peers.get(msg.peerId) || { email: msg.email, name: msg.name };
+      const p = this.peers.get(fromId) || { peerId: fromId, email: msg.email, name: msg.name };
       p.mic = msg.mic;
       p.speaking = msg.speaking;
-      this.peers.set(msg.peerId, p);
+      this.peers.set(fromId, p);
       this.updateSpeakerBadges();
     } else if (msg.type === "leave") {
-      this.closePeer(msg.peerId);
-      this.peers.delete(msg.peerId);
+      this.closePeer(fromId);
+      this.peers.delete(fromId);
       this.updateSpeakerBadges();
-    } else if (msg.type === "offer" && msg.to === this.peerId) {
+    } else if (msg.type === "offer" && (msg.to === this.peerId || msg.to === "ALL")) {
       this.handleOffer(msg);
     } else if (msg.type === "answer" && msg.to === this.peerId) {
       this.handleAnswer(msg);
@@ -3469,12 +3636,13 @@ class VoiceRoomManager {
 
   createPeerConnection(targetPeerId, isInitiator) {
     if (!window.RTCPeerConnection) return null;
-    const existing = this.peers.get(targetPeerId);
+    const existing = this.peers.get(targetPeerId) || {};
     if (existing?.pc) {
       try { existing.pc.close(); } catch {}
     }
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-    if (existing) existing.pc = pc;
+    const pc = new RTCPeerConnection(this.rtcConfig);
+    existing.pc = pc;
+    this.peers.set(targetPeerId, existing);
 
     if (this.stream) {
       this.stream.getAudioTracks().forEach(track => pc.addTrack(track, this.stream));
@@ -3493,7 +3661,7 @@ class VoiceRoomManager {
         audioEl.autoplay = true;
         audioEl.muted = this.isDeafened;
         document.body.appendChild(audioEl);
-        if (existing) existing.audioEl = audioEl;
+        existing.audioEl = audioEl;
       }
       audioEl.srcObject = event.streams[0];
     };
@@ -3510,27 +3678,30 @@ class VoiceRoomManager {
   }
 
   async handleOffer(msg) {
-    const pc = this.createPeerConnection(msg.from, false);
+    const fromId = msg.from || msg.peerId;
+    const pc = this.createPeerConnection(fromId, false);
     if (!pc) return;
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      this.broadcast({ type: "answer", to: msg.from, from: this.peerId, sdp: pc.localDescription });
-    } catch {}
+      this.broadcast({ type: "answer", to: fromId, from: this.peerId, sdp: pc.localDescription });
+    } catch (e) {}
   }
 
   async handleAnswer(msg) {
-    const peer = this.peers.get(msg.from);
+    const fromId = msg.from || msg.peerId;
+    const peer = this.peers.get(fromId);
     if (peer?.pc) {
-      try { await peer.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp)); } catch {}
+      try { await peer.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp)); } catch (e) {}
     }
   }
 
   async handleIce(msg) {
-    const peer = this.peers.get(msg.from);
+    const fromId = msg.from || msg.peerId;
+    const peer = this.peers.get(fromId);
     if (peer?.pc && msg.candidate) {
-      try { await peer.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
+      try { await peer.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch (e) {}
     }
   }
 
@@ -3604,12 +3775,21 @@ class VoiceRoomManager {
   }
 
   leave() {
+    if (this.pollTimer) {
+      clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
     if (this.animId) cancelAnimationFrame(this.animId);
     clearTimeout(this.speakingDebounce);
     window.removeEventListener("keydown", this.boundKeydown);
     window.removeEventListener("storage", this.boundStorage);
 
     this.broadcast({ type: "leave", peerId: this.peerId });
+    fetch("/api/voice_signal.php?action=leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId: this.roomId, peerId: this.peerId })
+    }).catch(() => {});
 
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
