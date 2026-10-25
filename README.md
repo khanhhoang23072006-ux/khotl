@@ -22,7 +22,7 @@ Luồng tải lên: trình duyệt xin URL ký sẵn → PUT file thẳng lên k
 
 Bản demo một trang: https://khanhhoang23072006-ux.github.io/khotl/
 
-Một file HTML duy nhất (`demo/index.html`), dữ liệu mẫu nhúng sẵn (10 Viện, 40 học phần, hơn 50 tài liệu), chạy hoàn toàn trên trình duyệt: tìm kiếm không dấu, đăng nhập bằng mã (hiện trong hộp thư demo), tải lên với kiểm tra tự động (định dạng thật, trùng SHA-256, mẫu virus EICAR, điểm rủi ro), hàng chờ kiểm duyệt, báo cáo vi phạm, quản trị học phần và phân quyền. Thanh trên cùng có nút vào nhanh bằng tài khoản Sinh viên, Kiểm duyệt viên, Quản trị. Dữ liệu thay đổi chỉ lưu trên máy người dùng.
+Một file HTML duy nhất (`demo/index.html`), dữ liệu mẫu nhúng sẵn (10 Viện, 40 học phần, chưa có tài liệu nào), chạy hoàn toàn trên trình duyệt: tìm kiếm không dấu, đăng nhập bằng mã (hiện trong hộp thư demo), tải lên với kiểm tra tự động (định dạng thật, trùng SHA-256, mẫu virus EICAR, điểm rủi ro), hàng chờ kiểm duyệt, báo cáo vi phạm, quản trị học phần và phân quyền. Thanh trên cùng có nút vào nhanh bằng tài khoản Sinh viên, Kiểm duyệt viên, Quản trị. Dữ liệu thay đổi chỉ lưu trên máy người dùng.
 
 Sửa `demo/template.html` rồi chạy `pnpm demo:build`; workflow `pages.yml` tự đăng lại khi push lên `main` (cần bật một lần: Settings → Pages → Source: GitHub Actions).
 
@@ -41,7 +41,7 @@ cp .env.example .env          # sửa BETTER_AUTH_SECRET: openssl rand -base64 3
 pnpm install
 pnpm infra:up                 # Postgres, SeaweedFS (S3), Mailpit, Redis, ClamAV
 pnpm db:migrate               # tạo bảng, hàm tìm kiếm, ràng buộc
-pnpm db:seed                  # 10 Viện, 40 học phần, ~60 tài liệu mẫu, 3 tài khoản demo
+pnpm db:seed                  # 10 Viện, 40 học phần, 3 tài khoản demo (không tạo tài liệu mẫu; muốn có: SEED_SAMPLE_DOCUMENTS=true)
 pnpm dev                      # web http://localhost:3000 + worker
 ```
 

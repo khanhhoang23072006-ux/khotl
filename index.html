@@ -322,15 +322,6 @@ kbd{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--lin
 @media (hover:hover){.cards>.rec:hover{background:var(--wash)}}
 .rec .why{display:inline-block;font-size:11px;border:1px solid var(--stamp);color:var(--stamp);padding:1px 6px;width:fit-content}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-
-/* Voice Mic và Đàm thoại trực tiếp trong phòng học chung */
-.voice-station{border:2px solid var(--line);background:var(--sheet);transition:all .2s}
-.voice-mic-active{background:#DC2626!important;color:#fff!important;border-color:#DC2626!important;box-shadow:0 0 0 3px rgba(220,38,38,0.4)!important;animation:pulseMic 1.8s infinite}
-@keyframes pulseMic{0%{box-shadow:0 0 0 0 rgba(220,38,38,0.6)}70%{box-shadow:0 0 0 8px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
-.voice-speaking-ring{box-shadow:0 0 0 3px #10B981,0 0 10px rgba(16,185,129,0.7)!important;border-color:#10B981!important;animation:speakRing 1.2s infinite}
-@keyframes speakRing{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
-.voice-vbar{flex:1;background:var(--pencil);min-height:3px;max-height:20px;border-radius:1px;transition:height .06s ease}
-.voice-vbar.active{background:#10B981}
 </style>
 </head>
 <body>
@@ -359,7 +350,7 @@ kbd{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--lin
 
 <script>
 "use strict";
-const DATA = {"faculties":[{"code":"SOICT","name":"Trường Công nghệ Thông tin và Truyền thông","nameEn":"School of Information and Communications Technology","shortName":"Trường CNTT&TT","slug":"soict","order":0},{"code":"SEEE","name":"Trường Điện - Điện tử","nameEn":"School of Electrical and Electronic Engineering","shortName":"Trường Điện - Điện tử","slug":"seee","order":1},{"code":"SME","name":"Trường Cơ khí","nameEn":"School of Mechanical Engineering","shortName":"Trường Cơ khí","slug":"sme","order":2},{"code":"SCLS","name":"Trường Hóa và Khoa học sự sống","nameEn":"School of Chemistry and Life Sciences","shortName":"Trường Hóa và KHSS","slug":"scls","order":3},{"code":"SMSE","name":"Trường Vật liệu","nameEn":"School of Materials Science and Engineering","shortName":"Trường Vật liệu","slug":"smse","order":4},{"code":"SEM","name":"Trường Kinh tế","nameEn":"School of Economics and Management","shortName":"Trường Kinh tế","slug":"sem","order":5},{"code":"FAMI","name":"Khoa Toán - Tin","nameEn":"Faculty of Mathematics and Informatics","shortName":"Khoa Toán - Tin","slug":"fami","order":6},{"code":"FEP","name":"Khoa Vật lý Kỹ thuật","nameEn":"Faculty of Engineering Physics","shortName":"Khoa Vật lý KT","slug":"fep","order":7},{"code":"SOFL","name":"Khoa Ngoại ngữ","nameEn":"School of Foreign Languages","shortName":"Khoa Ngoại ngữ","slug":"sofl","order":8},{"code":"FPS","name":"Khoa Lý luận Chính trị","nameEn":"Faculty of Political Science","shortName":"Khoa LLCT","slug":"fps","order":9}],"courses":[{"code":"MI1111","name":"Giải tích I","nameEn":"Calculus I","credits":4,"faculty":"FAMI","keywords":["gioi han","dao ham","dinh ly Lagrange","tich phan suy rong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1121","name":"Giải tích II","nameEn":"Calculus II","credits":3,"faculty":"FAMI","keywords":["tich phan boi","tich phan duong","chuoi so"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1131","name":"Giải tích III","nameEn":"Calculus III","credits":3,"faculty":"FAMI","keywords":["phuong trinh vi phan","chuoi Fourier","bien doi Laplace"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1141","name":"Đại số","nameEn":"Linear Algebra","credits":4,"faculty":"FAMI","keywords":["ma tran","dinh thuc","khong gian vector","tri rieng"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI2020","name":"Xác suất thống kê","nameEn":"Probability and Statistics","credits":3,"faculty":"FAMI","keywords":["bien ngau nhien","phan phoi chuan","kiem dinh gia thuyet"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1110","name":"Vật lý đại cương I","nameEn":"General Physics I","credits":3,"faculty":"FEP","keywords":["dong luc hoc","dinh luat Newton","nhiet dong luc hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1120","name":"Vật lý đại cương II","nameEn":"General Physics II","credits":3,"faculty":"FEP","keywords":["dien truong","tu truong","dinh luat Faraday"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1130","name":"Vật lý đại cương III","nameEn":"General Physics III","credits":3,"faculty":"FEP","keywords":["giao thoa","nhieu xa","luong tu anh sang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT1110","name":"Tin học đại cương","nameEn":"Introduction to Computing","credits":4,"faculty":"SOICT","keywords":["ngon ngu C","con tro","mang mot chieu"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3011","name":"Cấu trúc dữ liệu và giải thuật","nameEn":"Data Structures and Algorithms","credits":3,"faculty":"SOICT","keywords":["cay nhi phan","do thi","sap xep nhanh","bang bam"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3020","name":"Toán rời rạc","nameEn":"Discrete Mathematics","credits":3,"faculty":"SOICT","keywords":["to hop","quan he truy hoi","do thi Euler"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3030","name":"Kiến trúc máy tính","nameEn":"Computer Architecture","credits":3,"faculty":"SOICT","keywords":["tap lenh MIPS","bo nho dem","pipeline"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3040","name":"Kỹ thuật lập trình","nameEn":"Programming Techniques","credits":2,"faculty":"SOICT","keywords":["de quy","quy hoach dong","kiem thu"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3070","name":"Nguyên lý hệ điều hành","nameEn":"Operating Systems","credits":3,"faculty":"SOICT","keywords":["tien trinh","dong bo hoa","bo nho ao"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3080","name":"Mạng máy tính","nameEn":"Computer Networks","credits":3,"faculty":"SOICT","keywords":["mo hinh OSI","TCP/IP","dinh tuyen"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3090","name":"Cơ sở dữ liệu","nameEn":"Databases","credits":3,"faculty":"SOICT","keywords":["SQL","chuan hoa","phu thuoc ham"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3100","name":"Lập trình hướng đối tượng","nameEn":"Object-Oriented Programming","credits":2,"faculty":"SOICT","keywords":["ke thua","da hinh","Java"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3160","name":"Nhập môn Trí tuệ nhân tạo","nameEn":"Introduction to Artificial Intelligence","credits":3,"faculty":"SOICT","keywords":["tim kiem A sao","hoc may","logic menh de"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT4409","name":"Công nghệ Web và dịch vụ trực tuyến","nameEn":"Web Technologies","credits":3,"faculty":"SOICT","keywords":["HTTP","REST","JavaScript"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ET2000","name":"Nhập môn kỹ thuật điện tử viễn thông","nameEn":"Introduction to Electronics and Telecommunications","credits":2,"faculty":"SEEE","keywords":["tin hieu","dieu che"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EE2000","name":"Tín hiệu và hệ thống","nameEn":"Signals and Systems","credits":3,"faculty":"SEEE","keywords":["bien doi Fourier","tich chap","he thong LTI"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE2020","name":"Lý thuyết mạch điện I","nameEn":"Circuit Theory I","credits":4,"faculty":"SEEE","keywords":["dinh luat Kirchhoff","mach RLC","so phuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE3110","name":"Kỹ thuật đo lường","nameEn":"Measurement Engineering","credits":3,"faculty":"SEEE","keywords":["sai so","cam bien"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2015","name":"Đồ họa kỹ thuật cơ bản","nameEn":"Engineering Graphics","credits":3,"faculty":"SME","keywords":["hinh chieu","khung ten","mat cat"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2011","name":"Cơ học kỹ thuật I","nameEn":"Engineering Mechanics I","credits":3,"faculty":"SME","keywords":["tinh hoc","ngau luc","can bang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME3090","name":"Sức bền vật liệu","nameEn":"Strength of Materials","credits":3,"faculty":"SME","keywords":["ung suat","bien dang","uon"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH1012","name":"Hóa học đại cương","nameEn":"General Chemistry","credits":3,"faculty":"SCLS","keywords":["cau tao nguyen tu","lien ket hoa hoc","can bang hoa hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH3001","name":"Hóa hữu cơ","nameEn":"Organic Chemistry","credits":3,"faculty":"SCLS","keywords":["hidrocacbon","co che phan ung"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MSE2010","name":"Khoa học vật liệu đại cương","nameEn":"Introduction to Materials Science","credits":3,"faculty":"SMSE","keywords":["mang tinh the","gian do pha"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EM1010","name":"Quản trị học đại cương","nameEn":"Principles of Management","credits":2,"faculty":"SEM","keywords":["hoach dinh","to chuc","kiem soat"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM1180","name":"Văn hóa kinh doanh và tinh thần khởi nghiệp","nameEn":"Business Culture and Entrepreneurship","credits":2,"faculty":"SEM","keywords":["khoi nghiep","mo hinh kinh doanh"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM3100","name":"Kinh tế học vi mô","nameEn":"Microeconomics","credits":3,"faculty":"SEM","keywords":["cung cau","do co gian","thi truong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1100","name":"Tiếng Anh I","nameEn":"English I","credits":3,"faculty":"SOFL","keywords":["reading","listening","grammar"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1101","name":"Tiếng Anh II","nameEn":"English II","credits":3,"faculty":"SOFL","keywords":["writing","speaking"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1111","name":"Triết học Mác - Lênin","nameEn":"Marxist-Leninist Philosophy","credits":3,"faculty":"FPS","keywords":["phep bien chung","vat chat va y thuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1121","name":"Kinh tế chính trị Mác - Lênin","nameEn":"Marxist-Leninist Political Economy","credits":2,"faculty":"FPS","keywords":["gia tri thang du","hang hoa"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1131","name":"Chủ nghĩa xã hội khoa học","nameEn":"Scientific Socialism","credits":2,"faculty":"FPS","keywords":["giai cap cong nhan"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1141","name":"Lịch sử Đảng Cộng sản Việt Nam","nameEn":"History of the Communist Party of Vietnam","credits":2,"faculty":"FPS","keywords":["cach mang thang Tam"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1151","name":"Tư tưởng Hồ Chí Minh","nameEn":"Ho Chi Minh Ideology","credits":2,"faculty":"FPS","keywords":["doc lap dan toc"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1170","name":"Pháp luật đại cương","nameEn":"Introduction to Law","credits":2,"faculty":"FPS","keywords":["quy pham phap luat","hop dong"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]}],"documents":[{"id":"d1","slug":"slide-giai-tich-i-chuong-1-63z","title":"Slide Giải tích I chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"MI1111","term":"20251","pages":3,"sizeKb":499,"kind":"PDF","downloads":359,"views":1079,"ratingCount":51,"ratingSum":205,"publishedAt":1790384400000,"createdAt":1790384400000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["gioi han","dao ham"]},{"id":"d2","slug":"bai-giai-bai-tap-giai-tich-i-c7y","title":"Bài giải bài tập Giải tích I","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"MI1111","term":"20232","pages":3,"sizeKb":1743,"kind":"PDF","downloads":1086,"views":3415,"ratingCount":26,"ratingSum":103,"publishedAt":1782954000000,"createdAt":1782954000000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["gioi han","dao ham"]},{"id":"d3","slug":"de-cuong-hoc-phan-giai-tich-ii-ibx","title":"Đề cương học phần Giải tích II","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"MI1121","term":"20241","pages":4,"sizeKb":2314,"kind":"PDF","downloads":1717,"views":5213,"ratingCount":6,"ratingSum":29,"publishedAt":1785114000000,"createdAt":1785114000000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["tich phan boi","tich phan duong"]},{"id":"d4","slug":"ghi-chu-on-tap-giai-tich-ii-ofw","title":"Ghi chú ôn tập Giải tích II","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"MI1121","term":"20242","pages":4,"sizeKb":1105,"kind":"PDF","downloads":350,"views":1222,"ratingCount":48,"ratingSum":199,"publishedAt":1789174800000,"createdAt":1789174800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["tich phan boi","tich phan duong"]},{"id":"d5","slug":"de-giua-ky-dai-so-ky-20242-ujv","title":"Đề giữa kỳ Đại số kỳ 20242","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"MI1141","term":"20242","pages":5,"sizeKb":1192,"kind":"PDF","downloads":2262,"views":6940,"ratingCount":31,"ratingSum":124,"publishedAt":1787274000000,"createdAt":1787274000000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["ma tran","dinh thuc"]},{"id":"d6","slug":"bai-giai-bai-tap-dai-so-10nu","title":"Bài giải bài tập Đại số","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"MI1141","term":"20242","pages":3,"sizeKb":602,"kind":"PDF","downloads":1307,"views":4006,"ratingCount":24,"ratingSum":114,"publishedAt":1790470800000,"createdAt":1790470800000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["ma tran","dinh thuc"]},{"id":"d7","slug":"de-cuong-hoc-phan-dai-so-16rt","title":"Đề cương học phần Đại số","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"MI1141","term":"20242","pages":5,"sizeKb":791,"kind":"PDF","downloads":897,"views":2786,"ratingCount":5,"ratingSum":24,"publishedAt":1784336400000,"createdAt":1784336400000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["ma tran","dinh thuc"]},{"id":"d8","slug":"de-cuong-hoc-phan-xac-suat-thong-ke-1cvs","title":"Đề cương học phần Xác suất thống kê","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"MI2020","term":"20232","pages":4,"sizeKb":1215,"kind":"PDF","downloads":23,"views":262,"ratingCount":37,"ratingSum":165,"publishedAt":1792630800000,"createdAt":1792630800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["bien ngau nhien","phan phoi chuan"]},{"id":"d9","slug":"bai-giai-bai-tap-xac-suat-thong-ke-1izr","title":"Bài giải bài tập Xác suất thống kê","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"MI2020","term":"20241","pages":3,"sizeKb":2356,"kind":"PDF","downloads":835,"views":2700,"ratingCount":37,"ratingSum":144,"publishedAt":1788656400000,"createdAt":1788656400000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["bien ngau nhien","phan phoi chuan"]},{"id":"d10","slug":"slide-xac-suat-thong-ke-chuong-3-1p3q","title":"Slide Xác suất thống kê chương 3","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"MI2020","term":"20251","pages":3,"sizeKb":1091,"kind":"PDF","downloads":1621,"views":5005,"ratingCount":1,"ratingSum":5,"publishedAt":1789434000000,"createdAt":1789434000000,"uploader":"Trần Đức Anh","anonymous":true,"tags":["bien ngau nhien","phan phoi chuan"]},{"id":"d11","slug":"de-giua-ky-xac-suat-thong-ke-ky-20232-1v7p","title":"Đề giữa kỳ Xác suất thống kê kỳ 20232","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"MI2020","term":"20232","pages":5,"sizeKb":1854,"kind":"PDF","downloads":41,"views":225,"ratingCount":1,"ratingSum":4,"publishedAt":1792630800000,"createdAt":1792630800000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["bien ngau nhien","phan phoi chuan"]},{"id":"d12","slug":"de-giua-ky-vat-ly-dai-cuong-i-ky-20251-21bo","title":"Đề giữa kỳ Vật lý đại cương I kỳ 20251","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"PH1110","term":"20251","pages":3,"sizeKb":325,"kind":"PDF","downloads":2317,"views":7133,"ratingCount":4,"ratingSum":18,"publishedAt":1791680400000,"createdAt":1791680400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dong luc hoc","dinh luat Newton"]},{"id":"d13","slug":"ghi-chu-on-tap-vat-ly-dai-cuong-i-27fn","title":"Ghi chú ôn tập Vật lý đại cương I","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"PH1110","term":"20231","pages":4,"sizeKb":2199,"kind":"PDF","downloads":918,"views":2876,"ratingCount":57,"ratingSum":199,"publishedAt":1783472400000,"createdAt":1783472400000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["dong luc hoc","dinh luat Newton"]},{"id":"d14","slug":"de-thi-cuoi-ky-vat-ly-dai-cuong-i-ky-20231-co-dap-an-2djm","title":"Đề thi cuối kỳ Vật lý đại cương I kỳ 20231, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"PH1110","term":"20231","pages":5,"sizeKb":702,"kind":"PDF","downloads":1004,"views":3154,"ratingCount":9,"ratingSum":36,"publishedAt":1791507600000,"createdAt":1791507600000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["dong luc hoc","dinh luat Newton","đáp án"]},{"id":"d15","slug":"slide-vat-ly-dai-cuong-i-chuong-4-2jnl","title":"Slide Vật lý đại cương I chương 4","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"PH1110","term":"20232","pages":5,"sizeKb":2117,"kind":"PDF","downloads":391,"views":1257,"ratingCount":14,"ratingSum":67,"publishedAt":1790125200000,"createdAt":1790125200000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["dong luc hoc","dinh luat Newton"]},{"id":"d16","slug":"ghi-chu-on-tap-vat-ly-dai-cuong-ii-2prk","title":"Ghi chú ôn tập Vật lý đại cương II","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"PH1120","term":"20232","pages":5,"sizeKb":417,"kind":"PDF","downloads":2367,"views":7202,"ratingCount":26,"ratingSum":121,"publishedAt":1790125200000,"createdAt":1790125200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["dien truong","tu truong"]},{"id":"d17","slug":"de-cuong-hoc-phan-vat-ly-dai-cuong-ii-2vvj","title":"Đề cương học phần Vật lý đại cương II","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"PH1120","term":"20231","pages":5,"sizeKb":1952,"kind":"PDF","downloads":1969,"views":5923,"ratingCount":51,"ratingSum":204,"publishedAt":1792198800000,"createdAt":1792198800000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["dien truong","tu truong"]},{"id":"d18","slug":"de-giua-ky-vat-ly-dai-cuong-ii-ky-20241-31zi","title":"Đề giữa kỳ Vật lý đại cương II kỳ 20241","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"PH1120","term":"20241","pages":3,"sizeKb":2425,"kind":"PDF","downloads":558,"views":1741,"ratingCount":54,"ratingSum":263,"publishedAt":1791853200000,"createdAt":1791853200000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["dien truong","tu truong"]},{"id":"d19","slug":"de-thi-cuoi-ky-vat-ly-dai-cuong-ii-ky-20242-co-dap-an-383h","title":"Đề thi cuối kỳ Vật lý đại cương II kỳ 20242, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"PH1120","term":"20242","pages":3,"sizeKb":834,"kind":"PDF","downloads":2065,"views":6206,"ratingCount":29,"ratingSum":130,"publishedAt":1784077200000,"createdAt":1784077200000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["dien truong","tu truong","đáp án"]},{"id":"d20","slug":"bai-giai-bai-tap-tin-hoc-dai-cuong-3e7g","title":"Bài giải bài tập Tin học đại cương","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT1110","term":"20242","pages":3,"sizeKb":593,"kind":"PDF","downloads":1428,"views":4292,"ratingCount":58,"ratingSum":211,"publishedAt":1791939600000,"createdAt":1791939600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ngon ngu C","con tro"]},{"id":"d21","slug":"ghi-chu-on-tap-tin-hoc-dai-cuong-3kbf","title":"Ghi chú ôn tập Tin học đại cương","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT1110","term":"20232","pages":4,"sizeKb":1075,"kind":"PDF","downloads":1401,"views":4389,"ratingCount":9,"ratingSum":32,"publishedAt":1786323600000,"createdAt":1786323600000,"uploader":"Trần Đức Anh","anonymous":true,"tags":["ngon ngu C","con tro"]},{"id":"d22","slug":"slide-tin-hoc-dai-cuong-chuong-3-3qfe","title":"Slide Tin học đại cương chương 3","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT1110","term":"20241","pages":3,"sizeKb":2123,"kind":"PDF","downloads":156,"views":649,"ratingCount":15,"ratingSum":58,"publishedAt":1790038800000,"createdAt":1790038800000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["ngon ngu C","con tro"]},{"id":"d23","slug":"de-giua-ky-tin-hoc-dai-cuong-ky-20251-3wjd","title":"Đề giữa kỳ Tin học đại cương kỳ 20251","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"IT1110","term":"20251","pages":3,"sizeKb":1081,"kind":"PDF","downloads":2083,"views":6308,"ratingCount":16,"ratingSum":60,"publishedAt":1790038800000,"createdAt":1790038800000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["ngon ngu C","con tro"]},{"id":"d24","slug":"bai-giai-bai-tap-cau-truc-du-lieu-va-giai-thuat-42nc","title":"Bài giải bài tập Cấu trúc dữ liệu và giải thuật","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3011","term":"20231","pages":5,"sizeKb":237,"kind":"PDF","downloads":1752,"views":5415,"ratingCount":44,"ratingSum":153,"publishedAt":1788742800000,"createdAt":1788742800000,"uploader":"Sinh viên Demo","anonymous":true,"tags":["cay nhi phan","do thi"]},{"id":"d25","slug":"de-thi-cuoi-ky-cau-truc-du-lieu-va-giai-thuat-ky-20232-co-dap-an-48rb","title":"Đề thi cuối kỳ Cấu trúc dữ liệu và giải thuật kỳ 20232, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT3011","term":"20232","pages":4,"sizeKb":2121,"kind":"PDF","downloads":234,"views":820,"ratingCount":24,"ratingSum":103,"publishedAt":1787101200000,"createdAt":1787101200000,"uploader":"Trần Đức Anh","anonymous":true,"tags":["cay nhi phan","do thi","đáp án"]},{"id":"d26","slug":"ghi-chu-on-tap-cau-truc-du-lieu-va-giai-thuat-4eva","title":"Ghi chú ôn tập Cấu trúc dữ liệu và giải thuật","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3011","term":"20242","pages":4,"sizeKb":721,"kind":"PDF","downloads":1065,"views":3227,"ratingCount":33,"ratingSum":140,"publishedAt":1786237200000,"createdAt":1786237200000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["cay nhi phan","do thi"]},{"id":"d27","slug":"bai-giai-bai-tap-toan-roi-rac-4kz9","title":"Bài giải bài tập Toán rời rạc","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3020","term":"20241","pages":5,"sizeKb":979,"kind":"PDF","downloads":1026,"views":3277,"ratingCount":5,"ratingSum":22,"publishedAt":1783731600000,"createdAt":1783731600000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["to hop","quan he truy hoi"]},{"id":"d28","slug":"de-cuong-hoc-phan-toan-roi-rac-4r38","title":"Đề cương học phần Toán rời rạc","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3020","term":"20231","pages":5,"sizeKb":514,"kind":"PDF","downloads":582,"views":1782,"ratingCount":10,"ratingSum":44,"publishedAt":1788138000000,"createdAt":1788138000000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["to hop","quan he truy hoi"]},{"id":"d29","slug":"ghi-chu-on-tap-ky-thuat-lap-trinh-4x77","title":"Ghi chú ôn tập Kỹ thuật lập trình","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3040","term":"20241","pages":3,"sizeKb":1247,"kind":"PDF","downloads":2192,"views":6592,"ratingCount":37,"ratingSum":153,"publishedAt":1791680400000,"createdAt":1791680400000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["de quy","quy hoach dong"]},{"id":"d30","slug":"slide-ky-thuat-lap-trinh-chuong-2-53b6","title":"Slide Kỹ thuật lập trình chương 2","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT3040","term":"20251","pages":3,"sizeKb":2567,"kind":"PDF","downloads":1224,"views":3864,"ratingCount":10,"ratingSum":47,"publishedAt":1791334800000,"createdAt":1791334800000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["de quy","quy hoach dong"]},{"id":"d31","slug":"de-giua-ky-ky-thuat-lap-trinh-ky-20251-59f5","title":"Đề giữa kỳ Kỹ thuật lập trình kỳ 20251","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"IT3040","term":"20251","pages":5,"sizeKb":2485,"kind":"PDF","downloads":351,"views":1205,"ratingCount":19,"ratingSum":71,"publishedAt":1788138000000,"createdAt":1788138000000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["de quy","quy hoach dong"]},{"id":"d32","slug":"bai-giai-bai-tap-ky-thuat-lap-trinh-5fj4","title":"Bài giải bài tập Kỹ thuật lập trình","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3040","term":"20241","pages":3,"sizeKb":1865,"kind":"PDF","downloads":58,"views":224,"ratingCount":0,"ratingSum":0,"publishedAt":1789952400000,"createdAt":1789952400000,"uploader":"Sinh viên Demo","anonymous":true,"tags":["de quy","quy hoach dong"]},{"id":"d33","slug":"de-thi-cuoi-ky-nguyen-ly-he-dieu-hanh-ky-20251-co-dap-an-5ln3","title":"Đề thi cuối kỳ Nguyên lý hệ điều hành kỳ 20251, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT3070","term":"20251","pages":5,"sizeKb":1275,"kind":"PDF","downloads":1309,"views":4006,"ratingCount":55,"ratingSum":241,"publishedAt":1782781200000,"createdAt":1782781200000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["tien trinh","dong bo hoa","đáp án"]},{"id":"d34","slug":"de-cuong-hoc-phan-nguyen-ly-he-dieu-hanh-5rr2","title":"Đề cương học phần Nguyên lý hệ điều hành","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3070","term":"20231","pages":3,"sizeKb":713,"kind":"PDF","downloads":410,"views":1422,"ratingCount":35,"ratingSum":136,"publishedAt":1789779600000,"createdAt":1789779600000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["tien trinh","dong bo hoa"]},{"id":"d35","slug":"ghi-chu-on-tap-nguyen-ly-he-dieu-hanh-5xv1","title":"Ghi chú ôn tập Nguyên lý hệ điều hành","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3070","term":"20241","pages":5,"sizeKb":1879,"kind":"PDF","downloads":2347,"views":7164,"ratingCount":16,"ratingSum":56,"publishedAt":1788742800000,"createdAt":1788742800000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["tien trinh","dong bo hoa"]},{"id":"d36","slug":"bai-giai-bai-tap-mang-may-tinh-63z0","title":"Bài giải bài tập Mạng máy tính","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3080","term":"20251","pages":3,"sizeKb":606,"kind":"PDF","downloads":887,"views":2752,"ratingCount":8,"ratingSum":32,"publishedAt":1787446800000,"createdAt":1787446800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d37","slug":"slide-mang-may-tinh-chuong-2-6a2z","title":"Slide Mạng máy tính chương 2","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT3080","term":"20241","pages":3,"sizeKb":976,"kind":"PDF","downloads":506,"views":1645,"ratingCount":54,"ratingSum":262,"publishedAt":1787187600000,"createdAt":1787187600000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d38","slug":"de-cuong-hoc-phan-mang-may-tinh-6g6y","title":"Đề cương học phần Mạng máy tính","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"IT3080","term":"20232","pages":4,"sizeKb":675,"kind":"PDF","downloads":493,"views":1539,"ratingCount":47,"ratingSum":168,"publishedAt":1787014800000,"createdAt":1787014800000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["mo hinh OSI","TCP/IP"]},{"id":"d39","slug":"slide-co-so-du-lieu-chuong-1-6max","title":"Slide Cơ sở dữ liệu chương 1","description":"Slide bài giảng trên lớp.","type":"SLIDE","status":"APPROVED","course":"IT3090","term":"20241","pages":5,"sizeKb":2129,"kind":"PDF","downloads":315,"views":1008,"ratingCount":21,"ratingSum":76,"publishedAt":1790557200000,"createdAt":1790557200000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["SQL","chuan hoa"]},{"id":"d40","slug":"bai-giai-bai-tap-co-so-du-lieu-6sew","title":"Bài giải bài tập Cơ sở dữ liệu","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3090","term":"20242","pages":3,"sizeKb":560,"kind":"PDF","downloads":2113,"views":6437,"ratingCount":49,"ratingSum":215,"publishedAt":1784768400000,"createdAt":1784768400000,"uploader":"Sinh viên Demo","anonymous":true,"tags":["SQL","chuan hoa"]},{"id":"d41","slug":"ghi-chu-on-tap-co-so-du-lieu-6yiv","title":"Ghi chú ôn tập Cơ sở dữ liệu","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3090","term":"20231","pages":5,"sizeKb":2216,"kind":"PDF","downloads":2085,"views":6346,"ratingCount":4,"ratingSum":19,"publishedAt":1783904400000,"createdAt":1783904400000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["SQL","chuan hoa"]},{"id":"d42","slug":"de-thi-cuoi-ky-co-so-du-lieu-ky-20241-co-dap-an-74mu","title":"Đề thi cuối kỳ Cơ sở dữ liệu kỳ 20241, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"IT3090","term":"20241","pages":5,"sizeKb":635,"kind":"PDF","downloads":2075,"views":6312,"ratingCount":19,"ratingSum":83,"publishedAt":1788915600000,"createdAt":1788915600000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["SQL","chuan hoa","đáp án"]},{"id":"d43","slug":"bai-giai-bai-tap-lap-trinh-huong-doi-tuong-7aqt","title":"Bài giải bài tập Lập trình hướng đối tượng","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"IT3100","term":"20241","pages":3,"sizeKb":694,"kind":"PDF","downloads":1733,"views":5379,"ratingCount":40,"ratingSum":166,"publishedAt":1788138000000,"createdAt":1788138000000,"uploader":"Phạm Ngọc Mai","anonymous":true,"tags":["ke thua","da hinh"]},{"id":"d44","slug":"ghi-chu-on-tap-lap-trinh-huong-doi-tuong-7gus","title":"Ghi chú ôn tập Lập trình hướng đối tượng","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"IT3100","term":"20242","pages":4,"sizeKb":2506,"kind":"PDF","downloads":717,"views":2216,"ratingCount":14,"ratingSum":53,"publishedAt":1791421200000,"createdAt":1791421200000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["ke thua","da hinh"]},{"id":"d45","slug":"de-thi-cuoi-ky-tin-hieu-va-he-thong-ky-20242-co-dap-an-7myr","title":"Đề thi cuối kỳ Tín hiệu và hệ thống kỳ 20242, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"EE2000","term":"20242","pages":5,"sizeKb":443,"kind":"PDF","downloads":1089,"views":3385,"ratingCount":44,"ratingSum":173,"publishedAt":1786237200000,"createdAt":1786237200000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["bien doi Fourier","tich chap","đáp án"]},{"id":"d46","slug":"ghi-chu-on-tap-tin-hieu-va-he-thong-7t2q","title":"Ghi chú ôn tập Tín hiệu và hệ thống","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"EE2000","term":"20232","pages":4,"sizeKb":487,"kind":"PDF","downloads":1230,"views":3822,"ratingCount":35,"ratingSum":166,"publishedAt":1787101200000,"createdAt":1787101200000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["bien doi Fourier","tich chap"]},{"id":"d47","slug":"bai-giai-bai-tap-tin-hieu-va-he-thong-7z6p","title":"Bài giải bài tập Tín hiệu và hệ thống","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"EE2000","term":"20242","pages":4,"sizeKb":2452,"kind":"PDF","downloads":1569,"views":4741,"ratingCount":40,"ratingSum":148,"publishedAt":1791853200000,"createdAt":1791853200000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["bien doi Fourier","tich chap"]},{"id":"d48","slug":"de-giua-ky-tin-hieu-va-he-thong-ky-20241-85ao","title":"Đề giữa kỳ Tín hiệu và hệ thống kỳ 20241","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"EE2000","term":"20241","pages":4,"sizeKb":2441,"kind":"PDF","downloads":1651,"views":5063,"ratingCount":11,"ratingSum":39,"publishedAt":1788915600000,"createdAt":1788915600000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["bien doi Fourier","tich chap"]},{"id":"d49","slug":"de-giua-ky-ly-thuyet-mach-dien-i-ky-20241-8ben","title":"Đề giữa kỳ Lý thuyết mạch điện I kỳ 20241","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"EE2020","term":"20241","pages":3,"sizeKb":2288,"kind":"PDF","downloads":1979,"views":6130,"ratingCount":53,"ratingSum":186,"publishedAt":1788224400000,"createdAt":1788224400000,"uploader":"Lê Minh Quân","anonymous":false,"tags":["dinh luat Kirchhoff","mach RLC"]},{"id":"d50","slug":"de-thi-cuoi-ky-ly-thuyet-mach-dien-i-ky-20242-co-dap-an-8him","title":"Đề thi cuối kỳ Lý thuyết mạch điện I kỳ 20242, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"EE2020","term":"20242","pages":4,"sizeKb":1875,"kind":"PDF","downloads":1144,"views":3448,"ratingCount":33,"ratingSum":158,"publishedAt":1791766800000,"createdAt":1791766800000,"uploader":"Phạm Ngọc Mai","anonymous":true,"tags":["dinh luat Kirchhoff","mach RLC","đáp án"]},{"id":"d51","slug":"ghi-chu-on-tap-do-hoa-ky-thuat-co-ban-8nml","title":"Ghi chú ôn tập Đồ họa kỹ thuật cơ bản","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"ME2015","term":"20241","pages":5,"sizeKb":1361,"kind":"PDF","downloads":947,"views":3010,"ratingCount":31,"ratingSum":110,"publishedAt":1790816400000,"createdAt":1790816400000,"uploader":"Nguyễn Thu Hà","anonymous":false,"tags":["hinh chieu","khung ten"]},{"id":"d52","slug":"de-cuong-hoc-phan-do-hoa-ky-thuat-co-ban-8tqk","title":"Đề cương học phần Đồ họa kỹ thuật cơ bản","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"ME2015","term":"20241","pages":3,"sizeKb":1009,"kind":"PDF","downloads":328,"views":1125,"ratingCount":21,"ratingSum":95,"publishedAt":1788310800000,"createdAt":1788310800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hinh chieu","khung ten"]},{"id":"d53","slug":"de-cuong-hoc-phan-hoa-hoc-dai-cuong-8zuj","title":"Đề cương học phần Hóa học đại cương","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"CH1012","term":"20232","pages":4,"sizeKb":404,"kind":"PDF","downloads":2456,"views":7521,"ratingCount":34,"ratingSum":163,"publishedAt":1788051600000,"createdAt":1788051600000,"uploader":"Trần Đức Anh","anonymous":false,"tags":["cau tao nguyen tu","lien ket hoa hoc"]},{"id":"d54","slug":"ghi-chu-on-tap-hoa-hoc-dai-cuong-95yi","title":"Ghi chú ôn tập Hóa học đại cương","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"CH1012","term":"20241","pages":3,"sizeKb":1600,"kind":"PDF","downloads":2038,"views":6240,"ratingCount":28,"ratingSum":128,"publishedAt":1785286800000,"createdAt":1785286800000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["cau tao nguyen tu","lien ket hoa hoc"]},{"id":"d55","slug":"bai-giai-bai-tap-quan-tri-hoc-dai-cuong-9c2h","title":"Bài giải bài tập Quản trị học đại cương","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"EM1010","term":"20251","pages":4,"sizeKb":469,"kind":"PDF","downloads":1181,"views":3642,"ratingCount":23,"ratingSum":111,"publishedAt":1788051600000,"createdAt":1788051600000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["hoach dinh","to chuc"]},{"id":"d56","slug":"de-cuong-hoc-phan-quan-tri-hoc-dai-cuong-9i6g","title":"Đề cương học phần Quản trị học đại cương","description":"Đề cương chi tiết: mục tiêu, nội dung, cách đánh giá.","type":"SYLLABUS","status":"APPROVED","course":"EM1010","term":"20232","pages":5,"sizeKb":2388,"kind":"PDF","downloads":1917,"views":5836,"ratingCount":0,"ratingSum":0,"publishedAt":1786582800000,"createdAt":1786582800000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["hoach dinh","to chuc"]},{"id":"d57","slug":"de-thi-cuoi-ky-quan-tri-hoc-dai-cuong-ky-20232-co-dap-an-9oaf","title":"Đề thi cuối kỳ Quản trị học đại cương kỳ 20232, có đáp án","description":"Đề thi 90 phút kèm đáp án chi tiết từng câu.","type":"EXAM_FINAL","status":"APPROVED","course":"EM1010","term":"20232","pages":4,"sizeKb":246,"kind":"PDF","downloads":198,"views":761,"ratingCount":58,"ratingSum":234,"publishedAt":1788742800000,"createdAt":1788742800000,"uploader":"Lê Minh Quân","anonymous":true,"tags":["hoach dinh","to chuc","đáp án"]},{"id":"d58","slug":"bai-giai-bai-tap-triet-hoc-mac-lenin-9uee","title":"Bài giải bài tập Triết học Mác - Lênin","description":"Lời giải các bài tập về nhà, có giải thích từng bước.","type":"SOLUTION","status":"APPROVED","course":"SSH1111","term":"20231","pages":3,"sizeKb":709,"kind":"PDF","downloads":557,"views":1685,"ratingCount":7,"ratingSum":27,"publishedAt":1782954000000,"createdAt":1782954000000,"uploader":"Nguyễn Thu Hà","anonymous":true,"tags":["phep bien chung","vat chat va y thuc"]},{"id":"d59","slug":"ghi-chu-on-tap-triet-hoc-mac-lenin-a0id","title":"Ghi chú ôn tập Triết học Mác - Lênin","description":"Tóm tắt lý thuyết và công thức quan trọng để ôn thi.","type":"NOTES","status":"APPROVED","course":"SSH1111","term":"20241","pages":5,"sizeKb":2377,"kind":"PDF","downloads":824,"views":2573,"ratingCount":51,"ratingSum":245,"publishedAt":1792026000000,"createdAt":1792026000000,"uploader":"Phạm Ngọc Mai","anonymous":false,"tags":["phep bien chung","vat chat va y thuc"]},{"id":"d60","slug":"de-giua-ky-triet-hoc-mac-lenin-ky-20231-a6mc","title":"Đề giữa kỳ Triết học Mác - Lênin kỳ 20231","description":"Đề kiểm tra giữa kỳ, có gợi ý lời giải.","type":"EXAM_MIDTERM","status":"APPROVED","course":"SSH1111","term":"20231","pages":3,"sizeKb":2360,"kind":"PDF","downloads":1841,"views":5651,"ratingCount":23,"ratingSum":106,"publishedAt":1785200400000,"createdAt":1785200400000,"uploader":"Sinh viên Demo","anonymous":false,"tags":["phep bien chung","vat chat va y thuc"]}],"bannedWords":["cá độ","lô đề","cờ bạc online","vay nóng"],"hustFeed":{"source":"https://ctt.hust.edu.vn","fetchedAt":"2026-10-25T01:11:51.716Z","errors":[],"items":[{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51642","title":"[CTSV] THÔNG BÁO VỀ VIỆC KHEN THƯỞNG SINH VIÊN XUẤT SẮC NĂM HỌC 2025-2026","date":"2026-10-15","source":"Thông báo đại học","tags":["hocbong"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51641","title":"[CTSV] Thông báo bổ sung thông tin tài khoản ngân hàng để nhận quà tặng nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội","date":"2026-10-15","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30245","title":"[ĐTĐH] THÔNG BÁO VỀ HỌC PHÍ KỲ I NĂM HỌC 2026-2027 – ĐỢT 1 12.10.2026","date":"2026-10-12","source":"Trang chủ","tags":["hocphi"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51639","title":"[ĐTĐH] Quyết định mức học phí các chương trình đào tạo đại học chính quy, KSCS, ĐT thường xuyên và Sau đại học năm học 2026-2027","date":"2026-10-06","source":"Quy định đại học","tags":["ctdt","hocphi"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51640","title":"[CTSV] Thông báo về việc cập nhật thông tin tài khoản ngân hàng để nhận quà nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội","date":"2026-10-06","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51638","title":"[ĐTĐH] Thông báo về học phí kỳ 1 năm học 2026-2027 (đợt 1 - 20261)","date":"2026-10-05","source":"Thông báo đại học","tags":["hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30244","title":"[DTDH] ĐĂNG KÝ KẾ HOẠCH HỌC TẬP CHO HỌC KỲ 2 NĂM HỌC 2026-2027 (20262) 01.10.2026","date":"2026-10-01","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51637","title":"[ĐTĐH] Đăng ký kế hoạch học tập cho học kỳ 2 năm học 2026-2027 (20262)","date":"2026-10-01","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30243","title":"[ĐTĐH] THÔNG BÁO MỞ ĐĂNG KÝ TỐT NGHIỆP ĐỢT 20253 25/09/2026","date":"2026-09-25","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51636","title":"[CTSV] Về việc xét, cấp học bổng Trần Đại Nghĩa học kỳ I năm học 2026-2027","date":"2026-09-09","source":"Thông báo đại học","tags":["hocbong"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51634","title":"[ĐTĐH] Quy định về ngoại ngữ đối với sinh viên đại học hình thức chính quy năm 2026 (K71)","date":"2026-09-07","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51635","title":"[CTSV] Thông báo về việc mua Bảo hiểm y tế (BHYT) năm 2027 cho sinh viên khóa cũ","date":"2026-09-07","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51633","title":"[CTSV] Chương trình tham quan Công ty DECATHLON Việt Nam","date":"2026-09-04","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51632","title":"[ĐTĐH] Thông báo mở đăng ký lớp bổ sung các lớp K71","date":"2026-09-03","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51631","title":"[ĐTĐH] Thông báo Danh sách sinh viên trúng tuyển các chương trình đào tạo tài năng K71","date":"2026-09-03","source":"Thông báo đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51630","title":"[CTSV] LỄ TỐT NGHIỆP ĐỢT THÁNG 9/2026","date":"2026-08-28","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51629","title":"[ĐTĐH] Thông báo về tốt nghiệp đợt 20252","date":"2026-08-27","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51628","title":"[ĐTĐH] Thông báo danh sách sinh viên đủ điều kiện tham gia dự vòng phỏng vấn tuyển chọn vào các CTĐT tài năng khóa K71","date":"2026-08-25","source":"Thông báo đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51627","title":"[ĐTĐH] Thông báo về việc xét tuyển sinh viên vào CT Tài năng tích hợp Cử nhân - Thạc sĩ K71","date":"2026-08-16","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51626","title":"[ĐTĐH] Thông báo về học phí kỳ hè năm học 2025-2026","date":"2026-08-06","source":"Thông báo đại học","tags":["hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51625","title":"[ĐTĐH] Thông báo về việc đưa vào giảng dạy học phần Pickleball (khối giáo dục thể chất tự chọn)","date":"2026-08-03","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51624","title":"[ĐTĐH] Thông báo mở đăng ký tốt nghiệp đợt 2025.2","date":"2026-08-03","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51623","title":"[ĐTĐH] Thông báo về sự cố hệ thống đăng ký học tập","date":"2026-07-26","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44574","title":"[ĐTĐH] Quy định về ngoại ngữ từ khóa K70","date":"2025-09-29","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44562","title":"[ĐTĐH] Quy định mức học phí các chương trình đào tạo đại học CQ, KSCS, VLVH, SĐH năm học 2025-2026","date":"2025-09-12","source":"Quy định đại học","tags":["ctdt","hocphi","quyche"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44547","title":"[ĐTĐH] ACADEMIC REGULATIONS 2025","date":"2025-07-23","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44533","title":"[ĐTĐH] Quy chế đào tạo năm 2025 (Academic Regulations)","date":"2025-05-28","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44490","title":"[ĐTĐH] Hướng dẫn công nhận học phần vào Chương trình đào tạo KSCS","date":"2025-01-23","source":"Quy định đại học","tags":["ctdt","quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43474","title":"[ĐTĐH] QĐ công nhận trúng tuyển vào học CTĐT KSCS đợt học kỳ 1 năm học 2024-2025 (20241)","date":"2024-11-01","source":"Quy định đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43466","title":"[ĐTĐH] Thông báo về mức học phí đối với các chương trình đào tạo năm học 2024-2025","date":"2024-09-19","source":"Quy định đại học","tags":["ctdt","hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43448","title":"[ĐTĐH] Quy định về đào tạo Kỹ sư chuyên sâu 180 TC","date":"2024-08-12","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38097","title":"[VĐTLT] BIỂU ĐỒ KẾ HOẠCH HỌC TẬP NĂM HỌC 2022-2023","date":"2022-09-17","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39136","title":"[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Mai Văn Chung","date":"2021-12-20","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39134","title":"[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Trần Thị Ngọc Hoa","date":"2021-12-16","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39133","title":"[ĐTSĐH] Luận án tiến sĩ: Ứng dụng điều khiển thích nghi hệ thiếu cơ cấu chấp hành cho xe tự hành ba bánh - NCS Phạm Thị Hương Sen","date":"2021-12-16","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38096","title":"[VĐTLT] Quy chế đào tạo vừa làm vừa học trình độ đại học","date":"2021-10-05","source":"Trang chủ","tags":["quyche"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38051","title":"[VĐTLT] TUYỂN SINH KHÓA HỌC BỒI DƯỠNG TIẾNG ANH","date":"2021-08-06","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=25096","title":"[DTDH] Thông báo kiểm tra tiếng anh đầu vào K65 (dành cho sinh viên Chương trình tiên tiến và quốc tế) 07/10/2020","date":"2020-10-07","source":"Trang chủ","tags":["lichthi"],"firstSeen":"2026-10-25T01:11:51.716Z"}]},"generatedAt":"2026-10-25T03:50:18.933Z"};
+const DATA = {"faculties":[{"code":"SOICT","name":"Trường Công nghệ Thông tin và Truyền thông","nameEn":"School of Information and Communications Technology","shortName":"Trường CNTT&TT","slug":"soict","order":0},{"code":"SEEE","name":"Trường Điện - Điện tử","nameEn":"School of Electrical and Electronic Engineering","shortName":"Trường Điện - Điện tử","slug":"seee","order":1},{"code":"SME","name":"Trường Cơ khí","nameEn":"School of Mechanical Engineering","shortName":"Trường Cơ khí","slug":"sme","order":2},{"code":"SCLS","name":"Trường Hóa và Khoa học sự sống","nameEn":"School of Chemistry and Life Sciences","shortName":"Trường Hóa và KHSS","slug":"scls","order":3},{"code":"SMSE","name":"Trường Vật liệu","nameEn":"School of Materials Science and Engineering","shortName":"Trường Vật liệu","slug":"smse","order":4},{"code":"SEM","name":"Trường Kinh tế","nameEn":"School of Economics and Management","shortName":"Trường Kinh tế","slug":"sem","order":5},{"code":"FAMI","name":"Khoa Toán - Tin","nameEn":"Faculty of Mathematics and Informatics","shortName":"Khoa Toán - Tin","slug":"fami","order":6},{"code":"FEP","name":"Khoa Vật lý Kỹ thuật","nameEn":"Faculty of Engineering Physics","shortName":"Khoa Vật lý KT","slug":"fep","order":7},{"code":"SOFL","name":"Khoa Ngoại ngữ","nameEn":"School of Foreign Languages","shortName":"Khoa Ngoại ngữ","slug":"sofl","order":8},{"code":"FPS","name":"Khoa Lý luận Chính trị","nameEn":"Faculty of Political Science","shortName":"Khoa LLCT","slug":"fps","order":9}],"courses":[{"code":"MI1111","name":"Giải tích I","nameEn":"Calculus I","credits":4,"faculty":"FAMI","keywords":["gioi han","dao ham","dinh ly Lagrange","tich phan suy rong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1121","name":"Giải tích II","nameEn":"Calculus II","credits":3,"faculty":"FAMI","keywords":["tich phan boi","tich phan duong","chuoi so"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1131","name":"Giải tích III","nameEn":"Calculus III","credits":3,"faculty":"FAMI","keywords":["phuong trinh vi phan","chuoi Fourier","bien doi Laplace"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1141","name":"Đại số","nameEn":"Linear Algebra","credits":4,"faculty":"FAMI","keywords":["ma tran","dinh thuc","khong gian vector","tri rieng"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI2020","name":"Xác suất thống kê","nameEn":"Probability and Statistics","credits":3,"faculty":"FAMI","keywords":["bien ngau nhien","phan phoi chuan","kiem dinh gia thuyet"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1110","name":"Vật lý đại cương I","nameEn":"General Physics I","credits":3,"faculty":"FEP","keywords":["dong luc hoc","dinh luat Newton","nhiet dong luc hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1120","name":"Vật lý đại cương II","nameEn":"General Physics II","credits":3,"faculty":"FEP","keywords":["dien truong","tu truong","dinh luat Faraday"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1130","name":"Vật lý đại cương III","nameEn":"General Physics III","credits":3,"faculty":"FEP","keywords":["giao thoa","nhieu xa","luong tu anh sang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT1110","name":"Tin học đại cương","nameEn":"Introduction to Computing","credits":4,"faculty":"SOICT","keywords":["ngon ngu C","con tro","mang mot chieu"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3011","name":"Cấu trúc dữ liệu và giải thuật","nameEn":"Data Structures and Algorithms","credits":3,"faculty":"SOICT","keywords":["cay nhi phan","do thi","sap xep nhanh","bang bam"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3020","name":"Toán rời rạc","nameEn":"Discrete Mathematics","credits":3,"faculty":"SOICT","keywords":["to hop","quan he truy hoi","do thi Euler"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3030","name":"Kiến trúc máy tính","nameEn":"Computer Architecture","credits":3,"faculty":"SOICT","keywords":["tap lenh MIPS","bo nho dem","pipeline"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3040","name":"Kỹ thuật lập trình","nameEn":"Programming Techniques","credits":2,"faculty":"SOICT","keywords":["de quy","quy hoach dong","kiem thu"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3070","name":"Nguyên lý hệ điều hành","nameEn":"Operating Systems","credits":3,"faculty":"SOICT","keywords":["tien trinh","dong bo hoa","bo nho ao"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3080","name":"Mạng máy tính","nameEn":"Computer Networks","credits":3,"faculty":"SOICT","keywords":["mo hinh OSI","TCP/IP","dinh tuyen"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3090","name":"Cơ sở dữ liệu","nameEn":"Databases","credits":3,"faculty":"SOICT","keywords":["SQL","chuan hoa","phu thuoc ham"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3100","name":"Lập trình hướng đối tượng","nameEn":"Object-Oriented Programming","credits":2,"faculty":"SOICT","keywords":["ke thua","da hinh","Java"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3160","name":"Nhập môn Trí tuệ nhân tạo","nameEn":"Introduction to Artificial Intelligence","credits":3,"faculty":"SOICT","keywords":["tim kiem A sao","hoc may","logic menh de"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT4409","name":"Công nghệ Web và dịch vụ trực tuyến","nameEn":"Web Technologies","credits":3,"faculty":"SOICT","keywords":["HTTP","REST","JavaScript"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ET2000","name":"Nhập môn kỹ thuật điện tử viễn thông","nameEn":"Introduction to Electronics and Telecommunications","credits":2,"faculty":"SEEE","keywords":["tin hieu","dieu che"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EE2000","name":"Tín hiệu và hệ thống","nameEn":"Signals and Systems","credits":3,"faculty":"SEEE","keywords":["bien doi Fourier","tich chap","he thong LTI"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE2020","name":"Lý thuyết mạch điện I","nameEn":"Circuit Theory I","credits":4,"faculty":"SEEE","keywords":["dinh luat Kirchhoff","mach RLC","so phuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE3110","name":"Kỹ thuật đo lường","nameEn":"Measurement Engineering","credits":3,"faculty":"SEEE","keywords":["sai so","cam bien"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2015","name":"Đồ họa kỹ thuật cơ bản","nameEn":"Engineering Graphics","credits":3,"faculty":"SME","keywords":["hinh chieu","khung ten","mat cat"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2011","name":"Cơ học kỹ thuật I","nameEn":"Engineering Mechanics I","credits":3,"faculty":"SME","keywords":["tinh hoc","ngau luc","can bang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME3090","name":"Sức bền vật liệu","nameEn":"Strength of Materials","credits":3,"faculty":"SME","keywords":["ung suat","bien dang","uon"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH1012","name":"Hóa học đại cương","nameEn":"General Chemistry","credits":3,"faculty":"SCLS","keywords":["cau tao nguyen tu","lien ket hoa hoc","can bang hoa hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH3001","name":"Hóa hữu cơ","nameEn":"Organic Chemistry","credits":3,"faculty":"SCLS","keywords":["hidrocacbon","co che phan ung"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MSE2010","name":"Khoa học vật liệu đại cương","nameEn":"Introduction to Materials Science","credits":3,"faculty":"SMSE","keywords":["mang tinh the","gian do pha"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EM1010","name":"Quản trị học đại cương","nameEn":"Principles of Management","credits":2,"faculty":"SEM","keywords":["hoach dinh","to chuc","kiem soat"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM1180","name":"Văn hóa kinh doanh và tinh thần khởi nghiệp","nameEn":"Business Culture and Entrepreneurship","credits":2,"faculty":"SEM","keywords":["khoi nghiep","mo hinh kinh doanh"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM3100","name":"Kinh tế học vi mô","nameEn":"Microeconomics","credits":3,"faculty":"SEM","keywords":["cung cau","do co gian","thi truong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1100","name":"Tiếng Anh I","nameEn":"English I","credits":3,"faculty":"SOFL","keywords":["reading","listening","grammar"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1101","name":"Tiếng Anh II","nameEn":"English II","credits":3,"faculty":"SOFL","keywords":["writing","speaking"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1111","name":"Triết học Mác - Lênin","nameEn":"Marxist-Leninist Philosophy","credits":3,"faculty":"FPS","keywords":["phep bien chung","vat chat va y thuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1121","name":"Kinh tế chính trị Mác - Lênin","nameEn":"Marxist-Leninist Political Economy","credits":2,"faculty":"FPS","keywords":["gia tri thang du","hang hoa"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1131","name":"Chủ nghĩa xã hội khoa học","nameEn":"Scientific Socialism","credits":2,"faculty":"FPS","keywords":["giai cap cong nhan"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1141","name":"Lịch sử Đảng Cộng sản Việt Nam","nameEn":"History of the Communist Party of Vietnam","credits":2,"faculty":"FPS","keywords":["cach mang thang Tam"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1151","name":"Tư tưởng Hồ Chí Minh","nameEn":"Ho Chi Minh Ideology","credits":2,"faculty":"FPS","keywords":["doc lap dan toc"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1170","name":"Pháp luật đại cương","nameEn":"Introduction to Law","credits":2,"faculty":"FPS","keywords":["quy pham phap luat","hop dong"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]}],"documents":[],"bannedWords":["cá độ","lô đề","cờ bạc online","vay nóng"],"hustFeed":{"source":"https://ctt.hust.edu.vn","fetchedAt":"2026-10-25T01:11:51.716Z","errors":[],"items":[{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51642","title":"[CTSV] THÔNG BÁO VỀ VIỆC KHEN THƯỞNG SINH VIÊN XUẤT SẮC NĂM HỌC 2025-2026","date":"2026-10-15","source":"Thông báo đại học","tags":["hocbong"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51641","title":"[CTSV] Thông báo bổ sung thông tin tài khoản ngân hàng để nhận quà tặng nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội","date":"2026-10-15","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30245","title":"[ĐTĐH] THÔNG BÁO VỀ HỌC PHÍ KỲ I NĂM HỌC 2026-2027 – ĐỢT 1 12.10.2026","date":"2026-10-12","source":"Trang chủ","tags":["hocphi"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51639","title":"[ĐTĐH] Quyết định mức học phí các chương trình đào tạo đại học chính quy, KSCS, ĐT thường xuyên và Sau đại học năm học 2026-2027","date":"2026-10-06","source":"Quy định đại học","tags":["ctdt","hocphi"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51640","title":"[CTSV] Thông báo về việc cập nhật thông tin tài khoản ngân hàng để nhận quà nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội","date":"2026-10-06","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51638","title":"[ĐTĐH] Thông báo về học phí kỳ 1 năm học 2026-2027 (đợt 1 - 20261)","date":"2026-10-05","source":"Thông báo đại học","tags":["hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30244","title":"[DTDH] ĐĂNG KÝ KẾ HOẠCH HỌC TẬP CHO HỌC KỲ 2 NĂM HỌC 2026-2027 (20262) 01.10.2026","date":"2026-10-01","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51637","title":"[ĐTĐH] Đăng ký kế hoạch học tập cho học kỳ 2 năm học 2026-2027 (20262)","date":"2026-10-01","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30243","title":"[ĐTĐH] THÔNG BÁO MỞ ĐĂNG KÝ TỐT NGHIỆP ĐỢT 20253 25/09/2026","date":"2026-09-25","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51636","title":"[CTSV] Về việc xét, cấp học bổng Trần Đại Nghĩa học kỳ I năm học 2026-2027","date":"2026-09-09","source":"Thông báo đại học","tags":["hocbong"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51634","title":"[ĐTĐH] Quy định về ngoại ngữ đối với sinh viên đại học hình thức chính quy năm 2026 (K71)","date":"2026-09-07","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51635","title":"[CTSV] Thông báo về việc mua Bảo hiểm y tế (BHYT) năm 2027 cho sinh viên khóa cũ","date":"2026-09-07","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51633","title":"[CTSV] Chương trình tham quan Công ty DECATHLON Việt Nam","date":"2026-09-04","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51632","title":"[ĐTĐH] Thông báo mở đăng ký lớp bổ sung các lớp K71","date":"2026-09-03","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51631","title":"[ĐTĐH] Thông báo Danh sách sinh viên trúng tuyển các chương trình đào tạo tài năng K71","date":"2026-09-03","source":"Thông báo đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51630","title":"[CTSV] LỄ TỐT NGHIỆP ĐỢT THÁNG 9/2026","date":"2026-08-28","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51629","title":"[ĐTĐH] Thông báo về tốt nghiệp đợt 20252","date":"2026-08-27","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51628","title":"[ĐTĐH] Thông báo danh sách sinh viên đủ điều kiện tham gia dự vòng phỏng vấn tuyển chọn vào các CTĐT tài năng khóa K71","date":"2026-08-25","source":"Thông báo đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51627","title":"[ĐTĐH] Thông báo về việc xét tuyển sinh viên vào CT Tài năng tích hợp Cử nhân - Thạc sĩ K71","date":"2026-08-16","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51626","title":"[ĐTĐH] Thông báo về học phí kỳ hè năm học 2025-2026","date":"2026-08-06","source":"Thông báo đại học","tags":["hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51625","title":"[ĐTĐH] Thông báo về việc đưa vào giảng dạy học phần Pickleball (khối giáo dục thể chất tự chọn)","date":"2026-08-03","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51624","title":"[ĐTĐH] Thông báo mở đăng ký tốt nghiệp đợt 2025.2","date":"2026-08-03","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51623","title":"[ĐTĐH] Thông báo về sự cố hệ thống đăng ký học tập","date":"2026-07-26","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44574","title":"[ĐTĐH] Quy định về ngoại ngữ từ khóa K70","date":"2025-09-29","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44562","title":"[ĐTĐH] Quy định mức học phí các chương trình đào tạo đại học CQ, KSCS, VLVH, SĐH năm học 2025-2026","date":"2025-09-12","source":"Quy định đại học","tags":["ctdt","hocphi","quyche"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44547","title":"[ĐTĐH] ACADEMIC REGULATIONS 2025","date":"2025-07-23","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44533","title":"[ĐTĐH] Quy chế đào tạo năm 2025 (Academic Regulations)","date":"2025-05-28","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44490","title":"[ĐTĐH] Hướng dẫn công nhận học phần vào Chương trình đào tạo KSCS","date":"2025-01-23","source":"Quy định đại học","tags":["ctdt","quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43474","title":"[ĐTĐH] QĐ công nhận trúng tuyển vào học CTĐT KSCS đợt học kỳ 1 năm học 2024-2025 (20241)","date":"2024-11-01","source":"Quy định đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43466","title":"[ĐTĐH] Thông báo về mức học phí đối với các chương trình đào tạo năm học 2024-2025","date":"2024-09-19","source":"Quy định đại học","tags":["ctdt","hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43448","title":"[ĐTĐH] Quy định về đào tạo Kỹ sư chuyên sâu 180 TC","date":"2024-08-12","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38097","title":"[VĐTLT] BIỂU ĐỒ KẾ HOẠCH HỌC TẬP NĂM HỌC 2022-2023","date":"2022-09-17","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39136","title":"[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Mai Văn Chung","date":"2021-12-20","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39134","title":"[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Trần Thị Ngọc Hoa","date":"2021-12-16","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39133","title":"[ĐTSĐH] Luận án tiến sĩ: Ứng dụng điều khiển thích nghi hệ thiếu cơ cấu chấp hành cho xe tự hành ba bánh - NCS Phạm Thị Hương Sen","date":"2021-12-16","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38096","title":"[VĐTLT] Quy chế đào tạo vừa làm vừa học trình độ đại học","date":"2021-10-05","source":"Trang chủ","tags":["quyche"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38051","title":"[VĐTLT] TUYỂN SINH KHÓA HỌC BỒI DƯỠNG TIẾNG ANH","date":"2021-08-06","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=25096","title":"[DTDH] Thông báo kiểm tra tiếng anh đầu vào K65 (dành cho sinh viên Chương trình tiên tiến và quốc tế) 07/10/2020","date":"2020-10-07","source":"Trang chủ","tags":["lichthi"],"firstSeen":"2026-10-25T01:11:51.716Z"}]},"generatedAt":"2026-10-25T08:18:26.193Z"};
 
 /* ===================== Tiện ích ===================== */
 const TYPES = {EXAM_FINAL:"Đề cuối kỳ",EXAM_MIDTERM:"Đề giữa kỳ",SLIDE:"Slide",SOLUTION:"Bài giải",TEXTBOOK:"Giáo trình",SYLLABUS:"Đề cương",NOTES:"Ghi chú",OTHER:"Khác"};
@@ -399,7 +390,7 @@ function highlight(text, terms){
 }
 
 /* ===================== Dữ liệu và lưu trữ ===================== */
-const KEY="hustdocu-v3";
+const KEY="khotl-demo-v1";
 function seedState(){
   const users=[
     {email:"sv.demo@sis.hust.edu.vn",name:"Sinh viên Demo",username:"sv.demo",faculty:"SOICT",cohort:68,roles:[{key:"STUDENT"}],reputation:600,approved:DATA.documents.filter(d=>d.uploader==="Sinh viên Demo").length,trust:2,createdAt:Date.now()},
@@ -412,11 +403,7 @@ function seedState(){
   }
   const byName=Object.fromEntries(users.map(u=>[u.name,u.email]));
   const docs=DATA.documents.map(d=>({...d,uploader:byName[d.uploader]||"sv.demo@sis.hust.edu.vn",checks:{format:{s:"pass",d:"PDF, khớp đuôi file"},duplicate:{s:"pass",d:"Không có bản trùng SHA-256"},virus:{s:"pass",d:"ClamAV không phát hiện"},integrity:{s:"pass",d:`${d.pages} trang, mở được`},content:{s:"pass",d:"Điểm rủi ro 5/100"}},risk:5,logs:[{t:d.publishedAt,a:"APPROVE",by:"kdv.demo@hust.edu.vn"},{t:d.publishedAt-3600e3,a:"AUTO_CHECK_PASSED"}]}));
-  // Hai tài liệu đang chờ duyệt để thử hàng chờ kiểm duyệt ngay
-  const pending=[
-    {course:"IT3011",type:"EXAM_FINAL",term:"20251",title:"Đề thi cuối kỳ Cấu trúc dữ liệu và giải thuật kỳ 20251, có đáp án",uploader:"le.minh.quan@sis.hust.edu.vn",risk:8,desc:"Đề 2 ca thi, kèm đáp án chi tiết phần cây nhị phân và đồ thị."},
-    {course:"IT3080",type:"NOTES",term:"20251",title:"Tài liệu ôn thi tổng hợp Mạng máy tính (link tải thêm bên trong)",uploader:"tran.duc.anh@sis.hust.edu.vn",risk:62,desc:"Xem thêm tại bit.ly/abc, tinyurl.com/xyz ...",reasons:["14 liên kết ngoài","Có link rút gọn"]},
-  ];
+  const pending=[];
   for(const p of pending){const t=Date.now()-Math.floor(Math.random()*6+1)*3600e3;docs.push({id:"p"+uid(),slug:slugify(p.title)+"-"+uid().slice(0,4),title:p.title,description:p.desc,type:p.type,status:"PENDING_REVIEW",course:p.course,term:p.term,pages:4,sizeKb:1300,kind:"PDF",downloads:0,views:0,ratingCount:0,ratingSum:0,publishedAt:null,createdAt:t,uploader:p.uploader,anonymous:false,tags:[],risk:p.risk,checks:{format:{s:"pass",d:"PDF, khớp đuôi file"},duplicate:{s:"pass",d:"Không có bản trùng SHA-256"},virus:{s:"pass",d:"ClamAV không phát hiện"},integrity:{s:"pass",d:"4 trang, mở được"},content:{s:p.risk>=60?"warn":"pass",d:`Điểm rủi ro ${p.risk}/100`,reasons:p.reasons||[]}},logs:[{t:t+60e3,a:"AUTO_CHECK_PASSED"}]})}
   const st={v:1,users,docs,courses:DATA.courses.map(c=>({...c})),session:null,notifications:[],reports:[],audit:[],searches:[]};
   seedCommunity(st);return st;
@@ -450,7 +437,7 @@ const fileDB={db:null,
   async clear(){try{const db=await this.open();db.transaction("files","readwrite").objectStore("files").clear()}catch{}}};
 
 const faculty=(code)=>DATA.faculties.find(f=>f.code===code);
-const course=(code)=>code==="CHUNG"?{code:"CHUNG",name:"Hỏi đáp chung",shortName:"Chung",faculty:null,credits:0,keywords:[]}:S.courses.find(c=>c.code===code);
+const course=(code)=>S.courses.find(c=>c.code===code);
 const userBy=(email)=>S.users.find(u=>u.email===email);
 const me=()=>S.session?userBy(S.session):null;
 const hasRole=(u,k)=>!!u&&u.roles.some(r=>r.key===k);
@@ -520,7 +507,6 @@ function snippet(d,terms){if(!terms.length)return"";const text=docContent(d).fla
 
 /* ===================== Giao diện chung ===================== */
 const icon={
- help:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
  search:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
  bell:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21h3.4"/></svg>',
  home:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21H3z"/></svg>',
@@ -2943,52 +2929,9 @@ function membersHtml(t) {
   const now = Date.now();
   const online = Object.entries(t.presence).filter(([, at]) => now - at < 30e3).map(([e]) => e);
   const status = t.state.phase === "focus" && t.state.pausedLeft === null ? "đang tập trung" : t.state.phase === "break" ? "đang nghỉ" : "đang chờ";
-  const vm = currentVoiceRoom && currentVoiceRoom.roomId === t.id ? currentVoiceRoom : null;
-  const myEmail = me()?.email;
-
   return `<ul class="tb" style="list-style:none;margin:0;padding:0">${online
-    .map((e) => {
-      const isMe = e === myEmail;
-      const isMicOn = isMe ? (vm?.isMicOn) : (vm && Array.from(vm.peers.values()).some(p => p.email === e && p.mic));
-      const isSpeaking = isMe ? (vm?.isSpeaking) : (vm && Array.from(vm.peers.values()).some(p => p.email === e && p.speaking));
-
-      const voiceBadge = isSpeaking
-        ? `<span class="badge" style="background:#10B981;color:#fff;border-color:#10B981;font-size:11px;padding:1px 6px">🎙️ Đang nói</span>`
-        : isMicOn
-        ? `<span class="badge" style="background:var(--wash);color:var(--stamp);border-color:var(--stamp);font-size:11px;padding:1px 6px">🎙️ Mở mic</span>`
-        : `<span class="badge" style="background:var(--wash);color:var(--pencil);border-color:var(--grid);font-size:11px;padding:1px 6px">🔇 Tắt mic</span>`;
-
-      const avatarClass = isSpeaking ? "avatar voice-speaking-ring" : "avatar";
-
-      return `<li style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <span style="display:flex;align-items:center;gap:8px">
-          <span class="${avatarClass}" style="width:26px;height:26px;font-size:11px;display:inline-flex;vertical-align:middle;transition:all 0.15s">${esc(initials(displayName(userBy(e) || { name: e })))}</span>
-          <span><b>${esc(displayName(userBy(e) || { name: e }))}</b>${isMe ? " <span class=\"tiny muted\">(bạn)</span>" : ""}</span>
-        </span>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${voiceBadge}
-          <span class="tiny muted">${status}</span>
-        </div>
-      </li>`;
-    })
-    .join("")}${t.bots.map((b) => {
-      const isBotSpeaking = vm?.simBotSpeaking === b;
-      const avatarClass = isBotSpeaking ? "avatar voice-speaking-ring" : "avatar";
-      const voiceBadge = isBotSpeaking
-        ? `<span class="badge" style="background:#10B981;color:#fff;border-color:#10B981;font-size:11px;padding:1px 6px">🎙️ Đang nói</span>`
-        : `<span class="badge" style="background:var(--wash);color:var(--pencil);border-color:var(--grid);font-size:11px;padding:1px 6px">🔇 Tắt mic</span>`;
-      return `<li style="padding:8px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px">
-        <span style="display:flex;align-items:center;gap:8px">
-          <span class="${avatarClass}" style="width:26px;height:26px;font-size:11px;display:inline-flex;vertical-align:middle;opacity:0.85">${esc(initials(b))}</span>
-          <span>${esc(b)} <span class="tiny muted">(mô phỏng)</span></span>
-        </span>
-        <div style="display:flex;align-items:center;gap:8px">
-          ${voiceBadge}
-          <span class="tiny muted">${status}</span>
-        </div>
-      </li>`;
-    }).join("")}</ul>
-  <p class="tiny muted" style="margin:6px 0 0">${online.length} người đang có mặt trong phòng. Bật voice mic để đàm thoại trực tiếp với bạn học.</p>`;
+    .map((e) => `<li style="padding:6px 12px;display:flex;justify-content:space-between;gap:8px"><span><span class="avatar" style="width:24px;height:24px;font-size:11px;display:inline-flex;vertical-align:middle;margin-right:6px">${esc(initials(displayName(userBy(e) || { name: e })))}</span>${esc(displayName(userBy(e) || { name: e }))}${e === me()?.email ? " (bạn)" : ""}</span><span class="tiny muted">${status}</span></li>`)
+    .join("")}${t.bots.map((b) => `<li style="padding:6px 12px;display:flex;justify-content:space-between;gap:8px"><span>${esc(b)} <span class="tiny muted">(mô phỏng)</span></span><span class="tiny muted">${status}</span></li>`).join("")}</ul><p class="tiny muted" style="margin:0">${online.length} người đang mở phòng này. Mở trang ở tab khác bằng tài khoản khác để thấy đồng hồ chạy cùng nhau.</p>`;
 }
 /** get() luôn lấy bản mới nhất: tab khác có thể vừa cập nhật dữ liệu (sự kiện storage nạp lại S). */
 function bindTimer(root, get, u) {
@@ -3003,605 +2946,6 @@ function bindTimer(root, get, u) {
     }),
   );
 }
-
-/* ===================== Voice Mic và Đàm thoại phòng học chung ===================== */
-let currentVoiceRoom = null;
-
-class VoiceRoomManager {
-  constructor(roomId, user) {
-    this.roomId = roomId;
-    this.user = user;
-    this.peerId = `${user.email}_${Math.random().toString(36).slice(2, 8)}`;
-    this.stream = null;
-    this.audioCtx = null;
-    this.sourceNode = null;
-    this.analyser = null;
-    this.loopbackGain = null;
-    this.isMicOn = false;
-    this.isSpeaking = false;
-    this.isDeafened = false;
-    this.isLoopbackOn = false;
-    this.isSimulated = false;
-    this.simBotSpeaking = null;
-    this.animId = null;
-    this.speakingDebounce = null;
-    this.peers = new Map();
-    this.channel = null;
-    this.storageKey = `hustdocu_voice_${this.roomId}`;
-    this.boundKeydown = this.onKeyDown.bind(this);
-    this.boundStorage = this.onStorage.bind(this);
-    this.initChannel();
-    window.addEventListener("keydown", this.boundKeydown);
-    window.addEventListener("storage", this.boundStorage);
-  }
-
-  initChannel() {
-    try {
-      if ("BroadcastChannel" in window) {
-        this.channel = new BroadcastChannel(`hustdocu-voice-${this.roomId}`);
-        this.channel.onmessage = (e) => this.handleMessage(e.data);
-      }
-    } catch (err) {}
-    this.broadcast({
-      type: "join",
-      peerId: this.peerId,
-      email: this.user.email,
-      name: displayName(this.user),
-      mic: this.isMicOn,
-      speaking: false
-    });
-    this.syncStorage();
-  }
-
-  playChime(type) {
-    try {
-      this.audioCtx = this.audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (this.audioCtx.state === "suspended") this.audioCtx.resume();
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
-      osc.type = "sine";
-      const now = this.audioCtx.currentTime;
-      if (type === "mic-on") {
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.exponentialRampToValueAtTime(660, now + 0.12);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-      } else if (type === "mic-off") {
-        osc.frequency.setValueAtTime(660, now);
-        osc.frequency.exponentialRampToValueAtTime(440, now + 0.12);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-      } else if (type === "bot") {
-        osc.frequency.setValueAtTime(523.25, now);
-        osc.frequency.setValueAtTime(659.25, now + 0.08);
-        osc.frequency.setValueAtTime(783.99, now + 0.16);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-      }
-      osc.connect(gain).connect(this.audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + 0.36);
-    } catch {}
-  }
-
-  async toggleMic() {
-    if (!this.isMicOn) {
-      await this.startMic();
-    } else {
-      this.stopMic();
-    }
-  }
-
-  async startMic() {
-    try {
-      if (!this.stream) {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error("MEDIA_NOT_SUPPORTED");
-        }
-        this.stream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-        });
-      }
-      this.stream.getAudioTracks().forEach(t => t.enabled = true);
-      this.isMicOn = true;
-      this.isSimulated = false;
-      this.playChime("mic-on");
-
-      this.audioCtx = this.audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (this.audioCtx.state === "suspended") await this.audioCtx.resume();
-
-      if (!this.sourceNode) {
-        this.sourceNode = this.audioCtx.createMediaStreamSource(this.stream);
-        this.analyser = this.audioCtx.createAnalyser();
-        this.analyser.fftSize = 64;
-        this.analyser.smoothingTimeConstant = 0.7;
-        this.sourceNode.connect(this.analyser);
-      }
-
-      this.startVisualizer();
-      this.broadcastState();
-      this.updateUI();
-      toast("🎙️ Đã bật micro! Bạn đang nói trực tiếp trong phòng.");
-      this.initiatePeerCalls();
-    } catch (err) {
-      console.warn("Hardware mic not accessible, falling back to simulated audio mode:", err);
-      this.startSimulatedMic();
-    }
-  }
-
-  startSimulatedMic() {
-    try {
-      this.audioCtx = this.audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (this.audioCtx.state === "suspended") this.audioCtx.resume();
-      this.isMicOn = true;
-      this.isSimulated = true;
-      this.playChime("mic-on");
-
-      if (!this.analyser) {
-        this.analyser = this.audioCtx.createAnalyser();
-        this.analyser.fftSize = 64;
-      }
-      this.startVisualizer();
-      this.broadcastState();
-      this.updateUI();
-      toast("🎙️ Đã bật voice mic trong phòng.");
-    } catch (e) {
-      toast("Không thể kích hoạt micro.");
-      this.isMicOn = false;
-      this.updateUI();
-    }
-  }
-
-  stopMic() {
-    if (this.stream) {
-      this.stream.getAudioTracks().forEach(t => t.enabled = false);
-    }
-    this.isMicOn = false;
-    this.isSpeaking = false;
-    this.playChime("mic-off");
-    this.broadcastState();
-    this.updateUI();
-    toast("🔇 Đã tắt micro.");
-  }
-
-  toggleDeafen() {
-    this.isDeafened = !this.isDeafened;
-    this.peers.forEach(p => {
-      if (p.audioEl) p.audioEl.muted = this.isDeafened;
-    });
-    this.updateUI();
-    toast(this.isDeafened ? "🔇 Đã tắt âm thanh phòng." : "🔊 Đã bật âm thanh phòng.");
-  }
-
-  toggleLoopback() {
-    if (!this.isMicOn) {
-      toast("Vui lòng bật micro trước khi bật thử nghe lại giọng.");
-      return;
-    }
-    this.isLoopbackOn = !this.isLoopbackOn;
-    if (this.isLoopbackOn) {
-      if (!this.loopbackGain && this.audioCtx && this.sourceNode) {
-        this.loopbackGain = this.audioCtx.createGain();
-        this.loopbackGain.gain.value = 0.8;
-        this.sourceNode.connect(this.loopbackGain).connect(this.audioCtx.destination);
-      }
-      toast("🎧 Bật thử mic: Bạn sẽ nghe thấy âm thanh mic của chính mình.");
-    } else {
-      if (this.loopbackGain) {
-        try { this.loopbackGain.disconnect(); } catch {}
-        this.loopbackGain = null;
-      }
-      toast("Đã tắt chế độ thử mic.");
-    }
-    this.updateUI();
-  }
-
-  simulateBotSpeak() {
-    const room = ST().rooms.find(x => x.id === this.roomId);
-    if (!room || !room.bots.length) return;
-    const bot = room.bots[0];
-    this.simBotSpeaking = bot;
-    this.playChime("bot");
-    toast(`🎙️ ${bot} (mô phỏng) vừa phát biểu: "Chào các bạn, phiên này mình cùng ôn bài nhé!"`);
-    this.updateSpeakerBadges();
-    setTimeout(() => {
-      this.simBotSpeaking = null;
-      this.updateSpeakerBadges();
-    }, 3500);
-  }
-
-  startVisualizer() {
-    if (this.animId) cancelAnimationFrame(this.animId);
-    const dataArray = new Uint8Array(this.analyser?.frequencyBinCount || 32);
-
-    const loop = () => {
-      if (!this.isMicOn) {
-        this.renderBars(new Uint8Array(16).fill(0), 0);
-        return;
-      }
-
-      let avg = 0;
-      if (this.isSimulated) {
-        const t = Date.now() / 350;
-        const speechActive = (Math.sin(t) + Math.cos(t * 1.7)) > 0.4;
-        avg = speechActive ? Math.floor(45 + Math.random() * 45) : 0;
-        for (let i = 0; i < 16; i++) {
-          dataArray[i] = speechActive ? Math.floor(avg + (Math.random() - 0.5) * 30) : 0;
-        }
-      } else if (this.analyser) {
-        this.analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-        avg = sum / dataArray.length;
-      }
-
-      const pct = Math.min(100, Math.round((avg / 128) * 100));
-      const speakingNow = avg > 8;
-
-      if (speakingNow !== this.isSpeaking) {
-        if (speakingNow) {
-          clearTimeout(this.speakingDebounce);
-          this.isSpeaking = true;
-          this.broadcastState();
-          this.updateSpeakerBadges();
-        } else {
-          clearTimeout(this.speakingDebounce);
-          this.speakingDebounce = setTimeout(() => {
-            this.isSpeaking = false;
-            this.broadcastState();
-            this.updateSpeakerBadges();
-          }, 400);
-        }
-      }
-
-      this.renderBars(dataArray, pct);
-      this.animId = requestAnimationFrame(loop);
-    };
-    loop();
-  }
-
-  renderBars(dataArray, pct) {
-    const container = document.getElementById("voice-visualizer-container");
-    const dbEl = document.getElementById("voice-db-level");
-    if (dbEl) dbEl.textContent = `${pct}%`;
-    if (!container) return;
-
-    if (container.children.length !== 16) {
-      container.innerHTML = Array.from({ length: 16 }, (_, i) => `<div class="voice-vbar" id="vbar-${i}" style="height:3px"></div>`).join("");
-    }
-
-    const step = Math.floor(dataArray.length / 16) || 1;
-    for (let i = 0; i < 16; i++) {
-      const val = dataArray[i * step] || 0;
-      const h = Math.max(3, Math.round((val / 255) * 20));
-      const bar = document.getElementById(`vbar-${i}`);
-      if (bar) {
-        bar.style.height = `${h}px`;
-        if (val > 20) bar.classList.add("active");
-        else bar.classList.remove("active");
-      }
-    }
-  }
-
-  broadcast(msg) {
-    if (this.channel) {
-      try { this.channel.postMessage(msg); } catch {}
-    }
-  }
-
-  broadcastState() {
-    this.broadcast({
-      type: "state",
-      peerId: this.peerId,
-      email: this.user.email,
-      name: displayName(this.user),
-      mic: this.isMicOn,
-      speaking: this.isSpeaking
-    });
-    this.syncStorage();
-  }
-
-  syncStorage() {
-    try {
-      const data = JSON.parse(localStorage.getItem(this.storageKey) || "{}");
-      data[this.peerId] = {
-        email: this.user.email,
-        name: displayName(this.user),
-        mic: this.isMicOn,
-        speaking: this.isSpeaking,
-        updatedAt: Date.now()
-      };
-      for (const k in data) {
-        if (Date.now() - (data[k].updatedAt || 0) > 30e3) delete data[k];
-      }
-      localStorage.setItem(this.storageKey, JSON.stringify(data));
-    } catch {}
-  }
-
-  onStorage(e) {
-    if (e.key === this.storageKey && e.newValue) {
-      try {
-        const data = JSON.parse(e.newValue);
-        for (const [pId, pInfo] of Object.entries(data)) {
-          if (pId !== this.peerId) {
-            const peer = this.peers.get(pId) || { email: pInfo.email, name: pInfo.name };
-            peer.mic = pInfo.mic;
-            peer.speaking = pInfo.speaking;
-            this.peers.set(pId, peer);
-          }
-        }
-        this.updateSpeakerBadges();
-      } catch {}
-    }
-  }
-
-  handleMessage(msg) {
-    if (!msg || msg.peerId === this.peerId) return;
-    if (msg.type === "join") {
-      this.peers.set(msg.peerId, { email: msg.email, name: msg.name, mic: msg.mic, speaking: msg.speaking });
-      this.broadcast({
-        type: "welcome",
-        to: msg.peerId,
-        peerId: this.peerId,
-        email: this.user.email,
-        name: displayName(this.user),
-        mic: this.isMicOn,
-        speaking: this.isSpeaking
-      });
-      if (this.isMicOn && this.stream) this.createPeerConnection(msg.peerId, true);
-      this.updateSpeakerBadges();
-    } else if (msg.type === "welcome" && msg.to === this.peerId) {
-      this.peers.set(msg.peerId, { email: msg.email, name: msg.name, mic: msg.mic, speaking: msg.speaking });
-      if (this.isMicOn && this.stream) this.createPeerConnection(msg.peerId, true);
-      this.updateSpeakerBadges();
-    } else if (msg.type === "state") {
-      const p = this.peers.get(msg.peerId) || { email: msg.email, name: msg.name };
-      p.mic = msg.mic;
-      p.speaking = msg.speaking;
-      this.peers.set(msg.peerId, p);
-      this.updateSpeakerBadges();
-    } else if (msg.type === "leave") {
-      this.closePeer(msg.peerId);
-      this.peers.delete(msg.peerId);
-      this.updateSpeakerBadges();
-    } else if (msg.type === "offer" && msg.to === this.peerId) {
-      this.handleOffer(msg);
-    } else if (msg.type === "answer" && msg.to === this.peerId) {
-      this.handleAnswer(msg);
-    } else if (msg.type === "ice" && msg.to === this.peerId) {
-      this.handleIce(msg);
-    }
-  }
-
-  initiatePeerCalls() {
-    this.peers.forEach((peer, peerId) => {
-      this.createPeerConnection(peerId, true);
-    });
-  }
-
-  createPeerConnection(targetPeerId, isInitiator) {
-    if (!window.RTCPeerConnection) return null;
-    const existing = this.peers.get(targetPeerId);
-    if (existing?.pc) {
-      try { existing.pc.close(); } catch {}
-    }
-    const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-    if (existing) existing.pc = pc;
-
-    if (this.stream) {
-      this.stream.getAudioTracks().forEach(track => pc.addTrack(track, this.stream));
-    }
-
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        this.broadcast({ type: "ice", to: targetPeerId, from: this.peerId, candidate: event.candidate });
-      }
-    };
-
-    pc.ontrack = (event) => {
-      let audioEl = existing?.audioEl;
-      if (!audioEl) {
-        audioEl = document.createElement("audio");
-        audioEl.autoplay = true;
-        audioEl.muted = this.isDeafened;
-        document.body.appendChild(audioEl);
-        if (existing) existing.audioEl = audioEl;
-      }
-      audioEl.srcObject = event.streams[0];
-    };
-
-    if (isInitiator) {
-      pc.createOffer({ offerToReceiveAudio: true })
-        .then(offer => pc.setLocalDescription(offer))
-        .then(() => {
-          this.broadcast({ type: "offer", to: targetPeerId, from: this.peerId, sdp: pc.localDescription });
-        })
-        .catch(() => {});
-    }
-    return pc;
-  }
-
-  async handleOffer(msg) {
-    const pc = this.createPeerConnection(msg.from, false);
-    if (!pc) return;
-    try {
-      await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      this.broadcast({ type: "answer", to: msg.from, from: this.peerId, sdp: pc.localDescription });
-    } catch {}
-  }
-
-  async handleAnswer(msg) {
-    const peer = this.peers.get(msg.from);
-    if (peer?.pc) {
-      try { await peer.pc.setRemoteDescription(new RTCSessionDescription(msg.sdp)); } catch {}
-    }
-  }
-
-  async handleIce(msg) {
-    const peer = this.peers.get(msg.from);
-    if (peer?.pc && msg.candidate) {
-      try { await peer.pc.addIceCandidate(new RTCIceCandidate(msg.candidate)); } catch {}
-    }
-  }
-
-  closePeer(peerId) {
-    const p = this.peers.get(peerId);
-    if (p) {
-      if (p.pc) try { p.pc.close(); } catch {}
-      if (p.audioEl) try { p.audioEl.remove(); } catch {}
-    }
-  }
-
-  onKeyDown(e) {
-    if (e.key === "m" || e.key === "M") {
-      const tag = document.activeElement?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || tag === "select") return;
-      e.preventDefault();
-      this.toggleMic();
-    }
-  }
-
-  updateUI() {
-    const micBtn = document.getElementById("btn-toggle-mic");
-    const micText = document.getElementById("btn-mic-text");
-    const deafenBtn = document.getElementById("btn-toggle-deafen");
-    const deafenText = document.getElementById("btn-deafen-text");
-    const statusText = document.getElementById("voice-status-text");
-    const loopHint = document.getElementById("voice-loopback-hint");
-
-    if (micBtn && micText) {
-      if (this.isMicOn) {
-        micBtn.className = "btn voice-mic-active voice-mic-btn";
-        micText.textContent = "Tắt Mic (Đang phát...)";
-        if (statusText) statusText.textContent = "Micro đang mở - Mọi người có thể nghe bạn nói";
-      } else {
-        micBtn.className = "btn primary voice-mic-btn";
-        micText.textContent = "Bật Mic";
-        if (statusText) statusText.textContent = "Sẵn sàng nói chuyện trực tiếp với bạn học";
-      }
-    }
-
-    if (deafenBtn && deafenText) {
-      if (this.isDeafened) {
-        deafenBtn.className = "btn ghost";
-        deafenText.textContent = "Loa: Đã tắt";
-      } else {
-        deafenBtn.className = "btn";
-        deafenText.textContent = "Loa: Đang bật";
-      }
-    }
-
-    if (loopHint) {
-      loopHint.style.display = this.isLoopbackOn ? "inline-block" : "none";
-    }
-
-    this.updateSpeakerBadges();
-  }
-
-  updateSpeakerBadges() {
-    const activeCountEl = document.getElementById("voice-active-count");
-    let activeCount = this.isMicOn ? 1 : 0;
-    this.peers.forEach(p => { if (p.mic) activeCount++; });
-    if (activeCountEl) {
-      activeCountEl.textContent = `${activeCount} người đang mở mic`;
-    }
-
-    const t = ST().rooms.find(x => x.id === this.roomId);
-    if (t) {
-      const box = document.querySelector("[data-members]");
-      if (box) box.innerHTML = membersHtml(t);
-    }
-  }
-
-  leave() {
-    if (this.animId) cancelAnimationFrame(this.animId);
-    clearTimeout(this.speakingDebounce);
-    window.removeEventListener("keydown", this.boundKeydown);
-    window.removeEventListener("storage", this.boundStorage);
-
-    this.broadcast({ type: "leave", peerId: this.peerId });
-
-    if (this.stream) {
-      this.stream.getTracks().forEach(t => t.stop());
-      this.stream = null;
-    }
-    if (this.loopbackGain) {
-      try { this.loopbackGain.disconnect(); } catch {}
-    }
-    if (this.audioCtx && this.audioCtx.state !== "closed") {
-      try { this.audioCtx.close(); } catch {}
-    }
-    this.peers.forEach((p, pId) => this.closePeer(pId));
-    this.peers.clear();
-
-    if (this.channel) {
-      try { this.channel.close(); } catch {}
-      this.channel = null;
-    }
-
-    try {
-      const data = JSON.parse(localStorage.getItem(this.storageKey) || "{}");
-      delete data[this.peerId];
-      localStorage.setItem(this.storageKey, JSON.stringify(data));
-    } catch {}
-  }
-}
-
-function voiceStationHtml(r, u) {
-  return `<section class="voice-station stack" style="border:2px solid var(--line);background:var(--sheet);padding:14px 16px;gap:12px;position:relative" aria-label="Kênh thoại trực tiếp">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="badge" style="background:var(--wash);border-color:var(--line);display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700">
-          <span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block"></span>
-          KÊNH THOẠI TRỰC TIẾP
-        </span>
-        <span class="small muted" id="voice-status-text">Sẵn sàng nói chuyện trực tiếp với bạn học trong phòng</span>
-      </div>
-      <div class="row" style="gap:8px;align-items:center">
-        <span class="tiny muted" id="voice-active-count">0 người đang mở mic</span>
-      </div>
-    </div>
-
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border:2px solid var(--line);background:var(--paper)">
-      <button type="button" id="btn-toggle-mic" class="btn primary voice-mic-btn" style="min-width:145px;height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.15s ease" title="Bật/Tắt Micro (Phím tắt: M)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
-        <span id="btn-mic-text">Bật Mic</span>
-      </button>
-
-      <button type="button" id="btn-toggle-deafen" class="btn" style="height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:13px;cursor:pointer" title="Bật/Tắt âm thanh phòng">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-        <span id="btn-deafen-text">Loa: Đang bật</span>
-      </button>
-
-      <button type="button" id="btn-toggle-test" class="btn ghost" style="height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;cursor:pointer" title="Nghe lại mic của chính bạn để kiểm tra">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-        <span>Thử mic</span>
-      </button>
-
-      <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:4px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <span class="tiny muted">Mức tín hiệu mic:</span>
-          <span class="tiny code" id="voice-db-level">0%</span>
-        </div>
-        <div id="voice-visualizer-container" style="display:flex;align-items:flex-end;gap:3px;height:24px;padding:2px 4px;background:var(--wash);border:1px solid var(--grid)">
-          ${Array.from({ length: 16 }, (_, i) => `<div class="voice-vbar" id="vbar-${i}" style="height:3px"></div>`).join("")}
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-      <p class="tiny muted" style="margin:0">
-        💡 <b>Mẹo:</b> Bấm <b>Bật Mic</b> (hoặc nhấn phím <b>M</b>) để nói chuyện trực tiếp. Kết nối âm thanh WebRTC & Web Audio hai chiều độ trễ cực thấp.
-      </p>
-      <span class="tiny" id="voice-loopback-hint" style="color:var(--stamp);font-weight:600;display:none">
-        🎧 Đang bật chế độ nghe lại mic để kiểm tra âm thanh
-      </span>
-    </div>
-  </section>`;
-}
-
 views["/hoc-chung"] = () => {
   const u = me();
   if (!u) return needLogin("/hoc-chung");
@@ -3619,7 +2963,7 @@ views["/hoc-chung"] = () => {
       <ul class="tb" style="list-style:none;margin:0;padding:0">${st.rooms
         .map((r) => {
           const n = Object.values(r.presence).filter((at) => Date.now() - at < 30e3).length + r.bots.length;
-          return `<li><a href="#/hoc-chung/${r.id}" style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;text-decoration:none;color:var(--ink)"><span style="min-width:0"><b style="font-weight:600">${esc(r.name)}</b><span class="tiny muted" style="display:flex;gap:6px;align-items:center;margin-top:2px">${r.course ? `${r.course}, ` : ""}${r.focus}/${r.brk} phút, ${n} người <span class="badge" style="background:var(--wash);border-color:var(--grid);font-size:10px;padding:0 5px">🎙️ Voice Mic</span></span></span><span class="tiny" style="flex-shrink:0">${r.state.phase === "focus" ? "Đang tập trung" : r.state.phase === "break" ? "Đang nghỉ" : "Chờ bắt đầu"}</span></a></li>`;
+          return `<li><a href="#/hoc-chung/${r.id}" style="display:flex;justify-content:space-between;gap:12px;padding:10px 12px;text-decoration:none;color:var(--ink)"><span style="min-width:0"><b style="font-weight:600">${esc(r.name)}</b><span class="tiny muted" style="display:block">${r.course ? `${r.course}, ` : ""}${r.focus}/${r.brk} phút, ${n} người</span></span><span class="tiny" style="flex-shrink:0">${r.state.phase === "focus" ? "Đang tập trung" : r.state.phase === "break" ? "Đang nghỉ" : "Chờ bắt đầu"}</span></a></li>`;
         })
         .join("")}</ul>
       <form class="stack" data-form="room" style="border:2px solid var(--line);background:var(--sheet);padding:12px 16px;gap:10px"><h3 class="head" style="margin:0;font-size:15px">Tạo phòng</h3>
@@ -3666,28 +3010,16 @@ views["/hoc-chung/:id"] = ({ id }) => {
     .concat(r.bots.map((b, i) => [`${b} (mô phỏng)`, 50 + ((i * 37 + r.name.length * 13) % 140)]))
     .sort((a, b) => b[1] - a[1]);
   const html =
-    studyHead(esc(r.name), "chung", `<p class="small muted" style="margin:0">${r.course ? `<a href="#/hoc-phan/${r.course}">${r.course} ${esc(course(r.course)?.name || "")}</a>. ` : ""}Đồng hồ chung và voice mic trực tiếp: ai trong phòng bấm bắt đầu, tạm dừng hay nói chuyện thì mọi người cùng tương tác. <a href="#/hoc-chung">Về danh sách phòng</a></p>`) +
-    `<div class="wrap stack" style="padding-block:20px;gap:20px">
-     ${voiceStationHtml(r, u)}
-     <div class="two" style="gap:16px;align-items:start">
-      <section class="stack" style="gap:12px;min-width:0">${timerHtml(r, true)}
-       <div class="stack" style="gap:6px"><h2 class="h2" style="margin:0">Mục tiêu phiên này</h2><form class="row" data-form="note" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="rnote">Mục tiêu</label><input class="input" id="rnote" maxlength="120" placeholder="Ví dụ: làm xong 5 bài cây AVL"><button class="btn ink" type="submit">Ghi</button></form>
-        ${r.notes.length ? `<ul class="tb" style="list-style:none;margin:0;padding:0">${r.notes.slice(-6).reverse().map((n) => `<li style="padding:6px 12px"><b class="small">${esc(displayName(userBy(n.by) || { name: n.by }))}:</b> <span class="small">${esc(n.text)}</span> <span class="tiny muted">${fmtTime(n.t)}</span></li>`).join("")}</ul>` : ""}</div></section>
-      <section class="stack" style="gap:12px;min-width:0"><h2 class="h2" style="margin:0">Trong phòng</h2><div data-members>${membersHtml(r)}</div>
-       <h2 class="h2" style="margin:8px 0 0">Bảng giờ học tuần này</h2><ol class="tb" style="list-style:none;margin:0;padding:0">${board.map(([n, m], i) => `<li style="padding:6px 12px;display:flex;justify-content:space-between"><span><b class="code" style="font-size:16px;margin-right:8px">${i + 1}</b>${esc(n)}</span><b class="code" style="font-size:16px">${m} phút</b></li>`).join("")}</ol></section></div></div>`;
+    studyHead(esc(r.name), "chung", `<p class="small muted" style="margin:0">${r.course ? `<a href="#/hoc-phan/${r.course}">${r.course} ${esc(course(r.course)?.name || "")}</a>. ` : ""}Đồng hồ chung: ai trong phòng bấm bắt đầu, tạm dừng hay nghỉ thì mọi người cùng thấy. <a href="#/hoc-chung">Về danh sách phòng</a></p>`) +
+    `<div class="wrap stack" style="padding-block:20px;gap:24px"><div class="two" style="gap:16px;align-items:start">
+     <section class="stack" style="gap:12px;min-width:0">${timerHtml(r, true)}
+      <div class="stack" style="gap:6px"><h2 class="h2" style="margin:0">Mục tiêu phiên này</h2><form class="row" data-form="note" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="rnote">Mục tiêu</label><input class="input" id="rnote" maxlength="120" placeholder="Ví dụ: làm xong 5 bài cây AVL"><button class="btn ink" type="submit">Ghi</button></form>
+       ${r.notes.length ? `<ul class="tb" style="list-style:none;margin:0;padding:0">${r.notes.slice(-6).reverse().map((n) => `<li style="padding:6px 12px"><b class="small">${esc(displayName(userBy(n.by) || { name: n.by }))}:</b> <span class="small">${esc(n.text)}</span> <span class="tiny muted">${fmtTime(n.t)}</span></li>`).join("")}</ul>` : ""}</div></section>
+     <section class="stack" style="gap:12px;min-width:0"><h2 class="h2" style="margin:0">Trong phòng</h2><div data-members>${membersHtml(r)}</div>
+      <h2 class="h2" style="margin:8px 0 0">Bảng giờ học tuần này</h2><ol class="tb" style="list-style:none;margin:0;padding:0">${board.map(([n, m], i) => `<li style="padding:6px 12px;display:flex;justify-content:space-between"><span><b class="code" style="font-size:16px;margin-right:8px">${i + 1}</b>${esc(n)}</span><b class="code" style="font-size:16px">${m} phút</b></li>`).join("")}</ol></section></div></div>`;
   return {
     html,
     mount(root) {
-      if (!currentVoiceRoom || currentVoiceRoom.roomId !== id) {
-        if (currentVoiceRoom) currentVoiceRoom.leave();
-        currentVoiceRoom = new VoiceRoomManager(id, u);
-      }
-      currentVoiceRoom.updateUI();
-
-      root.querySelector("#btn-toggle-mic")?.addEventListener("click", () => currentVoiceRoom?.toggleMic());
-      root.querySelector("#btn-toggle-deafen")?.addEventListener("click", () => currentVoiceRoom?.toggleDeafen());
-      root.querySelector("#btn-toggle-test")?.addEventListener("click", () => currentVoiceRoom?.toggleLoopback());
-
       bindTimer(root, () => ST().rooms.find((x) => x.id === id), u);
       startTicker(() => ST().rooms.find((x) => x.id === id), u, true);
       root.querySelector('[data-form="note"]').addEventListener("submit", (e) => {
@@ -3869,18 +3201,6 @@ function seedCm() {
     S.users.slice(0, 2 + (days % 4)).forEach((x) => x.email !== q.by && (q.votes[x.email] = 1));
     return q;
   };
-  // Hỏi đáp chung (đời sống, thủ tục, CLB, học tập...)
-  Q("CHUNG", "vy.dk", "Xin giấy xác nhận sinh viên trực tuyến ở đâu và mất bao lâu để lấy?", "Em cần xin giấy xác nhận sinh viên để làm thủ tục tạm hoãn nghĩa vụ quân sự và làm vé xe buýt. Hiện tại Bách Khoa làm trực tuyến qua cổng nào và đến bàn nào phòng Đào tạo lấy ạ?", 2, [
-    ["le.minh.quan", "Bạn vào cổng ctt.hust.edu.vn hoặc eHUST, mục Dịch vụ trực tuyến -> Đề nghị cấp giấy tờ. Sau khi đăng ký tầm 2-3 ngày làm việc hệ thống báo xong thì lên Bàn 1 - Phòng Đào tạo (nhà C1) mang theo thẻ SV là lấy được nhé.", 8],
-    ["nguyen.thu.ha", "Hiện tại đã có bản PDF có chữ ký số gửi thẳng về email trường (@sis.hust.edu.vn), nếu nơi nhận chấp nhận bản điện tử thì không cần lên C1 lấy trực tiếp nữa nha bạn.", 5]
-  ], 0);
-  Q("CHUNG", "pham.ngoc.mai", "Kinh nghiệm đăng ký lớp học phần để tránh bị nghẽn mạng và trùng lịch?", "Kỳ tới em tính đăng ký 21 tín chỉ nhưng nghe các anh chị bảo đợt đăng ký hay bị quá tải hệ thống. Mọi người có mẹo gì xếp thời khóa biểu và đăng ký nhanh không ạ?", 4, [
-    ["tran.duc.anh", "Lên kế hoạch trước: soạn sẵn 2-3 phương án thời khóa biểu (ghi sẵn mã lớp kèm mã học phần). Đúng giờ mở cổng thì dùng mạng dây hoặc 4G ổn định, paste mã lớp thật nhanh. Tránh F5 liên tục kẻo bị chặn IP 15 phút nhé.", 7]
-  ], 0);
-  Q("CHUNG", "chau.nm", "Xung quanh trường có quán cà phê hay phòng tự học nào yên tĩnh mở muộn không?", "Thư viện Tạ Quang Bửu đóng cửa lúc 21h, mọi người cho em xin vài địa chỉ quanh Tạ Quang Bửu hoặc Lê Thanh Nghị ngồi tự học đêm yên tĩnh với ạ.", 6, [
-    ["huy.bq", "Quanh Lê Thanh Nghị và Tạ Quang Bửu có vài quán cà phê 24h, wifi mạnh và có ổ điện từng bàn. Ngoài ra bạn có thể lên không gian tự học ở tầng 2 nhà D3-D5 trong trường cũng rất yên tĩnh.", 4]
-  ], null);
-
   Q("IT3011", "vy.dk", "Khi nào cây AVL cần quay kép thay vì quay đơn?", "Em hiểu quay đơn khi lệch trái-trái hoặc phải-phải, nhưng vẫn hay nhầm khi gặp trường hợp trái-phải. Có cách nào nhớ nhanh không ạ?", 1, [["le.minh.quan", "Nhìn hướng lệch của nút con: nếu con trái lệch sang phải (trường hợp trái-phải) thì phải quay trái ở nút con trước để đưa về trái-trái, rồi quay phải ở nút mất cân bằng. Mẹo nhớ: hai hướng lệch giống nhau thì quay một lần, khác nhau thì quay hai lần.", 5], ["nguyen.thu.ha", "Vẽ ba nút ra giấy rồi xoay, làm 3-4 bài là quen. Đề giữa kỳ hay hỏi đúng dạng này.", 2]], 0);
   Q("IT3011", "pham.ngoc.mai", "Độ phức tạp của Dijkstra dùng heap là bao nhiêu?", "Slide ghi O((V + E) log V) nhưng bạn em bảo O(V²). Cái nào đúng ạ?", 3, [["tran.duc.anh", "Cả hai đều đúng tùy cách cài: dùng mảng tìm min thì O(V²), hợp với đồ thị dày; dùng hàng đợi ưu tiên (binary heap) thì O((V + E) log V), hợp với đồ thị thưa.", 4]], 0);
   Q("MI1111", "thinh.pd", "Tích phân suy rộng ∫ từ 0 đến 1 của 1/√x dx có hội tụ không?", "Hàm không bị chặn tại 0 nên em không chắc.", 2, [["thao.mp", "Hội tụ, bằng 2. Nguyên hàm 2√x, giới hạn khi cận dưới tiến về 0 bằng 0. Tổng quát ∫ từ 0 đến 1 của 1/xᵖ hội tụ khi p < 1.", 6]], 0);
@@ -4247,25 +3567,19 @@ views["/hoi-dap"] = () => {
   const ans = (x) => cm.answers.filter((a) => a.q === x.id && a.status === "VISIBLE");
   if (loc === "chua-tra-loi") list = list.filter((x) => !ans(x).length);
   list.sort(loc === "binh-chon" ? (a, b) => voteSum(b.votes) - voteSum(a.votes) : (a, b) => b.t - a.t);
-  const codes = [...new Set(cm.questions.map((x) => x.course).filter(Boolean))].sort((a,b)=>a==="CHUNG"?-1:b==="CHUNG"?1:a.localeCompare(b));
+  const codes = [...new Set(cm.questions.map((x) => x.course))].sort();
   const link = (over) => `#/hoi-dap?${new URLSearchParams({ ...(hp ? { hp } : {}), loc, ...(q ? { q } : {}), ...over })}`;
-  const isChung = hp === "CHUNG";
   return {
     html:
-      cmHead("Hỏi đáp", "qa", `<p class="small muted" style="margin:0">Hỏi đáp theo học phần và <b>Hỏi đáp chung</b> (đời sống, thủ tục, quy chế, CLB, học tập...). Người hỏi chọn câu trả lời hay nhất.</p>`) +
+      cmHead("Hỏi đáp", "qa", `<p class="small muted" style="margin:0">Đặt câu hỏi theo học phần, trả lời, bình chọn. Người hỏi chọn câu trả lời hay nhất. Câu trả lời được thích +${VOTE_REP.a} uy tín, được chọn +${VOTE_REP.accept}.</p>`) +
       `<div class="wrap stack" style="padding-block:20px;gap:16px">
-      <div class="row" style="justify-content:space-between;gap:8px"><form class="row" data-form="qs" style="gap:6px;flex-wrap:nowrap;flex:1 1 360px"><label class="sr" for="qsq">Tìm câu hỏi</label><input class="input" id="qsq" value="${esc(q)}" placeholder="Tìm câu hỏi"><select class="select" id="qshp" style="width:auto;max-width:200px" aria-label="Chủ đề hoặc Học phần"><option value="">Tất cả chủ đề</option><option value="CHUNG"${isChung ? " selected" : ""} style="font-weight:700;color:var(--stamp)">Hỏi đáp chung (ngoài môn học)</option><optgroup label="Theo học phần">${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><button class="btn ink" type="submit">Tìm</button></form><a class="btn primary" href="#/hoi-dap/hoi${hp ? `?hp=${hp}` : ""}">Đặt câu hỏi</a></div>
+      <div class="row" style="justify-content:space-between;gap:8px"><form class="row" data-form="qs" style="gap:6px;flex-wrap:nowrap;flex:1 1 320px"><label class="sr" for="qsq">Tìm câu hỏi</label><input class="input" id="qsq" value="${esc(q)}" placeholder="Tìm câu hỏi"><select class="select" id="qshp" style="width:auto" aria-label="Học phần"><option value="">Mọi học phần</option>${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code}</option>`).join("")}</select><button class="btn ink" type="submit">Tìm</button></form><a class="btn primary" href="#/hoi-dap/hoi${hp ? `?hp=${hp}` : ""}">Đặt câu hỏi</a></div>
       <nav class="tabs" aria-label="Lọc">${[["moi", "Mới nhất"], ["binh-chon", "Nhiều bình chọn"], ["chua-tra-loi", "Chưa có trả lời"]].map(([k, l]) => `<a href="${link({ loc: k })}"${k === loc ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>
-      <div class="row" style="gap:6px;overflow-x:auto;padding-bottom:2px">
-        <a class="btn sm${!hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ loc })}">Tất cả</a>
-        <a class="btn sm${isChung ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ hp: isChung ? "" : "CHUNG", loc })}" style="${isChung ? "" : "border-color:var(--stamp);color:var(--stamp);font-weight:700"}">Hỏi đáp chung</a>
-        ${codes.filter(c => c !== "CHUNG").map((c) => `<a class="btn sm${c === hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ hp: c === hp ? "" : c, loc })}">${c}</a>`).join("")}
-      </div>
+      ${codes.length ? `<div class="row" style="gap:6px">${codes.map((c) => `<a class="btn sm${c === hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ hp: c === hp ? "" : c, loc })}">${c}</a>`).join("")}</div>` : ""}
       ${list.length ? `<ul class="tb" style="list-style:none;margin:0;padding:0">${list
         .map((x) => {
           const a = ans(x);
-          const isQChung = x.course === "CHUNG";
-          return `<li style="display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:10px 12px;align-items:start"><span style="text-align:center;min-width:44px"><b class="code" style="font-size:20px;display:block">${voteSum(x.votes)}</b><span class="tiny muted">bình chọn</span></span><span style="text-align:center;min-width:52px;${x.accepted ? "border:2px solid var(--stamp);color:var(--stamp)" : a.length ? "border:2px solid var(--line)" : ""};padding:2px 4px"><b class="code" style="font-size:20px;display:block">${a.length}</b><span class="tiny">trả lời</span></span><span style="min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">${isQChung ? '<span class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border:1px solid var(--stamp);font-size:11px;font-weight:700;padding:1px 6px">Hỏi đáp chung</span>' : `<span class="code" style="font-size:13px;font-weight:700;background:var(--wash);padding:1px 6px;border:1px solid var(--line)">${x.course}</span>`}<a href="#/hoi-dap/${x.id}" style="font-weight:600;line-height:1.35">${esc(x.title)}</a></div><span class="tiny muted" style="display:block">${isQChung ? "Chủ đề chung ngoài môn học" : esc(course(x.course)?.name || "")}, hỏi bởi ${esc(displayName(userBy(x.by) || { name: "?" }))}, ${fmtTime(x.t)}</span></span></li>`;
+          return `<li style="display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:10px 12px;align-items:start"><span style="text-align:center;min-width:44px"><b class="code" style="font-size:20px;display:block">${voteSum(x.votes)}</b><span class="tiny muted">bình chọn</span></span><span style="text-align:center;min-width:52px;${x.accepted ? "border:2px solid var(--stamp);color:var(--stamp)" : a.length ? "border:2px solid var(--line)" : ""};padding:2px 4px"><b class="code" style="font-size:20px;display:block">${a.length}</b><span class="tiny">trả lời</span></span><span style="min-width:0"><a href="#/hoi-dap/${x.id}" style="font-weight:600;line-height:1.35">${esc(x.title)}</a><span class="tiny muted" style="display:block">${x.course} ${esc(course(x.course)?.name || "")}, ${esc(displayName(userBy(x.by) || { name: "?" }))}, ${fmtTime(x.t)}</span></span></li>`;
         })
         .join("")}</ul>` : empty("Chưa có câu hỏi nào.", '<a href="#/hoi-dap/hoi">Đặt câu hỏi đầu tiên</a>')}
       </div>`,
@@ -4285,7 +3599,7 @@ views["/hoi-dap/hoi"] = () => {
     html:
       cmHead("Đặt câu hỏi", "qa") +
       `<div class="wrap" style="max-width:760px;padding-block:20px"><form class="stack" data-form="ask" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:12px">
-      <div class="field"><label for="aq-c">Chủ đề hoặc Học phần <span class="req">*</span></label><select class="select" id="aq-c" required><option value="">-- Chọn chủ đề hoặc học phần --</option><option value="CHUNG"${hp === "CHUNG" ? " selected" : ""} style="font-weight:700;color:var(--stamp)">[Hỏi đáp chung] Đời sống, thủ tục, quy chế, CLB, học bổng, đăng ký tín chỉ...</option><optgroup label="Theo học phần Bách Khoa">${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><p class="tiny muted" style="margin:4px 0 0">Chọn <b>[Hỏi đáp chung]</b> nếu câu hỏi về đời sống sinh viên, học phí, tìm phòng trọ, quy chế... không thuộc môn học cụ thể.</p></div>
+      <div class="field"><label for="aq-c">Học phần <span class="req">*</span></label><select class="select" id="aq-c" required><option value="">Chọn học phần</option>${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} ${esc(c.name)}</option>`).join("")}</select></div>
       <div class="field"><label for="aq-t">Tiêu đề <span class="req">*</span></label><input class="input" id="aq-t" maxlength="150" placeholder="Hỏi cụ thể, ví dụ: Khi nào cây AVL cần quay kép?"></div>
       <div class="field"><label for="aq-b">Nội dung</label><textarea class="textarea" id="aq-b" maxlength="3000" placeholder="Bạn đã thử gì, chỗ nào chưa hiểu"></textarea></div>
       <p class="small muted" style="margin:0">Không đăng đáp án bài kiểm tra đang diễn ra. Câu hỏi vi phạm quy định sẽ bị ẩn.</p>
@@ -4298,7 +3612,7 @@ views["/hoi-dap/hoi"] = () => {
         const c = root.querySelector("#aq-c").value;
         const title = root.querySelector("#aq-t").value.trim();
         const body = root.querySelector("#aq-b").value.trim();
-        if (!c) return fail("Vui lòng chọn chủ đề hoặc học phần.");
+        if (!c) return fail("Chọn học phần.");
         if (title.length < 10) return fail("Tiêu đề ít nhất 10 ký tự.");
         const bad = qaCheck(`${title} ${body}`);
         if (bad) return fail(bad);
@@ -4308,7 +3622,7 @@ views["/hoi-dap/hoi"] = () => {
         const q = { id: `q${uid()}`, course: c, by: u.email, title, body, t: Date.now(), votes: {}, views: 0, accepted: null, status: "VISIBLE" };
         cm.questions.unshift(q);
         logAction(u, "ask");
-        if (c !== "CHUNG") { for (const [email, list] of Object.entries(S.follows)) if (list.includes(c) && email !== u.email) S.notifications.unshift({ id: uid(), to: email, type: "QA", title: `Câu hỏi mới ở ${c}: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false }); } else { S.users.slice(0, 5).forEach(x => { if (x.email !== u.email) S.notifications.unshift({ id: uid(), to: x.email, type: "QA", title: `Câu hỏi chung mới: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false }); }); }
+        for (const [email, list] of Object.entries(S.follows)) if (list.includes(c) && email !== u.email) S.notifications.unshift({ id: uid(), to: email, type: "QA", title: `Câu hỏi mới ở ${c}: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false });
         save();
         toast("Đã đăng câu hỏi.");
         go(`#/hoi-dap/${q.id}`);
@@ -4328,10 +3642,10 @@ views["/hoi-dap/:id"] = ({ id }) => {
   q.views = (q.views || 0) + 1;
   const asker = userBy(q.by) || { name: "?" };
   const list = cm.answers.filter((a) => a.q === q.id && (a.status === "VISIBLE" || isMod(u))).sort((a, b) => (b.id === q.accepted) - (a.id === q.accepted) || voteSum(b.votes) - voteSum(a.votes) || a.t - b.t);
-  const docs = q.course !== "CHUNG" && typeof examDocs === "function" ? examDocs(q.course, 3) : [];
+  const docs = typeof examDocs === "function" ? examDocs(q.course, 3) : [];
   return {
     html:
-      cmHead(esc(q.title), "qa", `<p class="small muted" style="margin:0">${q.course === "CHUNG" ? '<a href="#/hoi-dap?hp=CHUNG" class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border:1px solid var(--stamp);font-size:12px;font-weight:700;text-decoration:none;padding:2px 8px;margin-right:6px">Hỏi đáp chung</a>' : `<a href="#/hoi-dap?hp=${q.course}" style="font-weight:700">${q.course} ${esc(course(q.course)?.name || "")}</a>, `}hỏi bởi ${userLink(asker)}, ${fmtTime(q.t)}, ${q.views} lượt xem</p>`) +
+      cmHead(esc(q.title), "qa", `<p class="small muted" style="margin:0"><a href="#/hoi-dap?hp=${q.course}">${q.course} ${esc(course(q.course)?.name || "")}</a>, hỏi bởi ${userLink(asker)}, ${fmtTime(q.t)}, ${q.views} lượt xem</p>`) +
       `<div class="wrap stack" style="max-width:860px;padding-block:20px;gap:16px">
       <div class="tb" style="grid-template-columns:auto minmax(0,1fr)"><div style="padding:10px">${voteBox("q", q, u)}</div><div style="padding:12px 14px" class="stack"><p style="margin:0;white-space:pre-line">${esc(q.body || "(Không có mô tả thêm)")}</p>${isMod(u) ? `<div><button class="btn sm" type="button" data-hideq>${q.status === "VISIBLE" ? "Ẩn câu hỏi (KDV)" : "Hiện lại"}</button></div>` : ""}</div></div>
       <h2 class="h2" style="margin:8px 0 0">${list.length} câu trả lời</h2>
@@ -5797,7 +5111,6 @@ const TITLES={"/tro-ly":"Trợ lý AI","/chat":"Chat","/da-luu":"Đã lưu","/ba
 let lastPath=null;
 function render(){
   const path=currentPath();let view=views.notfound,args={};
-  if(!path.startsWith("/hoc-chung/")){if(typeof currentVoiceRoom!=="undefined"&&currentVoiceRoom){currentVoiceRoom.leave();currentVoiceRoom=null;}}
   for(const r of ROUTES){const m=path.match(r.re);if(m){view=views[r.k];r.names.forEach((n,i)=>args[n]=decodeURIComponent(m[i+1]));break}}
   document.querySelector("footer.site").hidden=path.startsWith("/chat");
   const out=view(args)||{html:""};const app=document.getElementById("app");app.innerHTML=out.html;renderHeader();out.mount?.(app);bindSearch(app);

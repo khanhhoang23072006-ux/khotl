@@ -258,7 +258,8 @@ async function main() {
   await seedCatalog();
   await seedSettings();
   const uploaderId = await seedUsers();
-  await seedDocuments(uploaderId);
+  // Mặc định không tạo tài liệu mẫu; muốn tạo lại: SEED_SAMPLE_DOCUMENTS=true pnpm db:seed
+  if (process.env.SEED_SAMPLE_DOCUMENTS === "true") await seedDocuments(uploaderId);
   console.log("Seed xong");
 }
 
