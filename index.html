@@ -750,23 +750,94 @@ function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="
   S.reports.filter(r=>r.doc===d.id&&r.status==="OPEN").forEach(r=>{r.status="RESOLVED";r.resolution=reason});notify(d.uploader,"DOCUMENT_REMOVED",d,{reason,link:"#/tai-lieu-cua-toi"});
   const back=crRevoke(d,u.email,reason);if(back)notify(d.uploader,"CREDITS_CHANGED",d,{amount:-back,reason,link:"#/luot-tai"});save()}
 
-/* ----- Đăng nhập (OTP giả lập: mã hiện trong hộp thư demo) ----- */
+/* ----- Đăng nhập (Gửi mã OTP thật qua Gmail SMTP về hộp thư người dùng) ----- */
 let pendingOtp=null;
 views["/dang-nhap"]=()=>{
   const next=params().get("next")||"/";if(me()){go("#"+next);return{html:""}}
   return {html:`<div class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="padding-block:40px;display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:960px">
-   <div class="stack"><h1 class="code" style="font-size:clamp(44px,7vw,60px);line-height:.95">Đăng nhập</h1><p style="margin:0;max-width:440px">Dùng email trường để đăng nhập, không cần mật khẩu. Lần đầu đăng nhập tài khoản được tạo tự động.</p>
-    <ul class="small muted" style="margin:0;padding-left:18px"><li>Đọc toàn bộ tài liệu ngay trên trình duyệt.</li><li>Tải file gốc về máy.</li><li>Đóng góp tài liệu và nhận điểm uy tín.</li></ul>
+   <div class="stack"><h1 class="code" style="font-size:clamp(44px,7vw,60px);line-height:.95">Đăng nhập</h1><p style="margin:0;max-width:440px">Dùng email sinh viên hoặc email cá nhân để nhận mã xác thực một lần (OTP). Không cần mật khẩu phức tạp.</p>
+    <ul class="small muted" style="margin:0;padding-left:18px"><li>Đọc toàn bộ tài liệu ngay trên trình duyệt.</li><li>Tải file gốc chất lượng cao về máy.</li><li>Đóng góp tài liệu và nhận điểm uy tín.</li><li>Tự động kích hoạt tài khoản trong lần đăng nhập đầu tiên.</li></ul>
 </div>
    <div style="border:2px solid var(--line);background:var(--sheet);padding:16px;box-shadow:6px 6px 0 var(--line)" class="stack" data-signin></div>
   </div></div>`,mount(root){const box=root.querySelector("[data-signin]");
-   const step1=(err="")=>{box.innerHTML=`<form class="stack" data-f1 novalidate><div class="field"><label for="em">Email trường</label><input class="input" id="em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn" value="${esc(pendingOtp?.email||"")}" aria-describedby="emh"><span id="emh" class="${err?"err":"hint"}">${err||"Chỉ nhận @sis.hust.edu.vn, @hust.edu.vn"}</span></div><button class="btn primary lg" type="submit">Gửi mã đăng nhập</button></form>`;
-    box.querySelector("[data-f1]").addEventListener("submit",(e)=>{e.preventDefault();const email=box.querySelector("#em").value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+$/.test(email))return step1("Email không hợp lệ.");if(!DOMAINS.includes(email.split("@")[1]))return step1("Chỉ nhận email trường: @sis.hust.edu.vn, @hust.edu.vn");pendingOtp={email,code:String(Math.floor(100000+Math.random()*900000)),t:Date.now()};step2()});box.querySelector("#em").focus()};
-   const step2=(err="")=>{box.innerHTML=`<div class="mailbox" style="border:2px solid var(--stamp);background:var(--sheet);margin-bottom:14px"><div class="mh" style="background:var(--wash)"><b>Xác thực email sinh viên</b><span>${fmtTime(pendingOtp.t)}</span></div><div class="mb"><b>Mã xác thực của bạn: <span class="code" style="font-size:22px;color:var(--stamp)">${pendingOtp.code}</span></b><br><span class="small muted">Mã đăng nhập an toàn gửi tới tài khoản <b>${esc(pendingOtp.email)}</b>. Mã có hiệu lực trong 10 phút.</span></div></div>
-     <form class="stack" data-f2 novalidate><div class="field"><label for="otp">Mã 6 số</label><input class="input otp" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="otph">${err?`<span id="otph" class="err" role="alert">${err}</span>`:'<span id="otph" class="hint">Mã có hiệu lực 10 phút.</span>'}</div><button class="btn primary lg" type="submit">Đăng nhập</button><div class="row" style="justify-content:space-between;font-size:13px"><button type="button" class="btn ghost sm" data-back>Đổi email</button><button type="button" class="btn ghost sm" data-resend>Gửi lại mã</button></div></form>`;
-    const otp=box.querySelector("#otp");otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});otp.focus();
-    box.querySelector("[data-back]").addEventListener("click",()=>step1());box.querySelector("[data-resend]").addEventListener("click",()=>{pendingOtp.code=String(Math.floor(100000+Math.random()*900000));pendingOtp.t=Date.now();step2()});
-    box.querySelector("[data-f2]").addEventListener("submit",(e)=>{e.preventDefault();if(otp.value!==pendingOtp.code)return step2("Mã không đúng hoặc đã hết hạn.");signIn(pendingOtp.email,params().get("next")||"/");pendingOtp=null})};
+   const step1=(err="",loading=false)=>{box.innerHTML=`<form class="stack" data-f1 novalidate><div class="field"><label for="em">Email của bạn</label><input class="input" id="em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingOtp?.email||"")}" aria-describedby="emh"${loading?" disabled":""}><span id="emh" class="${err?"err":"hint"}">${err||"Hỗ trợ email sinh viên (@sis.hust.edu.vn, @hust.edu.vn) và Gmail"}</span></div><button class="btn primary lg" type="submit"${loading?" disabled":""}>${loading?"Đang gửi mã xác thực...":"Gửi mã đăng nhập"}</button></form>`;
+    const form=box.querySelector("[data-f1]");
+    form.addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const email=box.querySelector("#em").value.trim().toLowerCase();
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return step1("Vui lòng nhập địa chỉ email hợp lệ.");
+      step1("",true);
+      try {
+        const res = await fetch("/api/send_otp.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.success) {
+          pendingOtp = { email, t: Date.now() };
+          step2();
+          toast("Mã xác thực 6 số đã được gửi tới email của bạn!");
+        } else {
+          step1(data.message || "Không thể gửi mã xác thực. Vui lòng thử lại.");
+        }
+      } catch (err) {
+        console.error("send_otp error:", err);
+        step1("Không thể kết nối máy chủ gửi thư. Vui lòng kiểm tra lại mạng.");
+      }
+    });
+    if(!loading)box.querySelector("#em").focus();
+   };
+   const step2=(err="",loading=false)=>{box.innerHTML=`<div class="mailbox" style="border:2px solid var(--line);background:var(--paper);margin-bottom:14px;padding:14px"><div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><div style="width:38px;height:38px;border-radius:50%;background:var(--wash);display:flex;align-items:center;justify-content:center;font-size:20px;border:1px solid var(--line)">✉️</div><div><b style="font-size:15px">Kiểm tra hộp thư email</b><div class="small muted" style="font-size:12px">Mã 6 số đã gửi tới: <b style="color:var(--ink)">${esc(pendingOtp.email)}</b></div></div></div><p class="small muted" style="margin:0;line-height:1.45;font-size:12px;border-top:1px solid var(--line);padding-top:8px">Vui lòng kiểm tra hộp thư đến (Inbox) hoặc mục Thư rác / Spam trong Gmail. Mã OTP có hiệu lực trong <b>10 phút</b>.</p></div>
+     <form class="stack" data-f2 novalidate><div class="field"><label for="otp">Mã xác thực 6 số</label><input class="input otp" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="otph" placeholder="••••••"${loading?" disabled":""}>${err?`<span id="otph" class="err" role="alert">${err}</span>`:'<span id="otph" class="hint">Nhập đúng 6 chữ số vừa nhận được trong email.</span>'}</div><button class="btn primary lg" type="submit"${loading?" disabled":""}>${loading?"Đang xác thực...":"Đăng nhập"}</button><div class="row" style="justify-content:space-between;font-size:13px"><button type="button" class="btn ghost sm" data-back>Đổi email</button><button type="button" class="btn ghost sm" data-resend>Gửi lại mã</button></div></form>`;
+    const otp=box.querySelector("#otp");
+    otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});
+    if(!loading)otp.focus();
+    box.querySelector("[data-back]").addEventListener("click",()=>step1());
+    box.querySelector("[data-resend]").addEventListener("click",async()=>{
+      toast("Đang gửi lại mã xác thực...");
+      try {
+        const res = await fetch("/api/send_otp.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: pendingOtp.email })
+        });
+        const data = await res.json();
+        if (data.success) {
+          pendingOtp.t = Date.now();
+          step2();
+          toast("Đã gửi lại mã mới về email!");
+        } else {
+          toast(data.message || "Không thể gửi lại mã.");
+        }
+      } catch (err) {
+        toast("Lỗi kết nối khi gửi lại mã.");
+      }
+    });
+    box.querySelector("[data-f2]").addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const code = otp.value.trim();
+      if(code.length !== 6) return step2("Vui lòng nhập đủ 6 chữ số.");
+      step2("", true);
+      try {
+        const res = await fetch("/api/verify_otp.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: pendingOtp.email, otp: code })
+        });
+        const data = await res.json();
+        if (data.success) {
+          signIn(pendingOtp.email, params().get("next") || "/");
+          pendingOtp = null;
+        } else {
+          step2(data.message || "Mã xác thực không chính xác hoặc đã hết hạn.");
+        }
+      } catch (err) {
+        console.error("verify_otp error:", err);
+        step2("Không thể kết nối máy chủ xác thực. Vui lòng thử lại.");
+      }
+    });
+   };
    step1()}};
 };
 function signIn(email,next="/"){let u=userBy(email);if(!u){const base=email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"sv";u={email,name:email.split("@")[0],username:base,faculty:null,cohort:null,roles:[{key:"STUDENT"}],reputation:0,approved:0,trust:0,createdAt:Date.now()};S.users.push(u)}
