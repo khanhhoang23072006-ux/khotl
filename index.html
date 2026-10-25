@@ -390,7 +390,7 @@ function highlight(text, terms){
 }
 
 /* ===================== Dữ liệu và lưu trữ ===================== */
-const KEY="khotl-demo-v1";
+const KEY="hustdocu-v3";
 function seedState(){
   const users=[
     {email:"sv.demo@sis.hust.edu.vn",name:"Sinh viên Demo",username:"sv.demo",faculty:"SOICT",cohort:68,roles:[{key:"STUDENT"}],reputation:600,approved:DATA.documents.filter(d=>d.uploader==="Sinh viên Demo").length,trust:2,createdAt:Date.now()},
@@ -441,7 +441,7 @@ const fileDB={db:null,
   async clear(){try{const db=await this.open();db.transaction("files","readwrite").objectStore("files").clear()}catch{}}};
 
 const faculty=(code)=>DATA.faculties.find(f=>f.code===code);
-const course=(code)=>S.courses.find(c=>c.code===code);
+const course=(code)=>code==="CHUNG"?{code:"CHUNG",name:"Hỏi đáp chung",shortName:"Chung",faculty:null,credits:0,keywords:[]}:S.courses.find(c=>c.code===code);
 const userBy=(email)=>S.users.find(u=>u.email===email);
 const me=()=>S.session?userBy(S.session):null;
 const hasRole=(u,k)=>!!u&&u.roles.some(r=>r.key===k);
@@ -3205,6 +3205,18 @@ function seedCm() {
     S.users.slice(0, 2 + (days % 4)).forEach((x) => x.email !== q.by && (q.votes[x.email] = 1));
     return q;
   };
+  // Hỏi đáp chung (đời sống, thủ tục, CLB, học tập...)
+  Q("CHUNG", "vy.dk", "Xin giấy xác nhận sinh viên trực tuyến ở đâu và mất bao lâu để lấy?", "Em cần xin giấy xác nhận sinh viên để làm thủ tục tạm hoãn nghĩa vụ quân sự và làm vé xe buýt. Hiện tại Bách Khoa làm trực tuyến qua cổng nào và đến bàn nào phòng Đào tạo lấy ạ?", 2, [
+    ["le.minh.quan", "Bạn vào cổng ctt.hust.edu.vn hoặc eHUST, mục Dịch vụ trực tuyến -> Đề nghị cấp giấy tờ. Sau khi đăng ký tầm 2-3 ngày làm việc hệ thống báo xong thì lên Bàn 1 - Phòng Đào tạo (nhà C1) mang theo thẻ SV là lấy được nhé.", 8],
+    ["nguyen.thu.ha", "Hiện tại đã có bản PDF có chữ ký số gửi thẳng về email trường (@sis.hust.edu.vn), nếu nơi nhận chấp nhận bản điện tử thì không cần lên C1 lấy trực tiếp nữa nha bạn.", 5]
+  ], 0);
+  Q("CHUNG", "pham.ngoc.mai", "Kinh nghiệm đăng ký lớp học phần để tránh bị nghẽn mạng và trùng lịch?", "Kỳ tới em tính đăng ký 21 tín chỉ nhưng nghe các anh chị bảo đợt đăng ký hay bị quá tải hệ thống. Mọi người có mẹo gì xếp thời khóa biểu và đăng ký nhanh không ạ?", 4, [
+    ["tran.duc.anh", "Lên kế hoạch trước: soạn sẵn 2-3 phương án thời khóa biểu (ghi sẵn mã lớp kèm mã học phần). Đúng giờ mở cổng thì dùng mạng dây hoặc 4G ổn định, paste mã lớp thật nhanh. Tránh F5 liên tục kẻo bị chặn IP 15 phút nhé.", 7]
+  ], 0);
+  Q("CHUNG", "chau.nm", "Xung quanh trường có quán cà phê hay phòng tự học nào yên tĩnh mở muộn không?", "Thư viện Tạ Quang Bửu đóng cửa lúc 21h, mọi người cho em xin vài địa chỉ quanh Tạ Quang Bửu hoặc Lê Thanh Nghị ngồi tự học đêm yên tĩnh với ạ.", 6, [
+    ["huy.bq", "Quanh Lê Thanh Nghị và Tạ Quang Bửu có vài quán cà phê 24h, wifi mạnh và có ổ điện từng bàn. Ngoài ra bạn có thể lên không gian tự học ở tầng 2 nhà D3-D5 trong trường cũng rất yên tĩnh.", 4]
+  ], null);
+
   Q("IT3011", "vy.dk", "Khi nào cây AVL cần quay kép thay vì quay đơn?", "Em hiểu quay đơn khi lệch trái-trái hoặc phải-phải, nhưng vẫn hay nhầm khi gặp trường hợp trái-phải. Có cách nào nhớ nhanh không ạ?", 1, [["le.minh.quan", "Nhìn hướng lệch của nút con: nếu con trái lệch sang phải (trường hợp trái-phải) thì phải quay trái ở nút con trước để đưa về trái-trái, rồi quay phải ở nút mất cân bằng. Mẹo nhớ: hai hướng lệch giống nhau thì quay một lần, khác nhau thì quay hai lần.", 5], ["nguyen.thu.ha", "Vẽ ba nút ra giấy rồi xoay, làm 3-4 bài là quen. Đề giữa kỳ hay hỏi đúng dạng này.", 2]], 0);
   Q("IT3011", "pham.ngoc.mai", "Độ phức tạp của Dijkstra dùng heap là bao nhiêu?", "Slide ghi O((V + E) log V) nhưng bạn em bảo O(V²). Cái nào đúng ạ?", 3, [["tran.duc.anh", "Cả hai đều đúng tùy cách cài: dùng mảng tìm min thì O(V²), hợp với đồ thị dày; dùng hàng đợi ưu tiên (binary heap) thì O((V + E) log V), hợp với đồ thị thưa.", 4]], 0);
   Q("MI1111", "thinh.pd", "Tích phân suy rộng ∫ từ 0 đến 1 của 1/√x dx có hội tụ không?", "Hàm không bị chặn tại 0 nên em không chắc.", 2, [["thao.mp", "Hội tụ, bằng 2. Nguyên hàm 2√x, giới hạn khi cận dưới tiến về 0 bằng 0. Tổng quát ∫ từ 0 đến 1 của 1/xᵖ hội tụ khi p < 1.", 6]], 0);
@@ -3571,19 +3583,25 @@ views["/hoi-dap"] = () => {
   const ans = (x) => cm.answers.filter((a) => a.q === x.id && a.status === "VISIBLE");
   if (loc === "chua-tra-loi") list = list.filter((x) => !ans(x).length);
   list.sort(loc === "binh-chon" ? (a, b) => voteSum(b.votes) - voteSum(a.votes) : (a, b) => b.t - a.t);
-  const codes = [...new Set(cm.questions.map((x) => x.course))].sort();
+  const codes = [...new Set(cm.questions.map((x) => x.course).filter(Boolean))].sort((a,b)=>a==="CHUNG"?-1:b==="CHUNG"?1:a.localeCompare(b));
   const link = (over) => `#/hoi-dap?${new URLSearchParams({ ...(hp ? { hp } : {}), loc, ...(q ? { q } : {}), ...over })}`;
+  const isChung = hp === "CHUNG";
   return {
     html:
-      cmHead("Hỏi đáp", "qa", `<p class="small muted" style="margin:0">Đặt câu hỏi theo học phần, trả lời, bình chọn. Người hỏi chọn câu trả lời hay nhất. Câu trả lời được thích +${VOTE_REP.a} uy tín, được chọn +${VOTE_REP.accept}.</p>`) +
+      cmHead("Hỏi đáp", "qa", `<p class="small muted" style="margin:0">Hỏi đáp theo học phần và <b>Hỏi đáp chung</b> (đời sống, thủ tục, quy chế, CLB, học tập...). Người hỏi chọn câu trả lời hay nhất.</p>`) +
       `<div class="wrap stack" style="padding-block:20px;gap:16px">
-      <div class="row" style="justify-content:space-between;gap:8px"><form class="row" data-form="qs" style="gap:6px;flex-wrap:nowrap;flex:1 1 320px"><label class="sr" for="qsq">Tìm câu hỏi</label><input class="input" id="qsq" value="${esc(q)}" placeholder="Tìm câu hỏi"><select class="select" id="qshp" style="width:auto" aria-label="Học phần"><option value="">Mọi học phần</option>${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code}</option>`).join("")}</select><button class="btn ink" type="submit">Tìm</button></form><a class="btn primary" href="#/hoi-dap/hoi${hp ? `?hp=${hp}` : ""}">Đặt câu hỏi</a></div>
+      <div class="row" style="justify-content:space-between;gap:8px"><form class="row" data-form="qs" style="gap:6px;flex-wrap:nowrap;flex:1 1 360px"><label class="sr" for="qsq">Tìm câu hỏi</label><input class="input" id="qsq" value="${esc(q)}" placeholder="Tìm câu hỏi"><select class="select" id="qshp" style="width:auto;max-width:200px" aria-label="Chủ đề hoặc Học phần"><option value="">Tất cả chủ đề</option><option value="CHUNG"${isChung ? " selected" : ""} style="font-weight:700;color:var(--stamp)">💬 Hỏi đáp chung (ngoài môn học)</option><optgroup label="Theo học phần">${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><button class="btn ink" type="submit">Tìm</button></form><a class="btn primary" href="#/hoi-dap/hoi${hp ? `?hp=${hp}` : ""}">Đặt câu hỏi</a></div>
       <nav class="tabs" aria-label="Lọc">${[["moi", "Mới nhất"], ["binh-chon", "Nhiều bình chọn"], ["chua-tra-loi", "Chưa có trả lời"]].map(([k, l]) => `<a href="${link({ loc: k })}"${k === loc ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>
-      ${codes.length ? `<div class="row" style="gap:6px">${codes.map((c) => `<a class="btn sm${c === hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ hp: c === hp ? "" : c, loc })}">${c}</a>`).join("")}</div>` : ""}
+      <div class="row" style="gap:6px;overflow-x:auto;padding-bottom:2px">
+        <a class="btn sm${!hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ loc })}">Tất cả</a>
+        <a class="btn sm${isChung ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ hp: isChung ? "" : "CHUNG", loc })}" style="${isChung ? "" : "border-color:var(--stamp);color:var(--stamp);font-weight:700"}">💬 Hỏi đáp chung</a>
+        ${codes.filter(c => c !== "CHUNG").map((c) => `<a class="btn sm${c === hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ hp: c === hp ? "" : c, loc })}">${c}</a>`).join("")}
+      </div>
       ${list.length ? `<ul class="tb" style="list-style:none;margin:0;padding:0">${list
         .map((x) => {
           const a = ans(x);
-          return `<li style="display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:10px 12px;align-items:start"><span style="text-align:center;min-width:44px"><b class="code" style="font-size:20px;display:block">${voteSum(x.votes)}</b><span class="tiny muted">bình chọn</span></span><span style="text-align:center;min-width:52px;${x.accepted ? "border:2px solid var(--stamp);color:var(--stamp)" : a.length ? "border:2px solid var(--line)" : ""};padding:2px 4px"><b class="code" style="font-size:20px;display:block">${a.length}</b><span class="tiny">trả lời</span></span><span style="min-width:0"><a href="#/hoi-dap/${x.id}" style="font-weight:600;line-height:1.35">${esc(x.title)}</a><span class="tiny muted" style="display:block">${x.course} ${esc(course(x.course)?.name || "")}, ${esc(displayName(userBy(x.by) || { name: "?" }))}, ${fmtTime(x.t)}</span></span></li>`;
+          const isQChung = x.course === "CHUNG";
+          return `<li style="display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:10px 12px;align-items:start"><span style="text-align:center;min-width:44px"><b class="code" style="font-size:20px;display:block">${voteSum(x.votes)}</b><span class="tiny muted">bình chọn</span></span><span style="text-align:center;min-width:52px;${x.accepted ? "border:2px solid var(--stamp);color:var(--stamp)" : a.length ? "border:2px solid var(--line)" : ""};padding:2px 4px"><b class="code" style="font-size:20px;display:block">${a.length}</b><span class="tiny">trả lời</span></span><span style="min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">${isQChung ? '<span class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border:1px solid var(--stamp);font-size:11px;font-weight:700;padding:1px 6px">💬 Hỏi đáp chung</span>' : `<span class="code" style="font-size:13px;font-weight:700;background:var(--wash);padding:1px 6px;border:1px solid var(--line)">${x.course}</span>`}<a href="#/hoi-dap/${x.id}" style="font-weight:600;line-height:1.35">${esc(x.title)}</a></div><span class="tiny muted" style="display:block">${isQChung ? "Chủ đề chung ngoài môn học" : esc(course(x.course)?.name || "")}, hỏi bởi ${esc(displayName(userBy(x.by) || { name: "?" }))}, ${fmtTime(x.t)}</span></span></li>`;
         })
         .join("")}</ul>` : empty("Chưa có câu hỏi nào.", '<a href="#/hoi-dap/hoi">Đặt câu hỏi đầu tiên</a>')}
       </div>`,
@@ -3603,7 +3621,7 @@ views["/hoi-dap/hoi"] = () => {
     html:
       cmHead("Đặt câu hỏi", "qa") +
       `<div class="wrap" style="max-width:760px;padding-block:20px"><form class="stack" data-form="ask" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:12px">
-      <div class="field"><label for="aq-c">Học phần <span class="req">*</span></label><select class="select" id="aq-c" required><option value="">Chọn học phần</option>${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} ${esc(c.name)}</option>`).join("")}</select></div>
+      <div class="field"><label for="aq-c">Chủ đề hoặc Học phần <span class="req">*</span></label><select class="select" id="aq-c" required><option value="">-- Chọn chủ đề hoặc học phần --</option><option value="CHUNG"${hp === "CHUNG" ? " selected" : ""} style="font-weight:700;color:var(--stamp)">💬 [Hỏi đáp chung] Đời sống, thủ tục, quy chế, CLB, học bổng, đăng ký tín chỉ...</option><optgroup label="Theo học phần Bách Khoa">${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><p class="tiny muted" style="margin:4px 0 0">Chọn <b>[Hỏi đáp chung]</b> nếu câu hỏi về đời sống sinh viên, học phí, tìm phòng trọ, quy chế... không thuộc môn học cụ thể.</p></div>
       <div class="field"><label for="aq-t">Tiêu đề <span class="req">*</span></label><input class="input" id="aq-t" maxlength="150" placeholder="Hỏi cụ thể, ví dụ: Khi nào cây AVL cần quay kép?"></div>
       <div class="field"><label for="aq-b">Nội dung</label><textarea class="textarea" id="aq-b" maxlength="3000" placeholder="Bạn đã thử gì, chỗ nào chưa hiểu"></textarea></div>
       <p class="small muted" style="margin:0">Không đăng đáp án bài kiểm tra đang diễn ra. Câu hỏi vi phạm quy định sẽ bị ẩn.</p>
@@ -3616,7 +3634,7 @@ views["/hoi-dap/hoi"] = () => {
         const c = root.querySelector("#aq-c").value;
         const title = root.querySelector("#aq-t").value.trim();
         const body = root.querySelector("#aq-b").value.trim();
-        if (!c) return fail("Chọn học phần.");
+        if (!c) return fail("Vui lòng chọn chủ đề hoặc học phần.");
         if (title.length < 10) return fail("Tiêu đề ít nhất 10 ký tự.");
         const bad = qaCheck(`${title} ${body}`);
         if (bad) return fail(bad);
@@ -3626,7 +3644,7 @@ views["/hoi-dap/hoi"] = () => {
         const q = { id: `q${uid()}`, course: c, by: u.email, title, body, t: Date.now(), votes: {}, views: 0, accepted: null, status: "VISIBLE" };
         cm.questions.unshift(q);
         logAction(u, "ask");
-        for (const [email, list] of Object.entries(S.follows)) if (list.includes(c) && email !== u.email) S.notifications.unshift({ id: uid(), to: email, type: "QA", title: `Câu hỏi mới ở ${c}: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false });
+        if (c !== "CHUNG") { for (const [email, list] of Object.entries(S.follows)) if (list.includes(c) && email !== u.email) S.notifications.unshift({ id: uid(), to: email, type: "QA", title: `Câu hỏi mới ở ${c}: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false }); } else { S.users.slice(0, 5).forEach(x => { if (x.email !== u.email) S.notifications.unshift({ id: uid(), to: x.email, type: "QA", title: `Câu hỏi chung mới: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false }); }); }
         save();
         toast("Đã đăng câu hỏi.");
         go(`#/hoi-dap/${q.id}`);
@@ -3646,10 +3664,10 @@ views["/hoi-dap/:id"] = ({ id }) => {
   q.views = (q.views || 0) + 1;
   const asker = userBy(q.by) || { name: "?" };
   const list = cm.answers.filter((a) => a.q === q.id && (a.status === "VISIBLE" || isMod(u))).sort((a, b) => (b.id === q.accepted) - (a.id === q.accepted) || voteSum(b.votes) - voteSum(a.votes) || a.t - b.t);
-  const docs = typeof examDocs === "function" ? examDocs(q.course, 3) : [];
+  const docs = q.course !== "CHUNG" && typeof examDocs === "function" ? examDocs(q.course, 3) : [];
   return {
     html:
-      cmHead(esc(q.title), "qa", `<p class="small muted" style="margin:0"><a href="#/hoi-dap?hp=${q.course}">${q.course} ${esc(course(q.course)?.name || "")}</a>, hỏi bởi ${userLink(asker)}, ${fmtTime(q.t)}, ${q.views} lượt xem</p>`) +
+      cmHead(esc(q.title), "qa", `<p class="small muted" style="margin:0">${q.course === "CHUNG" ? '<a href="#/hoi-dap?hp=CHUNG" class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border:1px solid var(--stamp);font-size:12px;font-weight:700;text-decoration:none;padding:2px 8px;margin-right:6px">💬 Hỏi đáp chung</a>' : `<a href="#/hoi-dap?hp=${q.course}" style="font-weight:700">${q.course} ${esc(course(q.course)?.name || "")}</a>, `}hỏi bởi ${userLink(asker)}, ${fmtTime(q.t)}, ${q.views} lượt xem</p>`) +
       `<div class="wrap stack" style="max-width:860px;padding-block:20px;gap:16px">
       <div class="tb" style="grid-template-columns:auto minmax(0,1fr)"><div style="padding:10px">${voteBox("q", q, u)}</div><div style="padding:12px 14px" class="stack"><p style="margin:0;white-space:pre-line">${esc(q.body || "(Không có mô tả thêm)")}</p>${isMod(u) ? `<div><button class="btn sm" type="button" data-hideq>${q.status === "VISIBLE" ? "Ẩn câu hỏi (KDV)" : "Hiện lại"}</button></div>` : ""}</div></div>
       <h2 class="h2" style="margin:8px 0 0">${list.length} câu trả lời</h2>
