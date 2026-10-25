@@ -425,6 +425,33 @@ function load(){
   if(!S.comments) S.comments=[];
   if(!S.rooms) seedChat(S);
   if(!S.credits) seedCredits(S);
+  // Đảm bảo các tài khoản Quản trị viên luôn sẵn sàng và có đầy đủ quyền
+  const ADMIN_EMAILS = ["khanhhoang23072006@gmail.com", "admin@lofcreate.online", "admin@hust.edu.vn", "admin.demo@hust.edu.vn"];
+  ADMIN_EMAILS.forEach(em => {
+    let u = S.users.find(x => x.email.toLowerCase() === em.toLowerCase());
+    if (!u) {
+      u = {
+        email: em,
+        name: em === "khanhhoang23072006@gmail.com" ? "Khánh Hoàng" : "Quản trị viên",
+        displayName: em === "khanhhoang23072006@gmail.com" ? "Khánh Hoàng (Admin)" : "Admin HUSTDOCU",
+        username: em === "khanhhoang23072006@gmail.com" ? "khanhhoang" : "admin",
+        faculty: "SOICT",
+        cohort: 68,
+        roles: [{key: "STUDENT"}, {key: "MODERATOR", faculty: null}, {key: "ADMIN", faculty: null}],
+        reputation: 99999,
+        approved: 999,
+        trust: 3,
+        createdAt: Date.now()
+      };
+      S.users.push(u);
+    } else {
+      if (!u.roles.some(r => r.key === "ADMIN")) u.roles.push({key: "ADMIN", faculty: null});
+      if (!u.roles.some(r => r.key === "MODERATOR")) u.roles.push({key: "MODERATOR", faculty: null});
+      u.trust = 3;
+      if (!u.faculty) u.faculty = "SOICT";
+      if (!u.cohort) u.cohort = 68;
+    }
+  });
   try{const ss=sessionStorage.getItem(KEY+"-session");if(ss!==null)S.session=ss||null}catch{}
 }
 function save(){try{localStorage.setItem(KEY,JSON.stringify({...S,session:null,typing:null}));sessionStorage.setItem(KEY+"-session",S.session||"")}catch{}}
@@ -840,8 +867,39 @@ views["/dang-nhap"]=()=>{
    };
    step1()}};
 };
-function signIn(email,next="/"){let u=userBy(email);if(!u){const base=email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"sv";u={email,name:email.split("@")[0],username:base,faculty:null,cohort:null,roles:[{key:"STUDENT"}],reputation:0,approved:0,trust:0,createdAt:Date.now()};S.users.push(u)}
-  S.session=email;save();toast(`Đã đăng nhập: ${displayName(u)}`);go(u.faculty&&u.cohort?"#"+next:`#/hoan-thien-ho-so?next=${encodeURIComponent(next)}`)}
+function signIn(email,next="/"){
+  const em = (email||"").trim().toLowerCase();
+  let u=userBy(em);
+  const isAdminEmail = ["khanhhoang23072006@gmail.com", "admin@lofcreate.online", "admin@hust.edu.vn", "admin.demo@hust.edu.vn"].includes(em);
+  if(!u){
+    const base=em.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
+    u={
+      email: em,
+      name: isAdminEmail ? "Khánh Hoàng" : em.split("@")[0],
+      displayName: isAdminEmail ? "Khánh Hoàng (Admin)" : null,
+      username: base,
+      faculty: isAdminEmail ? "SOICT" : null,
+      cohort: isAdminEmail ? 68 : null,
+      roles: isAdminEmail ? [{key:"STUDENT"},{key:"MODERATOR",faculty:null},{key:"ADMIN",faculty:null}] : [{key:"STUDENT"}],
+      reputation: isAdminEmail ? 99999 : 0,
+      approved: isAdminEmail ? 999 : 0,
+      trust: isAdminEmail ? 3 : 0,
+      createdAt: Date.now()
+    };
+    S.users.push(u);
+  } else if (isAdminEmail) {
+    if (!u.roles.some(r => r.key === "ADMIN")) u.roles.push({key: "ADMIN", faculty: null});
+    if (!u.roles.some(r => r.key === "MODERATOR")) u.roles.push({key: "MODERATOR", faculty: null});
+    u.trust = 3;
+    if (!u.faculty) u.faculty = "SOICT";
+    if (!u.cohort) u.cohort = 68;
+  }
+  S.session=em;
+  save();
+  toast(`Đã đăng nhập: ${displayName(u)}${isAdmin(u) ? " (Quản trị viên)" : ""}`);
+  const target = (next === "/" && isAdmin(u)) ? "/quan-tri" : next;
+  go(u.faculty&&u.cohort?"#"+target:`#/hoan-thien-ho-so?next=${encodeURIComponent(target)}`);
+}
 
 views["/hoan-thien-ho-so"]=()=>{
   const u=me();if(!u)return needLogin("/hoan-thien-ho-so");const next=params().get("next")||"/";const done=!!(u.faculty&&u.cohort);
