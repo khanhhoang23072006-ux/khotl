@@ -3580,10 +3580,6 @@ function voiceStationHtml(r, u) {
         <span>Thử mic</span>
       </button>
 
-      <button type="button" id="btn-bot-speak" class="btn ghost" style="height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;cursor:pointer" title="Thử nghiệm bạn cùng phòng phát biểu qua voice">
-        <span>🧪 Thử đàm thoại bạn học</span>
-      </button>
-
       <div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:4px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span class="tiny muted">Mức tín hiệu mic:</span>
@@ -3691,7 +3687,6 @@ views["/hoc-chung/:id"] = ({ id }) => {
       root.querySelector("#btn-toggle-mic")?.addEventListener("click", () => currentVoiceRoom?.toggleMic());
       root.querySelector("#btn-toggle-deafen")?.addEventListener("click", () => currentVoiceRoom?.toggleDeafen());
       root.querySelector("#btn-toggle-test")?.addEventListener("click", () => currentVoiceRoom?.toggleLoopback());
-      root.querySelector("#btn-bot-speak")?.addEventListener("click", () => currentVoiceRoom?.simulateBotSpeak());
 
       bindTimer(root, () => ST().rooms.find((x) => x.id === id), u);
       startTicker(() => ST().rooms.find((x) => x.id === id), u, true);
