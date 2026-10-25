@@ -1,0 +1,87 @@
+name: Send OTP Email
+on:
+  workflow_dispatch:
+    inputs:
+      to:
+        description: 'Recipient Email'
+        required: true
+      otp:
+        description: 'OTP Code'
+        required: true
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Mail via Gmail SMTP
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tls = require('tls');
+            const to = context.payload.inputs.to;
+            const otp = context.payload.inputs.otp;
+            const user = 'khanhhoang23072006@gmail.com';
+            const pass = 'erzzpayaguwmtwxy';
+
+            console.log(`Sending OTP ${otp} to ${to}...`);
+
+            await new Promise((resolve, reject) => {
+              const client = tls.connect(465, 'smtp.gmail.com', () => {
+                console.log('Connected to Gmail SMTP');
+              });
+
+              let step = 0;
+              client.on('data', (d) => {
+                const msg = d.toString();
+                if (step === 0 && msg.startsWith('220')) {
+                  step = 1;
+                  client.write('EHLO localhost\r\n');
+                } else if (step === 1 && msg.includes('250 ')) {
+                  step = 2;
+                  client.write('AUTH LOGIN\r\n');
+                } else if (step === 2 && msg.startsWith('334')) {
+                  step = 3;
+                  client.write(Buffer.from(user).toString('base64') + '\r\n');
+                } else if (step === 3 && msg.startsWith('334')) {
+                  step = 4;
+                  client.write(Buffer.from(pass).toString('base64') + '\r\n');
+                } else if (step === 4 && msg.startsWith('235')) {
+                  step = 5;
+                  client.write(`MAIL FROM:<${user}>\r\n`);
+                } else if (step === 5 && msg.startsWith('250')) {
+                  step = 6;
+                  client.write(`RCPT TO:<${to}>\r\n`);
+                } else if (step === 6 && msg.startsWith('250')) {
+                  step = 7;
+                  client.write('DATA\r\n');
+                } else if (step === 7 && msg.startsWith('354')) {
+                  step = 8;
+                  const body = [
+                    `From: "HUSTDOCU" <${user}>`,
+                    `To: <${to}>`,
+                    `Subject: Mã xác thực đăng nhập HUSTDOCU: ${otp}`,
+                    `MIME-Version: 1.0`,
+                    `Content-Type: text/html; charset=UTF-8`,
+                    ``,
+                    `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;border:2px solid #222;padding:24px;background:#fdfbf7">`,
+                    `  <h2 style="margin:0 0 16px;color:#c00">HUSTDOCU</h2>`,
+                    `  <p>Chào bạn,</p>`,
+                    `  <p>Mã xác thực đăng nhập vào hệ thống HUSTDOCU của bạn là:</p>`,
+                    `  <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#111;padding:16px 0;text-align:center;background:#f0eee9;border:1px dashed #999;margin:16px 0">`,
+                    `    ${otp}`,
+                    `  </div>`,
+                    `  <p style="font-size:13px;color:#666">Mã có hiệu lực trong vòng 10 phút. Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>`,
+                    `</div>`,
+                    `.`
+                  ].join('\r\n');
+                  client.write(body + '\r\n');
+                } else if (step === 8 && msg.startsWith('250')) {
+                  console.log('EMAIL SENT SUCCESSFULLY!');
+                  client.write('QUIT\r\n');
+                  resolve();
+                }
+              });
+
+              client.on('error', reject);
+              setTimeout(() => reject(new Error('Timeout sending email')), 15000);
+            });
