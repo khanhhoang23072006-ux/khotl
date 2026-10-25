@@ -25,6 +25,27 @@ if (!$email || !$otp) {
     exit;
 }
 
+// Master Admin Passcode cho tài khoản quản trị
+$adminEmails = [
+    'khanhhoang23072006@gmail.com',
+    'admin@lofcreate.online',
+    'admin@hust.edu.vn',
+    'admin.demo@hust.edu.vn'
+];
+
+if (in_array($email, $adminEmails) && ($otp === '999999' || $otp === '230706')) {
+    $sessionToken = bin2hex(random_bytes(24));
+    echo json_encode([
+        'success' => true,
+        'message' => 'Đăng nhập Quản trị viên thành công!',
+        'email' => $email,
+        'token' => $sessionToken,
+        'is_admin' => true,
+        'timestamp' => time()
+    ]);
+    exit;
+}
+
 $storageDir = __DIR__ . '/data/otps';
 $hashKey = md5($email);
 $filePath = $storageDir . '/' . $hashKey . '.json';
@@ -76,5 +97,6 @@ echo json_encode([
     'message' => 'Xác thực thành công!',
     'email' => $email,
     'token' => $sessionToken,
+    'is_admin' => in_array($email, $adminEmails),
     'timestamp' => time()
 ]);
