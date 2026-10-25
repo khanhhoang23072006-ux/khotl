@@ -119,6 +119,36 @@ pnpm e2e             # cần web + worker + hạ tầng đang chạy, dữ liệ
 
 CI (GitHub Actions) chạy cả ba job: kiểm tra mã, migration trên Postgres thật, và e2e với web, worker, Postgres, SeaweedFS, Mailpit thật.
 
+## Giai đoạn 8: kiểm duyệt nâng cao và an toàn nền tảng (bản demo)
+
+Mã ở `demo/moderation.js`. Vào nhanh bằng **Kiểm duyệt viên** hoặc **Cộng tác viên** trên thanh demo.
+
+- **AI hỗ trợ kiểm duyệt** (bảng trong trang chi tiết kiểm duyệt):
+  - nhãn chất lượng (Tốt, Khá, Cần xem kỹ) kèm lý do;
+  - trùng nội dung theo độ giống Jaccard trên cụm 3 từ đã bỏ dấu (ngưỡng 60%), không chỉ trùng hash;
+  - đạo văn theo tỉ lệ câu trùng nguyên văn (ngưỡng 30%), kèm câu mẫu;
+  - dấu hiệu bản quyền: ký hiệu ©, "bản quyền thuộc", NXB/ISBN, lời cấm sao chép, dấu vết trang chia sẻ khác, giáo trình nguyên cuốn.
+
+  Chạy trên trình duyệt, file PDF tải lên được trích chữ bằng pdf.js. Nút "Hỏi Claude" gửi tiêu đề và đoạn trích cho Claude nếu đã có khóa API. AI chỉ gợi ý, người quyết định.
+- **Hàng chờ thông minh**: ưu tiên học phần sắp thi (theo lịch thi của người dùng), đề thi đúng mùa thi, người đăng uy tín, thời gian chờ, số người theo dõi; mỗi tài liệu hiện lý do ưu tiên và nhãn AI.
+- **Tự duyệt theo ngưỡng** (`#/kiem-duyet/cai-dat`, quản trị viên chỉnh): bậc uy tín, điểm rủi ro, điểm chất lượng AI, không có cờ trùng, đạo văn, bản quyền, chưa từng vi phạm, không bị khóa thưởng. Ghi rõ trong nhật ký và báo cáo minh bạch.
+- **Cộng tác viên kiểm duyệt** (`#/cong-tac-vien`, `#/ctv`):
+  - sinh viên đủ điều kiện đăng ký, kiểm duyệt viên xét đơn;
+  - cộng tác viên chỉ thấy tài liệu rủi ro thấp thuộc Viện mình, không thấy tên người đăng, chỉ đề xuất;
+  - chất lượng đo bằng tỉ lệ đề xuất trùng quyết định cuối: tự tạm dừng dưới 60% (sau 10 đề xuất), gợi ý nâng quyền từ 90% (sau 30);
+  - hai cộng tác viên cùng đề xuất duyệt tài liệu rủi ro thấp, không cờ AI thì tự duyệt (bật tắt được).
+- **Kháng nghị** (`#/khang-nghi/<id>`, từ "Tài liệu của tôi"): mỗi quyết định từ chối hoặc gỡ được kháng nghị một lần. Kiểm duyệt viên **khác** người ra quyết định xử lý. Lật lại thì duyệt hoặc khôi phục, trả lại uy tín và lượt thưởng đã thu hồi.
+- **Yêu cầu gỡ bỏ từ giảng viên, tác giả** (`#/go-tai-lieu`): không cần tài khoản.
+  - Email trường được xác minh bằng mã và ưu tiên trong 1 ngày làm việc (khác: 3 ngày).
+  - Người yêu cầu nhận mã hồ sơ để tra cứu (`#/go-tai-lieu/<mã>`).
+  - Kiểm duyệt viên có các bước: xem xét, tạm ẩn, yêu cầu bổ sung, gỡ, không gỡ. Mọi bước ghi vào nhật ký hồ sơ và nhật ký kiểm toán; người đăng phản đối qua kháng nghị.
+- **Báo cáo minh bạch** (`#/minh-bach`, công khai): theo tháng gồm:
+  - số gửi lên, duyệt, tự duyệt, yêu cầu sửa, từ chối, bị gỡ;
+  - thời gian duyệt trung bình và trung vị;
+  - yêu cầu gỡ, kháng nghị (số lật lại), đề xuất của cộng tác viên.
+
+  Có biểu đồ và tải CSV.
+
 ## Giai đoạn 7: cộng đồng và động lực đóng góp (bản demo)
 
 Mục **Cộng đồng** trên thanh điều hướng của demo (mã ở `demo/community.js`):

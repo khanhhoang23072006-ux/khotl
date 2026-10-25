@@ -156,6 +156,7 @@ footer.site{border-top:2px solid var(--line);margin-top:48px;padding-bottom:76px
 .badge.APPROVED{border-color:var(--stamp);color:var(--stamp)}
 .badge.CHANGES_REQUESTED{border-color:var(--stamp);background:var(--stamp);color:#fff}
 .badge.REJECTED,.badge.REMOVED{border-color:var(--pencil);color:var(--pencil)}
+.badge.HELD{border-color:var(--stamp);color:var(--stamp);border-style:dashed}
 .badge.REMOVED{text-decoration:line-through}
 table.t{width:100%;border-collapse:collapse;border:2px solid var(--line);background:var(--sheet);font-size:14px}
 table.t th,table.t td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
@@ -329,6 +330,7 @@ kbd{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--lin
   <span class="row" style="gap:6px"><span>Vào nhanh:</span>
     <button type="button" data-action="quick" data-email="sv.demo@sis.hust.edu.vn">Sinh viên</button>
     <button type="button" data-action="quick" data-email="kdv.demo@hust.edu.vn">Kiểm duyệt viên</button>
+    <button type="button" data-action="quick" data-email="nguyen.thu.ha@sis.hust.edu.vn">Cộng tác viên</button>
     <button type="button" data-action="quick" data-email="admin.demo@hust.edu.vn">Quản trị</button>
     <button type="button" data-action="reset">Đặt lại dữ liệu</button></span>
 </div></div>
@@ -338,7 +340,7 @@ kbd{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--lin
   <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));font-size:13px">
     <div class="cell" style="justify-content:flex-start"><span class="l">Công trình</span><b class="head">HUSTDOCU</b><span class="muted">Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.</span></div>
     <div class="cell" style="justify-content:flex-start"><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
-    <div class="cell" style="justify-content:flex-start"><span class="l">Bản quyền</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a></div>
+    <div class="cell" style="justify-content:flex-start"><span class="l">Bản quyền, kiểm duyệt</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a><a href="#/minh-bach">Báo cáo minh bạch</a><a href="#/cong-tac-vien">Cộng tác viên kiểm duyệt</a></div>
     <div class="cell" style="justify-content:flex-start"><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener">github.com/khanhhoang23072006-ux/khotl</a></div>
   </div>
   <p class="small muted" style="margin:12px 0 0">Dự án của sinh viên, không phải kênh chính thức của Đại học Bách khoa Hà Nội. Tên Viện, học phần và tài liệu trong bản demo chỉ mang tính minh họa.</p>
@@ -352,7 +354,7 @@ const DATA = /*__DATA__*/null;
 
 /* ===================== Tiện ích ===================== */
 const TYPES = {EXAM_FINAL:"Đề cuối kỳ",EXAM_MIDTERM:"Đề giữa kỳ",SLIDE:"Slide",SOLUTION:"Bài giải",TEXTBOOK:"Giáo trình",SYLLABUS:"Đề cương",NOTES:"Ghi chú",OTHER:"Khác"};
-const STATUS = {PROCESSING:"Đang kiểm tra",PENDING_REVIEW:"Chờ duyệt",CHANGES_REQUESTED:"Cần sửa",APPROVED:"Đã duyệt",REJECTED:"Bị từ chối",REMOVED:"Đã gỡ"};
+const STATUS = {PROCESSING:"Đang kiểm tra",PENDING_REVIEW:"Chờ duyệt",CHANGES_REQUESTED:"Cần sửa",APPROVED:"Đã duyệt",REJECTED:"Bị từ chối",REMOVED:"Đã gỡ",HELD:"Tạm ẩn"};
 const REPORT_REASONS = {COPYRIGHT:"Vi phạm bản quyền",WRONG_CATEGORY:"Sai học phần hoặc loại",LOW_QUALITY:"Chất lượng kém",SPAM:"Spam, quảng cáo",INAPPROPRIATE:"Nội dung không phù hợp",MALWARE:"Nghi có mã độc",OTHER:"Khác"};
 const REVIEW_TEMPLATES = ["Sai học phần hoặc sai loại tài liệu","File mờ, thiếu trang hoặc không đọc được","Trùng với tài liệu đã có","Vi phạm bản quyền","Nội dung không phù hợp hoặc quảng cáo","Tiêu đề, mô tả chưa đúng nội dung"];
 const DOMAINS = ["sis.hust.edu.vn","hust.edu.vn"];
@@ -544,7 +546,7 @@ function renderHeaderInner(){
     ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
     <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
      <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
-      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/cong-dong">Cộng đồng, nhiệm vụ</a><a href="#/hoi-dap">Hỏi đáp</a><a href="#/khong-gian">CLB, lớp</a><a href="#/bang-xep-hang">Bảng xếp hạng</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Sửa hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
+      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/cong-dong">Cộng đồng, nhiệm vụ</a><a href="#/hoi-dap">Hỏi đáp</a><a href="#/khong-gian">CLB, lớp</a><a href="#/bang-xep-hang">Bảng xếp hạng</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a><a href="#/thong-bao">Thông báo</a><a href="#/hoan-thien-ho-so">Sửa hồ sơ</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${typeof isCtv==="function"&&isCtv(u)?'<a href="#/ctv">Hàng chờ cộng tác viên</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
     :`<a class="btn ghost sm" href="#/dang-nhap">Đăng nhập</a>`}
    </div></div>`;
   document.getElementById("bottomnav").innerHTML=`<a href="#/"${cur("/",true)}>${icon.home}Trang chủ</a><a href="#/tim-kiem"${cur("/tim-kiem")}>${icon.search}Tìm kiếm</a><a class="up" href="#/tai-len">${icon.plus}Tải lên</a><a href="#/chat"${cur("/chat")} style="position:relative">${CHAT_ICON}Chat${u&&totalUnread(u)?'<span class="dot" style="top:8px;right:calc(50% - 18px)"></span>':""}</a><a href="${u?"#/tai-lieu-cua-toi":"#/dang-nhap"}"${cur(u?"/tai-lieu-cua-toi":"/dang-nhap")}>${icon.user}${u?"Cá nhân":"Đăng nhập"}</a>`;
@@ -859,7 +861,7 @@ function mountUpload(root,{mode,doc,onDone}){
    form.querySelector('[type="submit"]').disabled=true;
    const r=await runChecks(file,{...meta,id:d.id});d.checks=r.checks;d.kind=r.kind||"PDF";d.sha256=r.hash;d.pages=r.pages||(r.kind==="PDF"?1:null);d.risk=r.risk||0;
    if(r.reject){d.status="REJECTED";d.reviewNote=r.reject;d.logs.unshift({t:Date.now(),a:"AUTO_REJECTED",reason:r.reject});notify(u.email,"DOCUMENT_REJECTED",d,{reason:r.reject,link:"#/tai-lieu-cua-toi"})}
-   else{d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"AUTO_CHECK_PASSED",meta:`Điểm rủi ro ${d.risk}`});await fileDB.put(d.id,file);if(isMod(u))staffPublish(d,u)}
+   else{d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"AUTO_CHECK_PASSED",meta:`Điểm rủi ro ${d.risk}`});await fileDB.put(d.id,file);if(isMod(u))staffPublish(d,u);if(typeof modAfterUpload==="function")await modAfterUpload(d,file,u)}
    if(mode==="edit")d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người đăng gửi lại kèm file mới"});
    save();onDone(d,r)})}
 
@@ -872,9 +874,9 @@ views["/tai-len"]=()=>{
   return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="max-width:800px;padding-block:24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px"><div><h1 class="code" style="font-size:48px;line-height:.95">Tải tài liệu lên</h1><p style="margin:8px 0 0;max-width:520px;font-size:14px">${isMod(u)?"Bạn là kiểm duyệt viên hoặc quản trị viên: tài liệu được kiểm tra tự động rồi công khai ngay, không cần chờ duyệt.":"Tài liệu được kiểm tra tự động rồi chuyển cho kiểm duyệt viên. Bạn nhận thông báo khi có kết quả."}</p></div><div class="tb"><div class="cell"><span class="l">Hôm nay còn</span><span class="code" style="font-size:30px;line-height:1">${q.left}/${q.limit}</span></div></div></div></section>
    <div class="wrap" style="max-width:800px;padding-block:24px" data-upload-root>${q.left<=0?`<p class="note">Bạn đã dùng hết ${q.limit} lượt tải lên hôm nay. Quay lại vào ngày mai nhé.</p>`:`<p class="small muted" style="margin:0 0 16px">Hạn mức mỗi ngày tăng khi tài liệu của bạn được duyệt. Thử tải file .pdf thật để thấy bước kiểm tra; file đổi đuôi (ví dụ ảnh đặt tên .pdf) hoặc file chứa chuỗi kiểm thử EICAR sẽ bị từ chối tự động.</p>`+uploadForm("create",{course:hp?course(hp.toUpperCase()):null})}</div>`,
    mount(root){if(!root.querySelector('[data-form="upload"]'))return;mountUpload(root,{mode:"create",onDone:(d,r)=>{const box=root.querySelector("[data-upload-root]");const rows=Object.entries(d.checks||{}).map(([k,c])=>checkRow(k,c)).join("");
-    box.innerHTML=`<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:20px;align-items:flex-start"><span class="stamp">${d.status==="REJECTED"?"Bị từ chối":"Đã gửi"}</span><h2 class="head" style="font-size:22px">${d.status==="REJECTED"?"Tài liệu bị từ chối tự động":"Đã nhận tài liệu của bạn"}</h2><p style="margin:0;font-size:14px">${d.status==="REJECTED"?esc(d.reviewNote):d.status==="APPROVED"?`File đã qua kiểm tra tự động và được công khai ngay vì bạn là kiểm duyệt viên hoặc quản trị viên. <a href="#/tai-lieu/${d.slug}">Xem tài liệu</a>`:"File đã qua kiểm tra tự động và đang chờ kiểm duyệt viên. Thử vào nhanh bằng tài khoản Kiểm duyệt viên (thanh trên cùng) để duyệt."}</p><div class="tb" style="width:100%">${rows}</div><div class="row"><a class="btn ink" href="#/tai-len">Tải thêm tài liệu khác</a><a class="btn" href="#/tai-lieu-cua-toi">Xem tài liệu của tôi</a></div></div>`;renderHeader()}})}};
+    box.innerHTML=`<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:20px;align-items:flex-start"><span class="stamp">${d.status==="REJECTED"?"Bị từ chối":d.status==="APPROVED"?"Đã duyệt":"Đã gửi"}</span><h2 class="head" style="font-size:22px">${d.status==="REJECTED"?"Tài liệu bị từ chối tự động":"Đã nhận tài liệu của bạn"}</h2><p style="margin:0;font-size:14px">${d.status==="REJECTED"?esc(d.reviewNote):d.status==="APPROVED"?`File đã qua kiểm tra tự động và được công khai ngay ${isMod(u)?"vì bạn là kiểm duyệt viên hoặc quản trị viên":"nhờ cơ chế tự duyệt: bạn là người đóng góp uy tín và tài liệu đạt mọi kiểm tra"}. <a href="#/tai-lieu/${d.slug}">Xem tài liệu</a>`:"File đã qua kiểm tra tự động và đang chờ kiểm duyệt viên. Thử vào nhanh bằng tài khoản Kiểm duyệt viên (thanh trên cùng) để duyệt."}</p><div class="tb" style="width:100%">${rows}</div><div class="row"><a class="btn ink" href="#/tai-len">Tải thêm tài liệu khác</a><a class="btn" href="#/tai-lieu-cua-toi">Xem tài liệu của tôi</a></div></div>`;renderHeader()}})}};
 };
-const CHECK_LABEL={format:"Định dạng",size:"Dung lượng",duplicate:"Trùng lặp",virus:"Mã độc",convert:"Chuyển PDF",integrity:"Mở file",text:"Trích văn bản",archive:"Tệp nén",content:"Nội dung"};
+const CHECK_LABEL={similar:"Nội dung giống",format:"Định dạng",size:"Dung lượng",duplicate:"Trùng lặp",virus:"Mã độc",convert:"Chuyển PDF",integrity:"Mở file",text:"Trích văn bản",archive:"Tệp nén",content:"Nội dung"};
 const CHECK_ST={pass:"Đạt",fail:"Không đạt",warn:"Lưu ý",skipped:"Bỏ qua"};
 function checkRow(k,c){return `<div class="checkrow" style="background:var(--line);gap:1px"><span style="background:var(--sheet);padding:6px 10px;font-size:13px;font-weight:600">${CHECK_LABEL[k]||k}</span><span style="background:var(--sheet);padding:6px 10px;font-size:13px">${esc(c.d||"")}${c.reasons?.length?`<span style="display:block;color:var(--stamp)">${c.reasons.map(esc).join("; ")}</span>`:""}</span><span class="st ${c.s}" style="background:var(--sheet)">${CHECK_ST[c.s]}</span></div>`}
 
@@ -898,7 +900,7 @@ views["/thong-bao"]=()=>{
 /* ----- Kiểm duyệt ----- */
 function modTabs(active){const u=me();const s=modScope(u);const inScope=(d)=>s===null||s.includes(course(d.course)?.faculty);
   const pending=S.docs.filter(d=>d.status==="PENDING_REVIEW"&&inScope(d)).length;const reps=S.reports.filter(r=>r.status==="OPEN"&&(r.message||inScope(S.docs.find(d=>d.id===r.doc)||{}))).length;
-  return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Kiểm duyệt</h1><p class="small muted" style="margin:4px 0 0">${s===null?"Phạm vi: toàn hệ thống":`Phạm vi: ${s.map(c=>faculty(c)?.shortName).join(", ")}`}</p></div><nav class="tabs" aria-label="Kiểm duyệt"><a href="#/kiem-duyet"${active==="q"?' aria-current="page"':""}>Hàng chờ tài liệu <span class="code" style="font-size:18px">${pending}</span></a><a href="#/kiem-duyet/bao-cao"${active==="r"?' aria-current="page"':""}>Báo cáo vi phạm <span class="code" style="font-size:18px">${reps}</span></a></nav></div>`}
+  return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px;gap:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Kiểm duyệt</h1><p class="small muted" style="margin:4px 0 0">${s===null?"Phạm vi: toàn hệ thống":`Phạm vi: ${s.map(c=>faculty(c)?.shortName).join(", ")}`}</p></div><nav class="tabs" aria-label="Kiểm duyệt"><a href="#/kiem-duyet"${active==="q"?' aria-current="page"':""}>Hàng chờ tài liệu <span class="code" style="font-size:18px">${pending}</span></a><a href="#/kiem-duyet/bao-cao"${active==="r"?' aria-current="page"':""}>Báo cáo vi phạm <span class="code" style="font-size:18px">${reps}</span></a>${typeof MD==="function"?`<a href="#/kiem-duyet/khang-nghi"${active==="ap"?' aria-current="page"':""}>Kháng nghị <span class="code" style="font-size:18px">${MD().appeals.filter(a=>a.status==="OPEN").length}</span></a><a href="#/kiem-duyet/go-bo"${active==="td"?' aria-current="page"':""}>Yêu cầu gỡ <span class="code" style="font-size:18px">${MD().takedowns.filter(c=>["NEW","REVIEWING","NEED_INFO"].includes(c.status)).length}</span></a><a href="#/kiem-duyet/cong-tac-vien"${active==="ctv"?' aria-current="page"':""}>Cộng tác viên</a><a href="#/kiem-duyet/cai-dat"${active==="set"?' aria-current="page"':""}>Cài đặt</a><a href="#/minh-bach">Minh bạch</a>`:""}</nav></div>`}
 function decide(ids,decision,reason,note){const u=me();let n=0;
   for(const id of ids){const d=S.docs.find(x=>x.id===id);if(!d||d.status!=="PENDING_REVIEW"||!canModerate(u,d))continue;n++;
    d.status=decision==="APPROVE"?"APPROVED":decision==="REJECT"?"REJECTED":"CHANGES_REQUESTED";d.reviewNote=decision==="APPROVE"?null:reason;d.logs.unshift({t:Date.now(),a:decision,by:u.email,reason,note});
@@ -929,7 +931,7 @@ views["/kiem-duyet"]=()=>{
 views["/kiem-duyet/:id"]=({id})=>{
   const u=me();if(!u)return needLogin(`/kiem-duyet/${id}`);const d=S.docs.find(x=>x.id===id);if(!d||!canModerate(u,d))return views.notfound();const c=course(d.course),up=userBy(d.uploader);
   const s=modScope(u);const next=S.docs.filter(x=>x.status==="PENDING_REVIEW"&&x.id!==d.id&&(s===null||s.includes(course(x.course)?.faculty))).sort((a,b)=>(b.priority||0)-(a.priority||0)||a.createdAt-b.createdAt)[0];
-  const AC={AUTO_CHECK_PASSED:"qua kiểm tra tự động",AUTO_REJECTED:"từ chối tự động",APPROVE:"duyệt",REJECT:"từ chối",REQUEST_CHANGES:"yêu cầu sửa",REMOVE:"gỡ tài liệu",NOTE:"ghi chú"};
+  const AC={AUTO_APPROVE:"tự duyệt",APPEAL_OVERTURN:"lật lại quyết định sau kháng nghị",APPEAL_UPHELD:"giữ nguyên quyết định sau kháng nghị",AUTO_CHECK_PASSED:"qua kiểm tra tự động",AUTO_REJECTED:"từ chối tự động",APPROVE:"duyệt",REJECT:"từ chối",REQUEST_CHANGES:"yêu cầu sửa",REMOVE:"gỡ tài liệu",NOTE:"ghi chú"};
   return {html:`<div class="wrap" style="padding-block:20px">${modTabs("q")}<div class="two wide"><div class="stack" style="min-width:0"><a class="small" href="#/kiem-duyet">Về hàng chờ</a>
    ${d.uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`:`<div class="viewer"><div class="pages"><div style="width:100%;display:flex;flex-direction:column;gap:8px">${renderPages(d,d.pages)}</div></div></div>`}</div>
    <aside class="stack" style="gap:16px">
@@ -1358,6 +1360,7 @@ views["/quan-tri/luot-tai"]=()=>{const u=me();if(!isAdmin(u))return needLogin("/
 
 /*__STUDY__*/
 /*__COMMUNITY__*/
+/*__MODERATION__*/
 views.notfound=()=>({html:`<div class="wrap" style="max-width:640px;padding-block:64px"><div class="tb" style="grid-template-columns:96px 1fr"><div class="code" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--fill);color:var(--on-fill)">404</div><div style="padding:12px 16px"><h1 class="head" style="font-size:20px">Không tìm thấy trang</h1><p class="small muted" style="margin:0">Trang không tồn tại, đã bị gỡ hoặc bạn không có quyền xem.</p></div></div><div class="row" style="margin-top:16px"><a class="btn ink" href="#/">Về trang chủ</a><a class="btn" href="#/tim-kiem">Tìm tài liệu</a></div></div>`});
 
 /* ===================== Bộ định tuyến ===================== */
@@ -1387,7 +1390,7 @@ function bindSearch(root){
 }
 /* Hành động dùng chung (vào nhanh, đăng xuất, đổi nền, tải xuống, đặt lại) */
 document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-action]");if(!el)return;const a=el.dataset.action;
-  if(a==="quick"){e.preventDefault();const next=params().get("next");S.session=el.dataset.email;save();toast(`Đã vào bằng ${displayName(me())}`);go(next?"#"+next:el.dataset.email.startsWith("kdv")?"#/kiem-duyet":el.dataset.email.startsWith("admin")?"#/quan-tri/hoc-phan":location.hash||"#/");render()}
+  if(a==="quick"){e.preventDefault();const next=params().get("next");S.session=el.dataset.email;save();toast(`Đã vào bằng ${displayName(me())}`);go(next?"#"+next:el.dataset.email.startsWith("kdv")?"#/kiem-duyet":el.dataset.email.startsWith("admin")?"#/quan-tri/hoc-phan":el.dataset.email.startsWith("nguyen.thu.ha")?"#/ctv":location.hash||"#/");render()}
   else if(a==="logout"){S.session=null;save();toast("Đã đăng xuất.");go("#/")}
   else if(a==="lang"){try{localStorage.setItem("hustdocu-lang",getLang()==="en"?"vi":"en")}catch{}render()}
   else if(a==="install"){if(installPrompt){installPrompt.prompt();await installPrompt.userChoice.catch(()=>{});installPrompt=null;renderHeader()}}
