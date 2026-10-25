@@ -119,6 +119,22 @@ pnpm e2e             # cần web + worker + hạ tầng đang chạy, dữ liệ
 
 CI (GitHub Actions) chạy cả ba job: kiểm tra mã, migration trên Postgres thật, và e2e với web, worker, Postgres, SeaweedFS, Mailpit thật.
 
+## Giai đoạn 7: cộng đồng và động lực đóng góp (bản demo)
+
+Mục **Cộng đồng** trên thanh điều hướng của demo (mã ở `demo/community.js`):
+
+- **Nhiệm vụ và streak** (`#/cong-dong`): nhiệm vụ hằng ngày (làm mới 00:00 giờ Việt Nam) và hằng tuần (làm mới thứ Hai) cho XP, cấp độ; chuỗi ngày học tính theo hành động học thật (trắc nghiệm, flashcard, Pomodoro, bình luận, hỏi đáp, đóng góp tài liệu), không tính chỉ ghé thăm; lịch 5 tuần.
+- **Sự kiện mùa thi**: Mùa thi giữa kỳ 20261 (19/10 đến 15/11/2026) và cuối kỳ 20261, có mục tiêu chung của cộng đồng, nhiệm vụ riêng, huy hiệu hiếm khi hoàn thành.
+- **Bảng xếp hạng** (`#/bang-xep-hang`): toàn trường, theo Viện, theo lớp, theo CLB, xếp hạng tập thể; theo XP nhiệm vụ, hỏi đáp, tài liệu, uy tín; theo tuần, 30 ngày, mọi lúc. Lớp và CLB lấy từ thành viên các không gian.
+- **Huy hiệu hiếm**: Tài liệu vàng, Ngàn lượt tải, Khai phá, Người giải đáp, Bền bỉ (30 ngày), Chiến binh giữa kỳ, cuối kỳ; hiện tỉ lệ người dùng đang có.
+- **Hỏi đáp theo học phần** (`#/hoi-dap`): đặt câu hỏi, trả lời, bình chọn lên/xuống, người hỏi chọn câu trả lời hay nhất; uy tín +5 câu hỏi được thích, +10 câu trả lời được thích, +15 được chọn, −2 bị chê; lọc từ cấm, giới hạn tốc độ, kiểm duyệt viên ẩn được.
+- **Thông báo từ trường** (`#/thong-bao-truong`, ô ở trang chủ): lấy hằng ngày từ ctt.hust.edu.vn, lọc theo nhãn, tìm kiếm, đánh dấu tin mới.
+- **Quảng cáo** (quản trị ở `#/quan-tri/quang-cao`): chiến dịch có vị trí (trang chủ, kết quả tìm kiếm, trang tài liệu), thời gian, giới hạn số lần mỗi người mỗi ngày, nhắm theo Viện; luôn ghi "Quảng cáo" và nhà tài trợ, người dùng ẩn được; không dùng lịch sử xem/tải để nhắm, không ảnh hưởng thứ hạng, chặn nội dung làm bài hộ, bán đề, cho vay.
+- **Không gian CLB, lớp** (`#/khong-gian`): thông báo (ghim, gửi thông báo cho thành viên), tài liệu nội bộ chỉ thành viên xem, thành viên với vai trò chủ nhiệm, quản trị, thành viên; vào tự do, xin duyệt hoặc bằng mã mời.
+- **Vinh danh và chứng nhận** (`#/vinh-danh`, `#/chung-nhan/<mã>`): bảng vinh danh người đóng góp, người giải đáp, đội kiểm duyệt; chứng nhận điện tử có mã xác minh, in hoặc lưu PDF. Chứng nhận của dự án, không phải giấy tờ của trường.
+
+Tên CLB, lớp, nhà tài trợ trong demo là mẫu.
+
 ## Giai đoạn 6: học tập thông minh (bản demo)
 
 Mục **Học tập** trên thanh điều hướng của demo gồm:

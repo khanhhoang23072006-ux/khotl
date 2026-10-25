@@ -1338,6 +1338,7 @@ views["/on-tap"] = () => {
           });
           const score = answers.filter((a) => a.ok).length;
           st.attempts.push({ user: u.email, course: code, t: Date.now(), score, answers });
+          if (typeof logAction === "function") logAction(u, "quiz");
           // Câu sai vào hàng ôn flashcard (đến hạn ngay)
           for (const a of answers) if (!a.ok) srsOf(u)[a.q] = { ...(srsOf(u)[a.q] || { ef: 2.5, reps: 0, interval: 0 }), due: Date.now() };
           save();
@@ -1429,6 +1430,7 @@ views["/flashcard"] = () => {
       root.querySelectorAll("[data-q]").forEach((b) =>
         b.addEventListener("click", () => {
           srs[card.id] = sm2(srs[card.id], +b.dataset.q);
+          if (typeof logAction === "function") logAction(u, "card");
           save();
           render();
         }),
@@ -1502,7 +1504,10 @@ function timerFinish(t, u, inRoom) {
   const st = ST();
   if (s.phase === "focus") {
     const key = `${t.id}|${s.endsAt}|${u.email}`;
-    if (!st.pomo.some((p) => p.key === key)) st.pomo.push({ key, user: u.email, room: inRoom ? t.id : null, minutes: t.focus, t: s.endsAt, course: t.course || "" });
+    if (!st.pomo.some((p) => p.key === key)) {
+      st.pomo.push({ key, user: u.email, room: inRoom ? t.id : null, minutes: t.focus, t: s.endsAt, course: t.course || "" });
+      if (typeof logAction === "function") logAction(u, "pomo");
+    }
     const ended = s.endsAt;
     Object.assign(s, { phase: "break", endsAt: ended + t.brk * 60e3, pausedLeft: null });
     if (s.endsAt <= Date.now()) Object.assign(s, { phase: "idle", endsAt: null });
