@@ -784,10 +784,51 @@ function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="
 let pendingReg=null;
 let pendingLoginOtp=null;
 
+function jsSha256(ascii){
+  function rightRotate(v,a){return (v>>>a)|(v<<(32-a))}
+  const mathPow=Math.pow,maxWord=mathPow(2,32);
+  let i,j,result="";const words=[];
+  let hash=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const k=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const utf8=unescape(encodeURIComponent(ascii));
+  const bitLen=utf8.length*8;let padded=utf8+"\x80";
+  while((padded.length%64)!==56)padded+="\x00";
+  for(i=0;i<padded.length;i++){words[i>>2]|=(padded.charCodeAt(i)&0xff)<<((3-(i%4))*8)}
+  words.push((bitLen/maxWord)|0);words.push(bitLen|0);
+  for(j=0;j<words.length;j+=16){
+    const w=words.slice(j,j+16);while(w.length<16)w.push(0);
+    const oldHash=[...hash];
+    for(i=0;i<64;i++){
+      if(i>=16){
+        const w15=w[i-15],w2=w[i-2];
+        const s0=rightRotate(w15,7)^rightRotate(w15,18)^(w15>>>3);
+        const s1=rightRotate(w2,17)^rightRotate(w2,19)^(w2>>>10);
+        w[i]=(w[i-16]+s0+w[i-7]+s1)|0;
+      }
+      const ch=(hash[4]&hash[5])^((~hash[4])&hash[6]);
+      const maj=(hash[0]&hash[1])^(hash[0]&hash[2])^(hash[1]&hash[2]);
+      const s1_h4=rightRotate(hash[4],6)^rightRotate(hash[4],11)^rightRotate(hash[4],25);
+      const s0_h0=rightRotate(hash[0],2)^rightRotate(hash[0],13)^rightRotate(hash[0],22);
+      const temp1=(hash[7]+s1_h4+ch+k[i]+w[i])|0;
+      const temp2=(s0_h0+maj)|0;
+      hash[7]=hash[6];hash[6]=hash[5];hash[5]=hash[4];hash[4]=(hash[3]+temp1)|0;
+      hash[3]=hash[2];hash[2]=hash[1];hash[1]=hash[0];hash[0]=(temp1+temp2)|0;
+    }
+    for(i=0;i<8;i++){hash[i]=(hash[i]+oldHash[i])|0}
+  }
+  for(i=0;i<8;i++){result+=(hash[i]>>>0).toString(16).padStart(8,"0")}
+  return result;
+}
+
 async function hashPassword(str){
-  const buf=new TextEncoder().encode(str);
-  const h=await crypto.subtle.digest("SHA-256",buf);
-  return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  try{
+    if(window.crypto&&crypto.subtle&&crypto.subtle.digest){
+      const buf=new TextEncoder().encode(str);
+      const h=await crypto.subtle.digest("SHA-256",buf);
+      return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(e){}
+  return jsSha256(str);
 }
 
 function bindPassToggles(root){
@@ -1321,7 +1362,17 @@ views["/hoan-thien-ho-so"]=()=>{
 
 /* ----- Tải lên + kiểm tra tự động ----- */
 function quota(u){const used=S.docs.filter(d=>d.uploader===u.email&&d.uploaded&&vnDay(d.createdAt)===vnDay()).length;const limit=DAILY_LIMIT[Math.min(3,u.trust||0)];return{used,limit,left:Math.max(0,limit-used)}}
-async function sha256(buf){const h=await crypto.subtle.digest("SHA-256",buf);return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+async function sha256(buf){
+  try{
+    if(window.crypto&&crypto.subtle&&crypto.subtle.digest){
+      const h=await crypto.subtle.digest("SHA-256",buf);
+      return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    }
+  }catch(e){}
+  const bytes=new Uint8Array(buf);let bin="";
+  for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return jsSha256(bin);
+}
 function sniff(bytes){const s=(a,b)=>bytes.slice(0,b.length).every((x,i)=>x===b[i]);if(s(0,[0x25,0x50,0x44,0x46]))return"PDF";if(s(0,[0x89,0x50,0x4e,0x47]))return"IMAGE";if(s(0,[0xff,0xd8,0xff]))return"IMAGE";if(s(0,[0x52,0x49,0x46,0x46])&&String.fromCharCode(...bytes.slice(8,12))==="WEBP")return"IMAGE";if(s(0,[0x50,0x4b,0x03,0x04]))return"ZIPLIKE";return null}
 function riskOf(text){const t=norm(text);const reasons=[];let score=0;const links=(text.match(/https?:\/\/|www\.|bit\.ly|tinyurl/gi)||[]).length;if(links>10){score+=35;reasons.push(`${links} liên kết ngoài`)}else if(links>=4){score+=15;reasons.push(`${links} liên kết ngoài`)}if(/bit\.ly|tinyurl|goo\.gl/i.test(text)){score+=20;reasons.push("Có link rút gọn")}for(const w of DATA.bannedWords)if(t.includes(norm(w))){score+=40;reasons.push(`Từ cấm: “${w}”`)}return{score:Math.min(100,score),reasons}}
 /** Chạy các bước kiểm tra như worker thật: định dạng thật (magic bytes), dung lượng, trùng SHA-256, mã độc (mẫu EICAR), nội dung. */
