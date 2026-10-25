@@ -1,13 +1,13 @@
 {
  "source": "https://ctt.hust.edu.vn",
- "fetchedAt": "2026-10-24T14:40:00.000Z",
+ "fetchedAt": "2026-10-25T01:11:51.716Z",
  "errors": [],
  "items": [
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51642",
-   "title": "[CTSV]THÔNG BÁO VỀ VIỆC KHEN THƯỞNG SINH VIÊN XUẤT SẮC NĂM HỌC 2025-2026",
-   "date": null,
-   "source": "Trang chủ",
+   "title": "[CTSV] THÔNG BÁO VỀ VIỆC KHEN THƯỞNG SINH VIÊN XUẤT SẮC NĂM HỌC 2025-2026",
+   "date": "2026-10-15",
+   "source": "Thông báo đại học",
    "tags": [
     "hocbong"
    ],
@@ -15,9 +15,9 @@
   },
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51641",
-   "title": "[CTSV]Thông báo bổ sung thông tin tài khoản ngân hàng để nhận quà tặng nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội",
-   "date": null,
-   "source": "Trang chủ",
+   "title": "[CTSV] Thông báo bổ sung thông tin tài khoản ngân hàng để nhận quà tặng nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội",
+   "date": "2026-10-15",
+   "source": "Thông báo đại học",
    "tags": [],
    "firstSeen": "2026-10-24T14:40:00.000Z"
   },
@@ -43,6 +43,24 @@
    "firstSeen": "2026-10-24T14:40:00.000Z"
   },
   {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51640",
+   "title": "[CTSV] Thông báo về việc cập nhật thông tin tài khoản ngân hàng để nhận quà nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội",
+   "date": "2026-10-06",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51638",
+   "title": "[ĐTĐH] Thông báo về học phí kỳ 1 năm học 2026-2027 (đợt 1 - 20261)",
+   "date": "2026-10-05",
+   "source": "Thông báo đại học",
+   "tags": [
+    "hocphi"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30244",
    "title": "[DTDH] ĐĂNG KÝ KẾ HOẠCH HỌC TẬP CHO HỌC KỲ 2 NĂM HỌC 2026-2027 (20262) 01.10.2026",
    "date": "2026-10-01",
@@ -51,6 +69,16 @@
     "dangky"
    ],
    "firstSeen": "2026-10-24T14:40:00.000Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51637",
+   "title": "[ĐTĐH] Đăng ký kế hoạch học tập cho học kỳ 2 năm học 2026-2027 (20262)",
+   "date": "2026-10-01",
+   "source": "Thông báo đại học",
+   "tags": [
+    "dangky"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
   },
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30243",
@@ -63,6 +91,16 @@
    "firstSeen": "2026-10-24T14:40:00.000Z"
   },
   {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51636",
+   "title": "[CTSV] Về việc xét, cấp học bổng Trần Đại Nghĩa học kỳ I năm học 2026-2027",
+   "date": "2026-09-09",
+   "source": "Thông báo đại học",
+   "tags": [
+    "hocbong"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51634",
    "title": "[ĐTĐH] Quy định về ngoại ngữ đối với sinh viên đại học hình thức chính quy năm 2026 (K71)",
    "date": "2026-09-07",
@@ -73,6 +111,114 @@
    "firstSeen": "2026-10-24T14:40:00.000Z"
   },
   {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51635",
+   "title": "[CTSV] Thông báo về việc mua Bảo hiểm y tế (BHYT) năm 2027 cho sinh viên khóa cũ",
+   "date": "2026-09-07",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51633",
+   "title": "[CTSV] Chương trình tham quan Công ty DECATHLON Việt Nam",
+   "date": "2026-09-04",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51632",
+   "title": "[ĐTĐH] Thông báo mở đăng ký lớp bổ sung các lớp K71",
+   "date": "2026-09-03",
+   "source": "Thông báo đại học",
+   "tags": [
+    "dangky"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51631",
+   "title": "[ĐTĐH] Thông báo Danh sách sinh viên trúng tuyển các chương trình đào tạo tài năng K71",
+   "date": "2026-09-03",
+   "source": "Thông báo đại học",
+   "tags": [
+    "ctdt"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51630",
+   "title": "[CTSV] LỄ TỐT NGHIỆP ĐỢT THÁNG 9/2026",
+   "date": "2026-08-28",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51629",
+   "title": "[ĐTĐH] Thông báo về tốt nghiệp đợt 20252",
+   "date": "2026-08-27",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51628",
+   "title": "[ĐTĐH] Thông báo danh sách sinh viên đủ điều kiện tham gia dự vòng phỏng vấn tuyển chọn vào các CTĐT tài năng khóa K71",
+   "date": "2026-08-25",
+   "source": "Thông báo đại học",
+   "tags": [
+    "ctdt"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51627",
+   "title": "[ĐTĐH] Thông báo về việc xét tuyển sinh viên vào CT Tài năng tích hợp Cử nhân - Thạc sĩ K71",
+   "date": "2026-08-16",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51626",
+   "title": "[ĐTĐH] Thông báo về học phí kỳ hè năm học 2025-2026",
+   "date": "2026-08-06",
+   "source": "Thông báo đại học",
+   "tags": [
+    "hocphi"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51625",
+   "title": "[ĐTĐH] Thông báo về việc đưa vào giảng dạy học phần Pickleball (khối giáo dục thể chất tự chọn)",
+   "date": "2026-08-03",
+   "source": "Thông báo đại học",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51624",
+   "title": "[ĐTĐH] Thông báo mở đăng ký tốt nghiệp đợt 2025.2",
+   "date": "2026-08-03",
+   "source": "Thông báo đại học",
+   "tags": [
+    "dangky"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51623",
+   "title": "[ĐTĐH] Thông báo về sự cố hệ thống đăng ký học tập",
+   "date": "2026-07-26",
+   "source": "Thông báo đại học",
+   "tags": [
+    "dangky"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44574",
    "title": "[ĐTĐH] Quy định về ngoại ngữ từ khóa K70",
    "date": "2025-09-29",
@@ -81,6 +227,18 @@
     "quyche"
    ],
    "firstSeen": "2026-10-24T14:40:00.000Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44562",
+   "title": "[ĐTĐH] Quy định mức học phí các chương trình đào tạo đại học CQ, KSCS, VLVH, SĐH năm học 2025-2026",
+   "date": "2025-09-12",
+   "source": "Quy định đại học",
+   "tags": [
+    "ctdt",
+    "hocphi",
+    "quyche"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
   },
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44547",
@@ -114,6 +272,27 @@
    "firstSeen": "2026-10-24T14:40:00.000Z"
   },
   {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43474",
+   "title": "[ĐTĐH] QĐ công nhận trúng tuyển vào học CTĐT KSCS đợt học kỳ 1 năm học 2024-2025 (20241)",
+   "date": "2024-11-01",
+   "source": "Quy định đại học",
+   "tags": [
+    "ctdt"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43466",
+   "title": "[ĐTĐH] Thông báo về mức học phí đối với các chương trình đào tạo năm học 2024-2025",
+   "date": "2024-09-19",
+   "source": "Quy định đại học",
+   "tags": [
+    "ctdt",
+    "hocphi"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43448",
    "title": "[ĐTĐH] Quy định về đào tạo Kỹ sư chuyên sâu 180 TC",
    "date": "2024-08-12",
@@ -122,6 +301,68 @@
     "quyche"
    ],
    "firstSeen": "2026-10-24T14:40:00.000Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38097",
+   "title": "[VĐTLT] BIỂU ĐỒ KẾ HOẠCH HỌC TẬP NĂM HỌC 2022-2023",
+   "date": "2022-09-17",
+   "source": "Trang chủ",
+   "tags": [
+    "dangky"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39136",
+   "title": "[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Mai Văn Chung",
+   "date": "2021-12-20",
+   "source": "Trang chủ",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39134",
+   "title": "[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Trần Thị Ngọc Hoa",
+   "date": "2021-12-16",
+   "source": "Trang chủ",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39133",
+   "title": "[ĐTSĐH] Luận án tiến sĩ: Ứng dụng điều khiển thích nghi hệ thiếu cơ cấu chấp hành cho xe tự hành ba bánh - NCS Phạm Thị Hương Sen",
+   "date": "2021-12-16",
+   "source": "Trang chủ",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38096",
+   "title": "[VĐTLT] Quy chế đào tạo vừa làm vừa học trình độ đại học",
+   "date": "2021-10-05",
+   "source": "Trang chủ",
+   "tags": [
+    "quyche"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38051",
+   "title": "[VĐTLT] TUYỂN SINH KHÓA HỌC BỒI DƯỠNG TIẾNG ANH",
+   "date": "2021-08-06",
+   "source": "Trang chủ",
+   "tags": [],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=25096",
+   "title": "[DTDH] Thông báo kiểm tra tiếng anh đầu vào K65 (dành cho sinh viên Chương trình tiên tiến và quốc tế) 07/10/2020",
+   "date": "2020-10-07",
+   "source": "Trang chủ",
+   "tags": [
+    "lichthi"
+   ],
+   "firstSeen": "2026-10-25T01:11:51.716Z"
   }
  ]
 }
