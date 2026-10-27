@@ -324,42 +324,41 @@ kbd{font-family:ui-monospace,monospace;font-size:12px;border:1px solid var(--lin
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* Voice Mic và Đàm thoại trực tiếp trong phòng học chung */
-.voice-station{border:2px solid var(--line);background:var(--sheet);transition:all .2s}
-.voice-mic-active{background:#DC2626!important;color:#fff!important;border-color:#DC2626!important;box-shadow:0 0 0 3px rgba(220,38,38,0.4)!important;animation:pulseMic 1.8s infinite}
-@keyframes pulseMic{0%{box-shadow:0 0 0 0 rgba(220,38,38,0.6)}70%{box-shadow:0 0 0 8px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
-.voice-speaking-ring{box-shadow:0 0 0 3px #10B981,0 0 10px rgba(16,185,129,0.7)!important;border-color:#10B981!important;animation:speakRing 1.2s infinite}
-@keyframes speakRing{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
-.voice-vbar{flex:1;background:var(--pencil);min-height:3px;max-height:20px;border-radius:1px;transition:height .06s ease}
-.voice-vbar.active{background:#10B981}
+.voice-station{border:2px solid var(--line);background:var(--sheet)}
+.voice-mic-active{background:var(--stamp)!important;color:#fff!important;border-color:var(--stamp)!important;outline:2px solid var(--stamp);outline-offset:2px}
+.voice-speaking-ring{outline:2px solid var(--line);outline-offset:2px;border-color:var(--stamp)!important}
+.voice-vbar{flex:1;background:var(--grid);min-height:3px;max-height:20px;border-radius:1px}
+.voice-vbar.active{background:var(--stamp)}
 
-/* ===================== Thiết kế Wireframe & UI/UX Hiện đại ===================== */
-.btn{border-radius:6px;transition:all .18s cubic-bezier(0.16,1,0.3,1)}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.input,.select,.textarea{border-radius:6px;transition:border-color .15s ease,box-shadow .15s ease}
-.badge{border-radius:4px}
-.avatar{border-radius:6px}
-.tb{border-radius:8px;overflow:hidden}
-.empty{border-radius:8px}
+/* ===================== Quy chuẩn Giao diện Kỹ thuật Bách khoa ===================== */
+.btn{border-radius:4px;transition:background-color .15s ease,border-color .15s ease,color .15s ease}
+.input,.select,.textarea{border-radius:4px;transition:border-color .15s ease}
+.badge{border-radius:2px}
+.avatar{border-radius:4px}
+.tb{border-radius:4px;overflow:hidden}
+.empty{border-radius:4px}
 
-.hero-wrap{display:grid;gap:28px;grid-template-columns:minmax(0,1fr)}
-@media (min-width:960px){.hero-wrap{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);align-items:center}}
+.hero-wrap{display:grid;gap:24px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:960px){.hero-wrap{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:stretch}}
 
-.hero-fcard{background:var(--sheet);border:2px solid var(--line);border-radius:8px;transition:all .2s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden}
-.hero-fcard:hover{transform:translateY(-3px);border-color:var(--stamp)!important;box-shadow:0 8px 24px rgba(255,51,75,0.18)}
-html.dark .hero-fcard{background:#1E242C;border-color:rgba(255,255,255,0.14)}
-html.dark .hero-fcard:hover{border-color:var(--stamp)!important;box-shadow:0 8px 28px rgba(255,51,75,0.25)}
+.dir-panel{display:grid;grid-template-columns:1fr;border:2px solid var(--line);border-radius:4px;background:var(--sheet);overflow:hidden}
+.dir-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid var(--grid);text-decoration:none;transition:background .15s ease}
+.dir-row:hover{background:var(--wash)}
+.dir-row:last-child{border-bottom:0}
 
-.course-card-modern{background:var(--sheet);border:2px solid var(--line);border-radius:8px;transition:all .2s cubic-bezier(0.16,1,0.3,1)}
-.course-card-modern:hover{transform:translateY(-2px);border-color:var(--stamp)!important;box-shadow:0 6px 20px rgba(0,0,0,0.15)}
-html.dark .course-card-modern{background:#1E242C;border-color:rgba(255,255,255,0.12)}
-html.dark .course-card-modern:hover{border-color:var(--stamp)!important;box-shadow:0 6px 24px rgba(255,51,75,0.2)}
+.code-tag{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border:1px solid var(--line);border-radius:3px;background:var(--sheet);color:var(--ink);font-size:12px;font-weight:600;text-decoration:none;transition:all .15s ease}
+.code-tag:hover{border-color:var(--stamp);color:var(--stamp);background:var(--wash)}
 
-.hot-chip:hover{border-color:var(--stamp)!important;color:var(--stamp)!important;background:var(--wash)!important;transform:translateY(-1px)}
-html.dark .hot-chip{background:#252C36;border-color:rgba(255,255,255,0.12)}
-html.dark .stats-strip>*{background:#1E242C}
-html.dark .tb-item-preview{background:#181D24!important;border-color:rgba(255,255,255,0.12)!important}
-html.dark .tb-item-preview:hover{border-color:var(--stamp)!important}
+.course-box{display:flex;flex-direction:column;justify-content:space-between;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--sheet);text-decoration:none;transition:border-color .15s ease,background .15s ease}
+.course-box:hover{border-color:var(--stamp);background:var(--wash)}
+html.dark .course-box{background:#1C2128;border-color:rgba(255,255,255,0.14)}
+html.dark .course-box:hover{border-color:var(--stamp)}
+
+html.dark .dir-panel{background:#1C2128;border-color:rgba(255,255,255,0.18)}
+html.dark .dir-row{border-bottom-color:rgba(255,255,255,0.08)}
+html.dark .dir-row:hover{background:#252D37}
+html.dark .code-tag{background:#21262E;border-color:rgba(255,255,255,0.18)}
+html.dark .code-tag:hover{border-color:var(--stamp);color:var(--stamp);background:#2A313C}
 </style>
 </head>
 <body>
@@ -636,13 +635,13 @@ function docRow(d,terms=[],opts={}){
 }
 function searchBox(value="",extra={}){return `<form class="searchbox searchbox-modern" role="search" data-form="search">
   ${Object.entries(extra).filter(([,v])=>v).map(([k,v])=>`<input type="hidden" name="${k}" value="${esc(v)}">`).join("")}
-  <div class="bar" style="border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.12)">
+  <div class="bar" style="border-radius:4px;overflow:hidden">
     <label style="padding-left:14px">${icon.search}<span class="sr">Tìm tài liệu</span><input type="search" name="q" value="${esc(value)}" placeholder="Tìm mã học phần (IT3011, MI1111...) hoặc tên tài liệu" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list" style="font-size:15px"></label>
     <button type="submit" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;padding:0 20px;font-size:15px;border-left:2px solid var(--line);cursor:pointer">
-      <span>Tìm</span> ${icon.arrowRight}
+      <span>Tra cứu</span> ${icon.arrowRight}
     </button>
   </div>
-  <div class="sugg" id="sugg" role="listbox" hidden style="border-radius:8px;overflow:hidden"></div></form>`}
+  <div class="sugg" id="sugg" role="listbox" hidden style="border-radius:4px;overflow:hidden"></div></form>`}
 function pageHead(title,kicker="",extra=""){return `<section class="page-head gridpaper"><div class="wrap">${kicker?`<p class="small muted" style="margin:0">${kicker}</p>`:""}<h1>${title}</h1>${extra}</div></section>`}
 function empty(t,sub=""){return `<div class="empty"><p class="head" style="margin:0">${t}</p>${sub?`<div class="small muted" style="margin-top:8px">${sub}</div>`:""}</div>`}
 function needLogin(next){go(`#/dang-nhap?next=${encodeURIComponent(next)}`);return {html:""}}
@@ -658,229 +657,209 @@ views["/"]=()=>{
   const top=[...S.courses].map(c=>({c,n:courseDocCount(c.code)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n||a.c.code.localeCompare(b.c.code)).slice(0,8);
   const most=[...docs].sort((a,b)=>b.downloads-a.downloads).slice(0,5);
   
-  const hotCourseCodes = ["IT3011", "MI1111", "MI1121", "PH1110", "IT3040", "SSH1111"];
-  const hotCourses = hotCourseCodes.map(code => course(code)).filter(Boolean);
+  const coreCourseCodes = ["MI1111", "MI1141", "IT3011", "PH1110", "IT3040", "SSH1111"];
+  const coreCourses = coreCourseCodes.map(code => course(code)).filter(Boolean);
 
-  return {html:`<section class="gridpaper hero-section" style="border-bottom:2px solid var(--line);position:relative;overflow:hidden">
-    <div class="wrap hero-wrap" style="padding-block:32px 36px">
-      <div class="hero-content stack" style="gap:18px">
-        <div class="hero-kicker-row" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border-color:var(--stamp);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:4px">
-            ${icon.graduation} CỔNG HỌC TẬP &amp; ÔN THI BÁCH KHOA
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)">
+    <div class="wrap hero-wrap" style="padding-block:32px">
+      <!-- Left: Academic Title and Search -->
+      <div class="stack" style="gap:16px;justify-content:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="badge" style="background:var(--wash);border-color:var(--line);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:2px 8px">
+            ${icon.graduation} HỆ THỐNG HỌC LIỆU BÁCH KHOA
           </span>
-          <span class="live-pill" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--pencil);font-weight:600">
-            <span style="width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;display:inline-block"></span>
-            HỌC KỲ 20261
-          </span>
+          <span class="tiny muted" style="font-weight:600">ĐẠI HỌC BÁCH KHOA HÀ NỘI</span>
         </div>
 
         <div class="stack" style="gap:8px">
-          <h1 class="hero-title" style="font-variation-settings:'wdth' 62.5;font-weight:800;font-size:clamp(32px,5vw,52px);line-height:1.05;margin:0">
-            Hôm nay bạn ôn môn gì?
+          <h1 style="font-variation-settings:'wdth' 62.5;font-weight:800;font-size:clamp(36px,5.5vw,56px);line-height:1;margin:0">
+            Hôm nay ôn môn gì?
           </h1>
-          <p class="hero-subtitle muted" style="margin:0;font-size:15px;max-width:560px;line-height:1.5">
-            ${u ? `Chào mừng trở lại, <b>${esc(displayName(u))}</b>${u.cohort && fac ? ` (K${u.cohort} ${esc(fac.shortName)})` : ""}. Kho tài liệu số Bách khoa được kiểm duyệt kỹ lưỡng.` : "Kho tài liệu số, ngân hàng đề thi và phòng tự học nhóm Pomodoro trực tuyến dành riêng cho sinh viên Bách khoa Hà Nội."}
+          <p class="small muted" style="margin:0;font-size:14px;max-width:540px;line-height:1.5">
+            ${u ? `Chào mừng trở lại, <b>${esc(displayName(u))}</b>${u.cohort && fac ? ` &bull; K${u.cohort} ${esc(fac.shortName)}` : ""}. Kho tài liệu sinh viên Bách khoa chia sẻ, kiểm duyệt minh bạch.` : "Kho lưu trữ đề thi, bài giảng, slide và phòng tự học nhóm trực tuyến dành riêng cho sinh viên Bách khoa Hà Nội."}
           </p>
         </div>
 
-        <div class="hero-search-area stack" style="gap:10px">
+        <div class="stack" style="gap:8px">
           ${searchBox()}
-          <div class="hero-hot-tags" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span class="tiny muted" style="font-weight:700;letter-spacing:.03em;text-transform:uppercase">Môn học HOT:</span>
-            ${hotCourses.map(c => `<a href="#/hoc-phan/${c.code}" class="hot-chip" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:1px solid var(--grid);border-radius:999px;background:var(--sheet);color:var(--ink);font-size:12px;font-weight:600;text-decoration:none;transition:all 0.15s ease"><span class="code" style="color:var(--stamp)">${c.code}</span> ${esc(c.name.split(" ")[0])}</a>`).join("")}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span class="tiny muted" style="font-weight:700">Môn phổ biến:</span>
+            ${coreCourses.map(c => `<a href="#/hoc-phan/${c.code}" class="code-tag"><span class="code" style="color:var(--stamp)">${c.code}</span> <span>${esc(c.name)}</span></a>`).join("")}
           </div>
         </div>
       </div>
 
-      <div class="hero-feature-cards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;align-content:center">
-        <a href="#/tim-kiem?type=EXAM" class="hero-fcard" style="display:flex;flex-direction:column;gap:8px;padding:16px;text-decoration:none">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="fcard-icon" style="width:36px;height:36px;border-radius:6px;background:var(--wash);display:inline-flex;align-items:center;justify-content:center;color:var(--stamp);border:1px solid var(--grid)">
-              ${icon.exam}
+      <!-- Right: Technical Directory Block -->
+      <div class="dir-panel">
+        <div style="padding:10px 14px;border-bottom:2px solid var(--line);background:var(--wash);display:flex;justify-content:space-between;align-items:center">
+          <b class="head small" style="text-transform:uppercase;letter-spacing:0.04em">Danh mục tài liệu</b>
+          <span class="tiny muted code">PHÂN LOẠI</span>
+        </div>
+
+        <a href="#/tim-kiem?type=EXAM" class="dir-row">
+          <span style="display:flex;align-items:center;gap:10px">
+            <span style="color:var(--stamp)">${icon.exam}</span>
+            <span>
+              <b class="head" style="font-size:14px;display:block">Ngân hàng Đề thi</b>
+              <span class="tiny muted">Đề thi giữa kỳ &amp; cuối kỳ kèm đáp án</span>
             </span>
-            <span class="tiny muted code" style="font-weight:700">ĐỀ THI</span>
-          </div>
-          <div>
-            <b class="head" style="font-size:15px;display:block">Đề thi &amp; Lời giải</b>
-            <span class="tiny muted" style="display:block;margin-top:2px">Đề thi giữa kỳ, cuối kỳ các năm</span>
-          </div>
+          </span>
+          <span class="tiny muted code">&rarr;</span>
         </a>
 
-        <a href="#/tim-kiem?type=LECTURE" class="hero-fcard" style="display:flex;flex-direction:column;gap:8px;padding:16px;text-decoration:none">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="fcard-icon" style="width:36px;height:36px;border-radius:6px;background:var(--wash);display:inline-flex;align-items:center;justify-content:center;color:var(--stamp);border:1px solid var(--grid)">
-              ${icon.book}
+        <a href="#/tim-kiem?type=LECTURE" class="dir-row">
+          <span style="display:flex;align-items:center;gap:10px">
+            <span style="color:var(--stamp)">${icon.book}</span>
+            <span>
+              <b class="head" style="font-size:14px;display:block">Bài giảng &amp; Slide</b>
+              <span class="tiny muted">Slide chính thức từ Viện, Trường</span>
             </span>
-            <span class="tiny muted code" style="font-weight:700">SLIDE</span>
-          </div>
-          <div>
-            <b class="head" style="font-size:15px;display:block">Slide &amp; Giáo trình</b>
-            <span class="tiny muted" style="display:block;margin-top:2px">Bài giảng chuẩn từ Viện &amp; Trường</span>
-          </div>
+          </span>
+          <span class="tiny muted code">&rarr;</span>
         </a>
 
-        <a href="#/hoc-chung" class="hero-fcard" style="display:flex;flex-direction:column;gap:8px;padding:16px;text-decoration:none">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="fcard-icon" style="width:36px;height:36px;border-radius:6px;background:var(--wash);display:inline-flex;align-items:center;justify-content:center;color:var(--stamp);border:1px solid var(--grid)">
-              ${icon.mic}
+        <a href="#/tim-kiem?type=EXERCISE" class="dir-row">
+          <span style="display:flex;align-items:center;gap:10px">
+            <span style="color:var(--stamp)">${icon.file}</span>
+            <span>
+              <b class="head" style="font-size:14px;display:block">Bài tập &amp; Đề cương</b>
+              <span class="tiny muted">Bài tập lớn, hướng dẫn giải bài mẫu</span>
             </span>
-            <span class="badge" style="background:#10B981;color:#fff;border-color:#10B981;font-size:10px;padding:0 5px;border-radius:3px">LIVE</span>
-          </div>
-          <div>
-            <b class="head" style="font-size:15px;display:block">Phòng học Pomodoro</b>
-            <span class="tiny muted" style="display:block;margin-top:2px">Bật mic đàm thoại &amp; đồng hồ học chung</span>
-          </div>
+          </span>
+          <span class="tiny muted code">&rarr;</span>
         </a>
 
-        <a href="#/tro-ly" class="hero-fcard" style="display:flex;flex-direction:column;gap:8px;padding:16px;text-decoration:none">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span class="fcard-icon" style="width:36px;height:36px;border-radius:6px;background:var(--wash);display:inline-flex;align-items:center;justify-content:center;color:var(--stamp);border:1px solid var(--grid)">
-              ${icon.sparkles}
+        <a href="#/hoc-chung" class="dir-row">
+          <span style="display:flex;align-items:center;gap:10px">
+            <span style="color:var(--stamp)">${icon.mic}</span>
+            <span>
+              <b class="head" style="font-size:14px;display:block">Phòng học Pomodoro</b>
+              <span class="tiny muted">Đồng hồ nhóm &amp; đàm thoại âm thanh</span>
             </span>
-            <span class="tiny muted code" style="font-weight:700">AI BOT</span>
-          </div>
-          <div>
-            <b class="head" style="font-size:15px;display:block">Trợ lý AI Bách Khoa</b>
-            <span class="tiny muted" style="display:block;margin-top:2px">Hỏi đáp công thức &amp; cấu trúc môn</span>
-          </div>
+          </span>
+          <span class="badge" style="font-size:10px;padding:0 5px">TRỰC TUYẾN</span>
         </a>
+
+        <div style="padding:10px 14px;background:var(--wash);border-top:1px solid var(--grid);display:flex;justify-content:space-between;align-items:center;font-size:13px">
+          <a href="#/tro-ly" style="display:inline-flex;align-items:center;gap:6px;font-weight:600;text-decoration:none">${icon.sparkles} Trợ lý học tập</a>
+          <a href="#/vien" style="font-weight:600;text-decoration:none">10 Viện, Trường &rarr;</a>
+        </div>
       </div>
     </div>
 
+    <!-- Authentic Stats Strip -->
     <div class="wrap" style="padding-bottom:24px">
-      <div class="tb stats-strip" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));border-radius:8px">
-        <div class="cell" style="padding:14px 18px;gap:4px">
-          <span class="l" style="display:flex;align-items:center;gap:6px">${icon.file} TÀI LIỆU ĐÃ DUYỆT</span>
-          <span class="v code" style="font-size:30px;line-height:1;color:var(--stamp)">${fmtCount(Math.max(docs.length, 120))}</span>
+      <dl class="tb" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:0">
+        <div class="cell" style="padding:12px 16px;gap:2px">
+          <dt class="tiny muted">${icon.file} TÀI LIỆU ĐÃ DUYỆT</dt>
+          <dd class="code" style="margin:0;font-size:32px;line-height:1;color:var(--stamp)">${fmtCount(docs.length)}</dd>
         </div>
-        <div class="cell" style="padding:14px 18px;gap:4px">
-          <span class="l" style="display:flex;align-items:center;gap:6px">${icon.book} HỌC PHẦN BÁCH KHOA</span>
-          <span class="v code" style="font-size:30px;line-height:1">${fmtCount(S.courses.length)}</span>
+        <div class="cell" style="padding:12px 16px;gap:2px">
+          <dt class="tiny muted">${icon.book} HỌC PHẦN ĐÀO TẠO</dt>
+          <dd class="code" style="margin:0;font-size:32px;line-height:1">${fmtCount(S.courses.length)}</dd>
         </div>
-        <div class="cell" style="padding:14px 18px;gap:4px">
-          <span class="l" style="display:flex;align-items:center;gap:6px">${icon.graduation} VIỆN, TRƯỜNG ĐÀO TẠO</span>
-          <span class="v code" style="font-size:30px;line-height:1">${fmtCount(DATA.faculties.length)}</span>
+        <div class="cell" style="padding:12px 16px;gap:2px">
+          <dt class="tiny muted">${icon.graduation} VIỆN, TRƯỜNG, KHOA</dt>
+          <dd class="code" style="margin:0;font-size:32px;line-height:1">${fmtCount(DATA.faculties.length)}</dd>
         </div>
-        <div class="cell" style="padding:14px 18px;gap:4px">
-          <span class="l" style="display:flex;align-items:center;gap:6px">${icon.users} CỘNG ĐỒNG SINH VIÊN</span>
-          <span class="v code" style="font-size:30px;line-height:1">100% Free</span>
+        <div class="cell" style="padding:12px 16px;gap:2px">
+          <dt class="tiny muted">${icon.users} TÀI KHOẢN ĐỒNG HÀNH</dt>
+          <dd class="code" style="margin:0;font-size:32px;line-height:1">${fmtCount(S.users.length)}</dd>
         </div>
-      </div>
+      </dl>
     </div>
   </section>
 
-  <div class="wrap home-grid" style="padding-block:36px;gap:36px">
-    <div class="stack" style="gap:36px">
+  <div class="wrap home-grid" style="padding-block:32px;gap:32px">
+    <!-- Left Column: Core courses & Latest docs -->
+    <div class="stack" style="gap:28px">
       ${u && typeof recSection === "function" ? recSection(u) : ""}
-      
-      <!-- Featured Subjects Grid -->
-      <section class="stack" style="gap:14px">
+
+      <!-- Khối học phần đại cương & cơ sở ngành -->
+      <section class="stack" style="gap:12px">
         <div class="sechead">
           <h2 class="h2" style="display:flex;align-items:center;gap:8px">
-            ${icon.book} Học phần trọng điểm sinh viên hay ôn
+            ${icon.book} Học phần đại cương &amp; cơ sở ngành
           </h2>
-          <a href="#/vien" style="font-weight:600">Xem tất cả Viện &rarr;</a>
+          <a href="#/vien">Tất cả Viện &rarr;</a>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px">
-          ${hotCourses.map(c => `
-            <a href="#/hoc-phan/${c.code}" class="course-card-modern" style="display:flex;flex-direction:column;justify-content:space-between;gap:12px;padding:14px 16px;text-decoration:none">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">
+          ${coreCourses.map(c => `
+            <a href="#/hoc-phan/${c.code}" class="course-box">
               <div>
                 <div style="display:flex;justify-content:space-between;align-items:center">
                   <span class="code" style="font-size:22px;color:var(--stamp);font-weight:800">${c.code}</span>
-                  <span class="badge" style="font-size:10px;padding:0 6px;border-radius:3px">${faculty(c.faculty)?.shortName || "HUST"}</span>
+                  <span class="tiny muted">${c.credits} tín chỉ</span>
                 </div>
-                <b class="head" style="font-size:15px;display:block;margin-top:6px;line-height:1.3">${esc(c.name)}</b>
+                <b class="head" style="font-size:15px;display:block;margin-top:4px;line-height:1.3">${esc(c.name)}</b>
               </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:8px;border-top:1px solid var(--grid)" class="tiny muted">
-                <span>${courseDocCount(c.code)} tài liệu</span>
-                <span style="font-weight:700;color:var(--stamp);display:inline-flex;align-items:center;gap:4px">Vào học ${icon.arrowRight}</span>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--grid)" class="tiny muted">
+                <span>${faculty(c.faculty)?.shortName || "HUST"}</span>
+                <span style="font-weight:600;color:var(--ink)">${courseDocCount(c.code)} tài liệu</span>
               </div>
             </a>
           `).join("")}
         </div>
       </section>
 
-      ${u && (S.follows[u.email] || []).length ? `<section class="stack"><div class="sechead"><h2 class="h2">Học phần bạn theo dõi</h2><a href="#/vien">Tìm thêm</a></div><div class="tb" style="display:flex;flex-wrap:wrap;border-radius:8px">${S.follows[u.email].map(code => { const c = course(code); return c ? `<a href="#/hoc-phan/${c.code}" style="flex:1 1 160px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;text-decoration:none"><span class="code" style="font-size:26px;line-height:1">${c.code}</span><span class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span></a>` : ""; }).join("")}</div></section>` : ""}
+      ${u && (S.follows[u.email] || []).length ? `<section class="stack"><div class="sechead"><h2 class="h2">Học phần bạn theo dõi</h2><a href="#/vien">Tìm thêm</a></div><div class="tb" style="display:flex;flex-wrap:wrap">${S.follows[u.email].map(code => { const c = course(code); return c ? `<a href="#/hoc-phan/${c.code}" style="flex:1 1 160px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;text-decoration:none"><span class="code" style="font-size:26px;line-height:1">${c.code}</span><span class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span></a>` : ""; }).join("")}</div></section>` : ""}
 
       ${mine.length ? `<section class="stack"><div class="sechead"><h2 class="h2">Mới ở ${esc(fac.shortName)}</h2><a href="#/tim-kiem?sort=newest&faculty=${fac.code}">Xem thêm</a></div>${mine.map(d => docRow(d)).join("")}</section>` : ""}
 
-      <!-- Latest docs or rich starter pack -->
-      <section class="stack" style="gap:14px">
+      <!-- Latest docs or clean academic empty state -->
+      <section class="stack" style="gap:12px">
         <div class="sechead">
-          <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.file} Tài liệu mới cập nhật</h2>
-          <a href="#/tim-kiem?sort=newest">Tất cả tài liệu &rarr;</a>
+          <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.file} Tài liệu mới duyệt</h2>
+          <a href="#/tim-kiem?sort=newest">Xem thêm &rarr;</a>
         </div>
         ${latest.length ? latest.map(d => docRow(d)).join("") : `
-          <div class="stack" style="border:2px solid var(--line);border-radius:8px;background:var(--sheet);padding:24px 20px;gap:16px">
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-              <span class="badge" style="background:var(--wash);border-color:var(--stamp);color:var(--stamp);font-size:12px;font-weight:700;padding:3px 8px;border-radius:4px">
-                ${icon.pin} GỢI Ý ÔN THI TRỌNG TÂM
-              </span>
-              <span class="small muted">Hệ thống sẵn sàng cho mùa thi. Khám phá tài liệu theo từng môn:</span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
-              <a href="#/tim-kiem?q=IT3011" class="tb-item-preview" style="padding:12px 14px;border:1px solid var(--grid);border-radius:6px;background:var(--paper);text-decoration:none;display:flex;flex-direction:column;gap:4px">
-                <span class="code" style="color:var(--stamp);font-size:13px">IT3011 &bull; ĐỀ THI</span>
-                <b style="font-size:14px">Đề thi Cấu trúc dữ liệu &amp; Giải thuật</b>
-                <span class="tiny muted">Đề giữa kỳ &amp; cuối kỳ kèm giải mẫu</span>
-              </a>
-              <a href="#/tim-kiem?q=MI1111" class="tb-item-preview" style="padding:12px 14px;border:1px solid var(--grid);border-radius:6px;background:var(--paper);text-decoration:none;display:flex;flex-direction:column;gap:4px">
-                <span class="code" style="color:var(--stamp);font-size:13px">MI1111 &bull; BÀI GIẢNG</span>
-                <b style="font-size:14px">Tóm tắt công thức Giải tích 1</b>
-                <span class="tiny muted">Chuỗi số, tích phân suy rộng &amp; hàm nhiều biến</span>
-              </a>
-              <a href="#/tim-kiem?q=MI1141" class="tb-item-preview" style="padding:12px 14px;border:1px solid var(--grid);border-radius:6px;background:var(--paper);text-decoration:none;display:flex;flex-direction:column;gap:4px">
-                <span class="code" style="color:var(--stamp);font-size:13px">MI1141 &bull; TÀI LIỆU</span>
-                <b style="font-size:14px">Hệ thống bài tập Đại số tuyến tính</b>
-                <span class="tiny muted">Không gian vector, ma trận &amp; chéo hoá</span>
-              </a>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding-top:10px;border-top:1px dashed var(--grid)">
-              <span class="small muted">Bạn đang có tài liệu hữu ích? Đóng góp ngay để nhận điểm uy tín!</span>
-              <a href="#/tai-len" class="btn primary sm" style="border-radius:6px">${icon.plus} Tải lên tài liệu mới</a>
-            </div>
+          <div class="empty" style="border:2px dashed var(--line);padding:24px 16px;text-align:center">
+            <p class="head" style="margin:0;font-size:15px">Chưa có tài liệu nào được duyệt trong kỳ này</p>
+            <p class="small muted" style="margin:6px 0 14px">Bạn đang có đề thi, bài tập hoặc slide bài giảng? Hãy đóng góp cho cộng đồng sinh viên.</p>
+            <a href="#/tai-len" class="btn primary sm">${icon.plus} Đóng góp tài liệu</a>
           </div>
         `}
       </section>
     </div>
 
-    <!-- Right column: News & rankings -->
-    <div class="stack" style="gap:36px">
+    <!-- Right Column: School Notices & Popular -->
+    <div class="stack" style="gap:28px">
       ${typeof feedWidget === "function" ? feedWidget() : ""}
       ${typeof adSlot === "function" ? adSlot("home") : ""}
 
       <section class="stack" style="gap:12px">
         <div class="sechead">
-          <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.book} Học phần nhiều tài liệu</h2>
+          <h2 class="h2">Học phần nhiều tài liệu</h2>
           <a href="#/vien">Tất cả Viện &rarr;</a>
         </div>
-        <div class="tb" style="grid-template-columns:repeat(2,1fr);border-radius:8px">
+        <div class="tb" style="grid-template-columns:repeat(2,1fr)">
           ${top.map(({ c, n }) => `
-            <a href="#/hoc-phan/${c.code}" style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding:12px 14px;background:var(--paper);text-decoration:none;transition:background 0.15s ease">
+            <a href="#/hoc-phan/${c.code}" style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding:10px 12px;background:var(--paper);text-decoration:none">
               <span style="display:flex;flex-direction:column;min-width:0">
-                <span class="code" style="font-size:22px;line-height:1;color:var(--stamp)">${c.code}</span>
+                <span class="code" style="font-size:22px;line-height:1">${c.code}</span>
                 <span class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span>
               </span>
-              <span class="badge" style="font-size:11px;padding:0 6px;border-radius:3px">${n}</span>
+              <span class="tiny muted">${n}</span>
             </a>
           `).join("")}
         </div>
+        <p class="tiny muted" style="margin:0">Số bên phải là số tài liệu đã duyệt của học phần.</p>
       </section>
 
       <section class="stack" style="gap:12px">
-        <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.down} Được tải nhiều nhất</h2>
-        <table class="t" style="border-radius:8px;overflow:hidden">
+        <h2 class="h2">Được tải nhiều nhất</h2>
+        <table class="t">
           <thead>
             <tr>
               <th style="width:48px">Hạng</th>
               <th>Tài liệu</th>
-              <th class="num" style="width:90px">Lượt tải</th>
+              <th class="num" style="width:80px">Lượt tải</th>
             </tr>
           </thead>
           <tbody>
             ${most.length ? most.map((d, i) => `
               <tr>
-                <td class="code" style="font-size:24px;line-height:1;text-align:center;color:${i === 0 ? "var(--stamp)" : "var(--ink)"}">${i + 1}</td>
+                <td class="code" style="font-size:24px;line-height:1;text-align:center">${i + 1}</td>
                 <td>
                   <a href="#/tai-lieu/${esc(d.slug)}" style="display:flex;flex-direction:column;text-decoration:none">
                     <b style="font-weight:600">${esc(d.title)}</b>
@@ -5731,7 +5710,7 @@ function feedWidget() {
       <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.bell} Thông báo từ trường</h2>
       <a href="#/thong-bao-truong" style="font-weight:600">Xem tất cả &rarr;</a>
     </div>
-    <ul class="tb" style="list-style:none;margin:0;padding:0;border-radius:8px;overflow:hidden">
+    <ul class="tb" style="list-style:none;margin:0;padding:0;border-radius:4px;overflow:hidden">
       ${items.map((x) => {
         let tag = "THÔNG BÁO";
         if (x.title.includes("HỌC PHÍ") || x.title.includes("học phí")) tag = "HỌC PHÍ";
