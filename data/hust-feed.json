@@ -1,8 +1,28 @@
 {
  "source": "https://ctt.hust.edu.vn",
- "fetchedAt": "2026-10-25T01:11:51.716Z",
+ "fetchedAt": "2026-10-28T02:17:29.202Z",
  "errors": [],
  "items": [
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30246",
+   "title": "[DTDH] LỊCH THI GIỮA KỲ - CUỐI KỲ HỌC KỲ 20261 2/11/2026",
+   "date": "2026-11-02",
+   "source": "Trang chủ",
+   "tags": [
+    "lichthi"
+   ],
+   "firstSeen": "2026-10-28T02:17:29.202Z"
+  },
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51643",
+   "title": "[CTSV] [Ban CTSV-Ban ĐT] Thông báo về kết quả đánh giá điều kiện được xét học bổng kỳ 2026.1",
+   "date": "2026-10-28",
+   "source": "Thông báo đại học",
+   "tags": [
+    "hocbong"
+   ],
+   "firstSeen": "2026-10-28T02:17:29.202Z"
+  },
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51642",
    "title": "[CTSV] THÔNG BÁO VỀ VIỆC KHEN THƯỞNG SINH VIÊN XUẤT SẮC NĂM HỌC 2025-2026",
