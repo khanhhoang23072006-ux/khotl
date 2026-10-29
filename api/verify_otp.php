@@ -25,25 +25,56 @@ if (!$email || !$otp) {
     exit;
 }
 
-// Master Admin Passcode cho tài khoản quản trị
+@include_once __DIR__ . '/config.php';
+
+// Mã quản trị riêng: đặt trong api/config.php trên hosting (không đưa lên GitHub), ví dụ
+//   $ADMIN_PASSCODE = 'mã-chỉ-bạn-biết';
+// hoặc bản băm: $ADMIN_PASSCODE_HASH = '$2y$10$...';  (tạo bằng password_hash)
+// Chưa đặt thì không có đăng nhập bằng mã quản trị, chỉ dùng OTP qua email.
 $adminEmails = [
     'khanhhoang23072006@gmail.com',
     'admin@lofcreate.online',
     'admin@hust.edu.vn',
     'admin.demo@hust.edu.vn'
 ];
+$passcode = isset($ADMIN_PASSCODE) ? (string)$ADMIN_PASSCODE : '';
+$passcodeHash = isset($ADMIN_PASSCODE_HASH) ? (string)$ADMIN_PASSCODE_HASH : '';
 
-if (in_array($email, $adminEmails) && ($otp === '999999' || $otp === '230706')) {
-    $sessionToken = bin2hex(random_bytes(24));
-    echo json_encode([
-        'success' => true,
-        'message' => 'Đăng nhập Quản trị viên thành công!',
-        'email' => $email,
-        'token' => $sessionToken,
-        'is_admin' => true,
-        'timestamp' => time()
-    ]);
-    exit;
+if (in_array($email, $adminEmails) && ($passcode !== '' || $passcodeHash !== '')) {
+    // Chặn dò mã: sai 5 lần trong 15 phút thì khóa 15 phút
+    $lockDir = __DIR__ . '/data/otps';
+    if (!is_dir($lockDir)) {
+        @mkdir($lockDir, 0755, true);
+        @file_put_contents($lockDir . '/.htaccess', "Order Deny,Allow\nDeny from all\n");
+    }
+    $lockFile = $lockDir . '/admin-' . md5($email) . '.json';
+    $lock = file_exists($lockFile) ? (json_decode(file_get_contents($lockFile), true) ?: []) : [];
+    $now = time();
+    $fails = array_values(array_filter($lock['fails'] ?? [], function ($t) use ($now) { return $t > $now - 900; }));
+    $ok = $passcodeHash !== '' ? password_verify($otp, $passcodeHash) : hash_equals($passcode, $otp);
+    if ($ok && count($fails) < 5) {
+        @unlink($lockFile);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Đăng nhập Quản trị viên thành công!',
+            'email' => $email,
+            'token' => bin2hex(random_bytes(24)),
+            'is_admin' => true,
+            'timestamp' => $now
+        ]);
+        exit;
+    }
+    // Chỉ tính là đoán sai mã quản trị khi không phải mã OTP 6 số đang chờ
+    $otpFile = $lockDir . '/' . md5($email) . '.json';
+    if (!$ok && !file_exists($otpFile)) {
+        $fails[] = $now;
+        @file_put_contents($lockFile, json_encode(['fails' => $fails]));
+    }
+    if (count($fails) >= 5) {
+        http_response_code(429);
+        echo json_encode(['success' => false, 'message' => 'Sai quá nhiều lần. Vui lòng thử lại sau 15 phút.']);
+        exit;
+    }
 }
 
 $storageDir = __DIR__ . '/data/otps';
