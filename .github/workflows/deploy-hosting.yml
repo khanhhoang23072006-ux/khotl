@@ -57,7 +57,7 @@ jobs:
         if: always()
         run: |
           check() {
-            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 15 -X POST -H 'Content-Type: application/json' -d '{}' "$1" || echo 000)
+            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 15 -X POST -H 'Content-Type: application/json' -d '{}' "$1" || true)
             echo "::notice::$1 → HTTP $code: $(head -c 150 /tmp/body | tr -d '\r\n')"
             # 400 = API chạy và từ chối email rỗng (đúng mong đợi)
             [ "$code" = "400" ]
