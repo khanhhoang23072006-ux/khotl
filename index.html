@@ -1657,8 +1657,15 @@ function mountLogin(body,next,nextQuery){
       const passHash=await hashPassword(pass);
 
       if(isAdm){
-        if(pass==="999999"||pass==="230706"||pass==="admin123"||pass==="erzz paya guwm twxy"||(u&&u.passwordHash===passHash)||pass.length>=6){
-          passOk=true;
+        // Quản trị viên: mật khẩu tài khoản, hoặc mã quản trị riêng kiểm tra trên máy chủ (không nằm trong mã nguồn)
+        if(u&&u.passwordHash&&u.passwordHash===passHash)passOk=true;
+        else{
+          try{
+            const res=await fetch("/api/verify_otp.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,otp:pass})});
+            const data=await res.json();
+            passOk=!!(data.success&&data.is_admin);
+            if(!passOk&&res.status===429)return viewPassLogin(data.message);
+          }catch{passOk=false}
         }
       }else if(u){
         if(u.passwordHash){
