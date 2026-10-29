@@ -3295,8 +3295,9 @@ function feedList(filter, k = 6) {
 }
 
 /* ===================== Xếp lịch đăng ký lớp ===================== */
-const PLAN_SEM = "20262";
-/** Danh sách lớp mở mẫu cho kỳ 20262 (minh họa): mỗi học phần 2-3 lớp LT, lớp BT kèm theo mã lớp LT. */
+/** Học kỳ mặc định khi chưa có file TKB (file của trường ghi kỳ ở cột "Kỳ"). */
+const PLAN_SEM_DEFAULT = "20262";
+/** Danh sách lớp mở mẫu (minh họa): mỗi học phần 2-3 lớp LT, lớp BT kèm theo mã lớp LT. Trả về dạng dòng như file TKB. */
 function sampleOfferings() {
   let seed = 20262;
   const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
@@ -3320,32 +3321,110 @@ function sampleOfferings() {
 }
 function offeringsCsv(list) {
   const q = (s) => (/[",\n]/.test(s) ? `"${String(s).replace(/"/g, '""')}"` : s);
-  return ["Mã lớp,Mã lớp kèm,Mã HP,Tên HP,Loại lớp,Thứ,Thời gian,Tuần,Phòng", ...list.map((o) => [o.id, o.kem, o.code, o.name, o.type, o.day + 2, `${o.start.replace(":", "")}-${o.end.replace(":", "")}`, o.weeks, o.room].map(q).join(","))].join("\n");
+  return ["Kỳ,Mã lớp,Mã lớp kèm,Mã HP,Tên HP,Loại lớp,Thứ,Thời gian,Tuần,Phòng", ...list.map((o) => [PLAN_SEM_DEFAULT, o.id, o.kem, o.code, o.name, o.type, o.day + 2, `${o.start.replace(":", "")}-${o.end.replace(":", "")}`, o.weeks, o.room].map(q).join(","))].join("\n");
 }
-/** Đọc file TKB của trường (CSV, dán từ Excel, hoặc bảng chuyển từ XLSX). Bỏ qua các dòng tiêu đề phía trên bảng. */
-function parseOfferings(text) {
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/);
-  const start = lines.findIndex((l) => /ma ?lop|ma ?hp|ma hoc phan/.test(norm(l)) && /thu/.test(norm(l)));
-  if (start < 0) return [];
-  const rows = parseTable(lines.slice(start).join("\n"));
-  const get = (r, ...names) => {
-    for (const n of names) if (r[n] !== undefined && r[n] !== "") return r[n];
-    for (const n of names) for (const k of Object.keys(r)) if (k.startsWith(n) && r[k] !== "") return r[k];
-    return "";
+
+/** Tên cột không dấu, bỏ gạch dưới: "Mã_lớp_kèm" → "ma lop kem", "SL_Max" → "sl max". */
+const tkbHead = (h) => norm(String(h ?? "")).replace(/[_\-./]+/g, " ").replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+/** Giá trị "NULL", "None", "-" trong file của trường nghĩa là để trống. */
+const tkbVal = (v) => {
+  const s = String(v ?? "").trim();
+  return /^(null|none|nan|-)$/i.test(s) ? "" : s;
+};
+/**
+ * Đọc bảng TKB (mảng các dòng, mỗi dòng là mảng ô) thành danh sách LỚP. Một lớp có thể có nhiều buổi
+ * (nhiều dòng cùng Mã lớp). Bỏ qua các dòng tiêu đề phía trên bảng và lớp đã hủy.
+ * Hỗ trợ file "TKB<kỳ>-FULL.xlsx" của trường (cột Mã_lớp, Mã_lớp_kèm, Mã_HP, Thứ, Thời_gian, Tuần, Phòng, SLĐK, SL_Max, Trạng_thái, Loại_lớp…).
+ */
+function offeringsFromRows(rows) {
+  const hi = rows.findIndex((r) => {
+    const h = r.map(tkbHead);
+    return h.some((x) => x === "ma lop") && h.some((x) => x === "ma hp" || x === "ma hoc phan") && h.some((x) => x === "thu");
+  });
+  if (hi < 0) return { classes: [], sem: null };
+  const head = rows[hi].map(tkbHead);
+  const idx = (...names) => {
+    for (const n of names) {
+      const i = head.indexOf(n);
+      if (i >= 0) return i;
+    }
+    for (const n of names) {
+      const i = head.findIndex((h) => h.startsWith(n));
+      if (i >= 0) return i;
+    }
+    return -1;
   };
-  const out = [];
-  for (const r of rows) {
-    const code = (get(r, "ma hp", "ma hoc phan").toUpperCase().match(/[A-Z]{2,4}\d{4}[A-Z]?/) || [])[0];
-    const day = parseThu(get(r, "thu"));
-    const range = parseRange(get(r, "thoi gian", "gio"));
-    const id = get(r, "ma lop").replace(/\D/g, "");
-    if (!code || day === null || !range || !id) continue;
-    const type = get(r, "loai lop", "loai").toUpperCase().replace(/\s/g, "") || "LT";
-    out.push({ id, kem: get(r, "ma lop kem", "lop kem").replace(/\D/g, ""), code, name: get(r, "ten hp", "ten hoc phan") || course(code)?.name || code, type, day, start: range[0], end: range[1], weeks: get(r, "tuan"), room: get(r, "phong") });
+  const I = {
+    sem: idx("ky", "hoc ky"),
+    id: idx("ma lop"),
+    kem: idx("ma lop kem", "lop kem"),
+    code: idx("ma hp", "ma hoc phan"),
+    name: idx("ten hp", "ten hoc phan"),
+    load: idx("khoi luong", "so tin chi", "tin chi"),
+    note: idx("ghi chu"),
+    day: idx("thu"),
+    time: idx("thoi gian", "gio"),
+    weeks: idx("tuan"),
+    room: idx("phong"),
+    tn: idx("can tn"),
+    reg: idx("sldk", "so luong dk"),
+    max: idx("sl max", "so luong max"),
+    status: idx("trang thai"),
+    type: idx("loai lop", "loai"),
+  };
+  const cell = (r, k) => (I[k] >= 0 ? tkbVal(r[I[k]]) : "");
+  const byId = new Map();
+  const sems = {};
+  for (const r of rows.slice(hi + 1)) {
+    const id = cell(r, "id").replace(/\D/g, "");
+    const code = (cell(r, "code").toUpperCase().match(/[A-Z]{2,5}\d{3,4}[A-Z]*/) || [])[0];
+    if (!id || !code) continue;
+    if (/huy lop|da huy/.test(norm(cell(r, "status")))) continue;
+    const sem = cell(r, "sem").replace(/\D/g, "");
+    if (sem) sems[sem] = (sems[sem] || 0) + 1;
+    let c = byId.get(id);
+    if (!c) {
+      const load = cell(r, "load");
+      const cr = Number.parseInt(load, 10);
+      const kem = cell(r, "kem").replace(/\D/g, "");
+      c = {
+        id,
+        kem: kem === id ? "" : kem,
+        code,
+        name: cell(r, "name") || course(code)?.name || code,
+        type: cell(r, "type").toUpperCase().replace(/\s/g, "") || "LT",
+        credits: Number.isFinite(cr) ? cr : course(code)?.credits ?? null,
+        note: cell(r, "note"),
+        needTN: /tn/i.test(cell(r, "tn")),
+        reg: cell(r, "reg") === "" ? null : Number(cell(r, "reg")),
+        max: cell(r, "max") === "" ? null : Number(cell(r, "max")),
+        status: cell(r, "status"),
+        sessions: [],
+      };
+      byId.set(id, c);
+    }
+    const day = parseThu(cell(r, "day"));
+    const range = parseRange(cell(r, "time"));
+    if (day !== null && range) {
+      const s = { day, start: range[0], end: range[1], weeks: cell(r, "weeks"), room: cell(r, "room") };
+      if (!c.sessions.some((x) => x.day === s.day && x.start === s.start && x.weeks === s.weeks)) c.sessions.push(s);
+    }
   }
-  // Mã lớp kèm của chính nó (lớp LT+BT) thì coi như không kèm
-  for (const o of out) if (o.kem === o.id) o.kem = "";
-  return out;
+  const classes = [...byId.values()];
+  // Lớp kèm trỏ tới lớp không có trong file: coi như lớp đứng riêng
+  for (const c of classes) if (c.kem && !byId.has(c.kem)) c.kem = "";
+  const sem = Object.entries(sems).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
+  return { classes, sem };
+}
+/** Văn bản CSV/TSV (cả khi dán từ Excel) → mảng dòng */
+function rowsFromText(text) {
+  const lines = String(text).replace(/^﻿/, "").split(/\r?\n/);
+  const first = lines.find((l) => /ma.?lop/i.test(norm(l))) || lines[0] || "";
+  const sep = first.includes("\t") ? "\t" : first.split(";").length > first.split(",").length ? ";" : ",";
+  return lines.filter((l) => l.trim()).map((l) => splitRow(l, sep));
+}
+function parseOfferings(text) {
+  return offeringsFromRows(rowsFromText(text));
 }
 /** Nạp SheetJS khi cần đọc file .xlsx */
 let xlsxLoading = null;
@@ -3357,161 +3436,343 @@ function loadXlsx() {
       const s = document.createElement("script");
       s.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
       s.onload = () => ok(window.XLSX);
-      s.onerror = () => fail(new Error("Không tải được thư viện đọc Excel"));
+      s.onerror = () => {
+        xlsxLoading = null;
+        fail(new Error("Không tải được thư viện đọc Excel. Kiểm tra mạng, hoặc lưu file thành .csv rồi tải lên."));
+      };
       document.head.appendChild(s);
     });
   return xlsxLoading;
 }
-async function fileToText(file) {
-  if (/\.xlsx?$/i.test(file.name)) {
+/** Đọc file TKB (.xlsx, .xls, .csv, .tsv, .txt). Với Excel, tìm sheet có dòng tiêu đề Mã lớp/Mã HP/Thứ. */
+async function offeringsFromFile(file) {
+  if (/\.xls[xm]?$/i.test(file.name)) {
     const X = await loadXlsx();
-    const wb = X.read(await file.arrayBuffer(), { type: "array" });
-    return X.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]);
+    const wb = X.read(await file.arrayBuffer(), { type: "array", dense: true });
+    let best = { classes: [], sem: null };
+    for (const n of wb.SheetNames) {
+      const got = offeringsFromRows(X.utils.sheet_to_json(wb.Sheets[n], { header: 1, raw: false, defval: "" }));
+      if (got.classes.length > best.classes.length) best = got;
+    }
+    return best;
   }
-  return file.text();
+  return parseOfferings(await file.text());
 }
-function offeringsOf() {
+/** Hồi tương thích: file cũ ghi bằng mã cũ để vẫn dùng được (danh sách dòng → lớp) */
+function classesFromLegacy(rows) {
+  const byId = new Map();
+  for (const o of rows || []) {
+    let c = byId.get(o.id);
+    if (!c) byId.set(o.id, (c = { id: o.id, kem: o.kem === o.id ? "" : o.kem || "", code: o.code, name: o.name, type: o.type || "LT", credits: course(o.code)?.credits ?? null, note: "", needTN: false, reg: null, max: null, status: "", sessions: [] }));
+    if (o.day !== null && o.day !== undefined && o.start) c.sessions.push({ day: o.day, start: o.start, end: o.end, weeks: o.weeks || "", room: o.room || "" });
+  }
+  return [...byId.values()];
+}
+
+/* Dữ liệu lớp từ file của trường có thể tới hàng chục nghìn dòng: giữ trong IndexedDB (fileDB), không đưa vào localStorage. */
+const OFFER = { key: null, classes: null, loading: null };
+let sampleClassesCache = null;
+function sampleClasses() {
+  return (sampleClassesCache = sampleClassesCache || classesFromLegacy(sampleOfferings()));
+}
+function offeringsKey(u) {
+  return `tkb-offerings-${u ? u.email : "guest"}`;
+}
+/** Danh sách lớp hiện dùng; null khi đang nạp từ IndexedDB (sẽ tự vẽ lại khi xong). */
+function offeringsOf(u = me()) {
   const st = ST();
-  if (!st.offerings) {
-    st.offerings = sampleOfferings();
-    st.offeringsName = null;
+  // Bản cũ lưu danh sách lớp thẳng trong localStorage: chuyển sang IndexedDB rồi xóa khỏi trạng thái
+  if (Array.isArray(st.offerings)) {
+    if (st.offeringsName) {
+      const classes = classesFromLegacy(st.offerings);
+      fileDB.put(offeringsKey(u), { name: st.offeringsName, sem: null, classes });
+      OFFER.key = offeringsKey(u);
+      OFFER.classes = classes;
+      st.offeringsMeta = { name: st.offeringsName, sem: null, count: classes.length, user: u?.email };
+    }
+    delete st.offerings;
+    delete st.offeringsName;
+    save();
   }
-  return st.offerings;
+  const meta = st.offeringsMeta;
+  if (!meta || meta.user !== u?.email) return sampleClasses();
+  const key = offeringsKey(u);
+  if (OFFER.key === key && OFFER.classes) return OFFER.classes;
+  if (!OFFER.loading) {
+    OFFER.loading = fileDB.get(key).then((v) => {
+      OFFER.loading = null;
+      OFFER.key = key;
+      if (v?.classes?.length) OFFER.classes = v.classes;
+      else {
+        // Không còn dữ liệu trong trình duyệt này: quay về danh sách mẫu
+        delete st.offeringsMeta;
+        OFFER.classes = null;
+        save();
+      }
+      if (currentPath() === "/xep-lich" || currentPath() === "/ctdt") render();
+    });
+  }
+  return null;
 }
-/** Các phương án cho một học phần: LT + một lớp BT kèm, hoặc lớp LT+BT/LT đứng riêng. */
-function courseOptions(code, list) {
+function planSem() {
+  const meta = ST().offeringsMeta;
+  return (meta?.user === me()?.email && meta?.sem) || PLAN_SEM_DEFAULT;
+}
+
+const isLab = (c) => c.type === "TN";
+const isOpen = (c) => !(c.max > 0 && c.reg !== null && c.reg >= c.max) && !/ket thuc dk/.test(norm(c.status));
+/**
+ * Các phần phải đăng ký của một học phần, mỗi phần là một danh sách phương án (mỗi phương án là các lớp cùng đăng ký):
+ * - Phần chính: lớp LT kèm một lớp BT (và/hoặc TH) theo Mã lớp kèm, hoặc lớp đứng riêng (LT+BT, LT, BT, ĐA…).
+ * - Phần thí nghiệm: nếu học phần có lớp TN riêng và lớp chính ghi "Cần TN".
+ * pref.openOnly: bỏ lớp đã đủ chỗ hoặc đã kết thúc đăng ký. pref.note: ưu tiên lớp có ghi chú chứa chuỗi này (bỏ qua nếu không lớp nào khớp).
+ */
+function courseParts(code, list, pref = {}) {
   const own = list.filter((o) => o.code === code);
+  const kidsOf = new Map();
+  for (const o of own) if (o.kem) kidsOf.set(o.kem, [...(kidsOf.get(o.kem) || []), o]);
+  const mains = own.filter((o) => !o.kem && !isLab(o));
   const opts = [];
-  for (const o of own) {
-    if (o.type === "BT" || o.type === "TN" || o.kem) continue;
-    const kids = own.filter((k) => k.kem === o.id);
-    if (kids.length) for (const k of kids) opts.push([o, k]);
-    else opts.push([o]);
+  for (const m of mains) {
+    const kids = kidsOf.get(m.id) || [];
+    if (!kids.length) {
+      opts.push([m]);
+      continue;
+    }
+    // Mỗi loại lớp kèm (BT, TH…) chọn đúng một lớp
+    const groups = Object.values(kids.reduce((g, k) => ((g[k.type] = g[k.type] || []).push(k), g), {}));
+    let combos = [[m]];
+    for (const g of groups) combos = combos.flatMap((cmb) => g.map((k) => [...cmb, k]));
+    opts.push(...combos);
   }
-  // File chỉ có lớp kèm mà thiếu lớp chính: dùng riêng từng lớp
-  if (!opts.length) for (const o of own) opts.push([o]);
-  return opts;
+  const labs = own.filter((o) => isLab(o) && !o.kem);
+  const parts = [];
+  if (opts.length) parts.push({ c: code, label: code, o: opts });
+  if (labs.length && (!opts.length || own.some((o) => o.needTN))) parts.push({ c: code, label: `${code} (TN)`, o: labs.map((l) => [l]) });
+  if (!parts.length && own.length) parts.push({ c: code, label: code, o: own.map((o) => [o]) });
+  // Lớp cần đăng ký thật là lớp kèm (nếu có), còn lớp LT chỉ đi theo
+  const registrable = (opt) => (opt.length > 1 ? opt.slice(1) : opt);
+  const narrow = (o) => {
+    let out = o;
+    if (pref.openOnly) out = out.filter((opt) => registrable(opt).every(isOpen));
+    if (pref.note) {
+      const n = norm(pref.note);
+      const hit = out.filter((opt) => opt.some((c) => norm(c.note).includes(n)));
+      if (hit.length) out = hit;
+    }
+    if (pref.offDays?.length) out = out.filter((opt) => opt.every((c) => c.sessions.every((s) => !pref.offDays.includes(s.day))));
+    return out;
+  };
+  return parts.map((p) => ({ ...p, all: p.o.length, o: narrow(p.o) }));
 }
-function clash(a, b) {
-  if (a.day !== b.day || !(mins(a.start) < mins(b.end) && mins(b.start) < mins(a.end))) return false;
-  if (!a.weeks || !b.weeks) return true;
-  const wa = parseWeeks(a.weeks);
-  for (const w of parseWeeks(b.weeks)) if (wa.has(w)) return true;
-  return false;
+/** Tính sẵn phút bắt đầu/kết thúc và mặt nạ tuần (2 số 32 bit, tuần 0-63) cho một buổi học để so trùng nhanh. */
+function prepSession(s) {
+  if (s._a !== undefined) return s;
+  s._a = mins(s.start);
+  s._b = mins(s.end);
+  let lo = 0;
+  let hi = 0;
+  const ws = s.weeks ? parseWeeks(s.weeks) : null;
+  if (!ws || !ws.size) lo = hi = -1;
+  else for (const w of ws) if (w < 32) lo |= 1 << w; else if (w < 64) hi |= 1 << (w - 32);
+  s._lo = lo;
+  s._hi = hi;
+  return s;
 }
-function scoreSchedule(sections, pref) {
-  let s = 0;
-  const days = new Set(sections.map((x) => x.day));
+function sessClash(a, b) {
+  if (a.day !== b.day) return false;
+  prepSession(a);
+  prepSession(b);
+  return a._a < b._b && b._a < a._b && ((a._lo & b._lo) !== 0 || (a._hi & b._hi) !== 0);
+}
+const clash = sessClash;
+function scoreSchedule(sessions, pref, classes = []) {
+  let s = classes.filter((c) => !c.sessions.length).length * 15;
+  const days = new Set(sessions.map((x) => x.day));
   if (pref.compact) s += days.size * 10;
-  for (const x of sections) {
+  for (const x of sessions) {
     if (pref.noEarly && mins(x.start) < 7 * 60) s += 6;
     if (pref.noEvening && mins(x.start) >= 17 * 60) s += 6;
   }
   for (const d of days) {
-    const list = sections.filter((x) => x.day === d).sort((a, b) => mins(a.start) - mins(b.start));
+    const list = sessions.filter((x) => x.day === d).sort((a, b) => mins(a.start) - mins(b.start));
     for (let i = 1; i < list.length; i++) s += Math.max(0, mins(list[i].start) - mins(list[i - 1].end) - 10) / 60;
   }
   return s;
 }
 /**
- * Xếp tự động: quay lui trên từng học phần (học phần ít phương án xếp trước), bỏ phương án trùng giờ
- * (cùng thứ, giao giờ, giao tuần) hoặc rơi vào ngày muốn nghỉ. Giữ 5 phương án điểm phạt thấp nhất.
+ * Xếp tự động: quay lui trên từng phần (phần ít phương án xếp trước), bỏ phương án trùng giờ
+ * (cùng thứ, giao giờ, giao tuần). Giữ 5 phương án điểm phạt thấp nhất. Lớp không có giờ học cố định không gây trùng.
  */
 function solveSchedule(codes, list, pref) {
-  const opts = codes.map((c) => ({ c, o: courseOptions(c, list).filter((sec) => sec.every((x) => !(pref.offDays || []).includes(x.day))) }));
-  const missing = opts.filter((x) => !x.o.length).map((x) => x.c);
-  if (missing.length) return { best: [], missing, nodes: 0 };
-  opts.sort((a, b) => a.o.length - b.o.length);
+  const parts = codes.flatMap((c) => courseParts(c, list, pref));
+  const notFound = codes.filter((c) => !parts.some((p) => p.c === c));
+  const empty = parts.filter((p) => !p.o.length).map((p) => ({ label: p.label, all: p.all }));
+  if (notFound.length || empty.length) return { v: 2, best: [], missing: notFound, empty, nodes: 0 };
+  // Gộp các phương án có lịch giống hệt nhau (khác mã lớp) để không xét lặp
+  const sig = (opt) => opt.flatMap((c) => c.sessions.map((s) => `${s.day}|${s.start}|${s.end}|${s.weeks}`)).sort().join(";");
+  const ps = parts.map((p) => {
+    const seen = new Map();
+    for (const opt of p.o) {
+      const k = sig(opt);
+      if (!seen.has(k)) seen.set(k, { opt, alts: [], ss: opt.flatMap((c) => c.sessions.map(prepSession)) });
+      else seen.get(k).alts.push(opt);
+    }
+    return { ...p, u: [...seen.values()] };
+  });
+  // Điểm phạt chắc chắn phải chịu của từng phương án (sớm, tối, lớp không có giờ) và các ngày nó chiếm
+  for (const p of ps) {
+    for (const x of p.u) {
+      x.days = [...new Set(x.ss.map((s) => s.day))];
+      x.pen = x.opt.filter((c) => !c.sessions.length).length * 15 + x.ss.reduce((n, s) => n + (pref.noEarly && s._a < 7 * 60 ? 6 : 0) + (pref.noEvening && s._a >= 17 * 60 ? 6 : 0), 0);
+    }
+    p.u.sort((x, y) => x.days.length - y.days.length || x.pen - y.pen);
+  }
+  ps.sort((a, b) => a.u.length - b.u.length);
   const best = [];
   let nodes = 0;
   const pick = [];
   const placed = [];
+  const dayCount = [0, 0, 0, 0, 0, 0, 0];
+  let nDays = 0;
+  let pen = 0;
+  const LIMIT = 400000;
+  // Quay lui có cận: điểm phạt (số ngày × 10 + phạt sớm/tối) chỉ tăng khi thêm lớp, nên nhánh nào đã tệ hơn phương án thứ 5 thì bỏ.
   const walk = (i) => {
-    if (nodes++ > 60000) return;
-    if (i === opts.length) {
-      const score = scoreSchedule(placed, pref);
-      best.push({ score, pick: [...pick] });
-      best.sort((a, b) => a.score - b.score);
-      if (best.length > 5) best.pop();
+    if (nodes++ > LIMIT) return;
+    if (best.length === 5 && (pref.compact ? nDays * 10 : 0) + pen >= best[4].score) return;
+    if (i === ps.length) {
+      const score = scoreSchedule(placed, pref, pick.flatMap((p) => p.sec));
+      if (best.length < 5 || score < best[best.length - 1].score) {
+        best.push({ score, pick: pick.map((p) => ({ ...p, alts: p.alts.slice(0, 6).map((a) => a.map((c) => c.id).join("+")) })) });
+        best.sort((a, b) => a.score - b.score);
+        if (best.length > 5) best.pop();
+      }
       return;
     }
-    for (const sec of opts[i].o) {
-      if (sec.some((x) => placed.some((y) => clash(x, y)))) continue;
-      pick.push({ c: opts[i].c, sec });
-      placed.push(...sec);
+    for (const x of ps[i].u) {
+      const ss = x.ss;
+      let bad = false;
+      for (let k = 0; k < ss.length && !bad; k++) for (let m = 0; m < placed.length; m++) if (sessClash(ss[k], placed[m])) { bad = true; break; }
+      if (bad) continue;
+      pick.push({ c: ps[i].c, label: ps[i].label, sec: x.opt, alts: x.alts });
+      placed.push(...ss);
+      for (const d of x.days) if (dayCount[d]++ === 0) nDays++;
+      pen += x.pen;
       walk(i + 1);
-      placed.length -= sec.length;
+      pen -= x.pen;
+      for (const d of x.days) if (--dayCount[d] === 0) nDays--;
+      placed.length -= ss.length;
       pick.pop();
     }
   };
   walk(0);
   let blocker = null;
   if (!best.length) {
-    // Tìm cặp học phần trùng mọi phương án để giải thích
-    for (let a = 0; a < opts.length && !blocker; a++)
-      for (let b = a + 1; b < opts.length && !blocker; b++)
-        if (opts[a].o.every((x) => opts[b].o.every((y) => x.some((p) => y.some((q) => clash(p, q)))))) blocker = [opts[a].c, opts[b].c];
+    const ov = (x, y) => x.opt.flatMap((c) => c.sessions).some((p) => y.opt.flatMap((c) => c.sessions).some((q) => sessClash(p, q)));
+    for (let a = 0; a < ps.length && !blocker; a++)
+      for (let b = a + 1; b < ps.length && !blocker; b++) if (ps[a].u.every((x) => ps[b].u.every((y) => ov(x, y)))) blocker = [ps[a].label, ps[b].label];
   }
-  return { best, missing: [], blocker, nodes };
+  return { v: 2, best, missing: [], empty: [], blocker, nodes, cut: nodes > LIMIT };
 }
 function planOf(u) {
   const st = ST();
-  st.plans[u.email] = st.plans[u.email] || { courses: [], pref: { compact: true, noEarly: false, noEvening: true, offDays: [] }, result: null, choice: 0 };
-  return st.plans[u.email];
+  const p = (st.plans[u.email] = st.plans[u.email] || { courses: [], pref: {}, result: null, choice: 0 });
+  p.pref = { compact: true, noEarly: false, noEvening: true, offDays: [], openOnly: true, note: "", ...p.pref };
+  if (p.result && p.result.v !== 2) p.result = null;
+  return p;
 }
+function courseLabel(code, list) {
+  const c = course(code) || (list || []).find((o) => o.code === code);
+  return c?.name || "";
+}
+const seatText = (c) => (c.max > 0 && c.reg !== null ? `${c.reg}/${c.max}` : "");
 views["/xep-lich"] = () => {
   const u = me();
   if (!u) return needLogin("/xep-lich");
   const st = ST();
-  const list = offeringsOf();
+  const list = offeringsOf(u);
   const plan = planOf(u);
-  const avail = [...new Set(list.map((o) => o.code))].sort();
-  const suggest = nextTermCourses(u).filter((c) => avail.includes(c) && !plan.courses.includes(c));
+  const sem = planSem();
+  const meta = st.offeringsMeta?.user === u.email ? st.offeringsMeta : null;
+  if (!list)
+    return { html: studyHead("Xếp lịch đăng ký lớp", "xep", "") + `<div class="wrap" style="padding-block:24px"><p class="narr" style="margin:0">Đang mở danh sách lớp${meta ? ` từ file <b>${esc(meta.name)}</b>` : ""}…</p></div>` };
+  const codeSet = new Set(list.map((o) => o.code));
+  const avail = [...codeSet].sort();
+  const suggest = nextTermCourses(u).filter((c) => codeSet.has(c) && !plan.courses.includes(c));
   const res = plan.result;
   const chosen = res?.best?.[plan.choice];
-  const credits = plan.courses.reduce((s, c) => s + (course(c)?.credits || 0), 0);
+  const creditOf = (c) => list.find((o) => o.code === c && o.credits !== null)?.credits ?? course(c)?.credits ?? 0;
+  const credits = plan.courses.reduce((s, c) => s + creditOf(c), 0);
   let resultHtml = "";
   if (res) {
-    if (res.missing?.length) resultHtml = `<p class="note red" style="margin:0">Không có lớp nào phù hợp cho ${res.missing.join(", ")} (không có trong file hoặc rơi hết vào ngày bạn muốn nghỉ).</p>`;
-    else if (!res.best.length) resultHtml = `<p class="note red" style="margin:0">Không xếp được lịch không trùng giờ${res.blocker ? `: mọi lớp của <b>${res.blocker[0]}</b> đều trùng với mọi lớp của <b>${res.blocker[1]}</b>` : ""}. Thử bỏ bớt một học phần hoặc nới điều kiện.</p>`;
+    if (res.missing?.length) resultHtml = `<p class="note red" style="margin:0">Không có lớp nào của ${res.missing.join(", ")} trong danh sách lớp.</p>`;
+    else if (res.empty?.length)
+      resultHtml = `<p class="note red" style="margin:0">Không còn lớp phù hợp cho ${res.empty.map((e) => `<b>${esc(e.label)}</b> (${e.all} lớp, bị loại hết)`).join(", ")}. Thử bỏ ngày nghỉ${plan.pref.openOnly ? `, tắt "Chỉ lớp còn chỗ"` : ""}${plan.pref.note ? ", xóa ô ghi chú" : ""}.</p>`;
+    else if (!res.best.length) resultHtml = `<p class="note red" style="margin:0">Không xếp được lịch không trùng giờ${res.blocker ? `: mọi lớp của <b>${esc(res.blocker[0])}</b> đều trùng với mọi lớp của <b>${esc(res.blocker[1])}</b>` : ""}. Thử bỏ bớt một học phần hoặc nới điều kiện.</p>`;
     else {
-      const secs = chosen.pick.flatMap((p) => p.sec);
-      const blocks = secs.map((x) => ({ day: x.day, start: mins(x.start), end: mins(x.end), title: `${x.code} ${x.type}`, sub: `${x.id} ${x.room}`, kind: "class" }));
-      const days = new Set(secs.map((x) => x.day));
+      const classes = chosen.pick.flatMap((p) => p.sec);
+      const sessions = classes.flatMap((c) => c.sessions.map((s) => ({ ...s, c })));
+      const sun = sessions.some((s) => s.day === 6);
+      const nDays = sun ? 7 : 6;
+      const blocks = sessions.map((s) => ({ day: s.day, start: mins(s.start), end: mins(s.end), title: `${s.c.code} ${s.c.type}`, sub: `${s.c.id} ${s.room}`, kind: "class" }));
+      const days = new Set(sessions.map((x) => x.day));
+      const noTime = classes.filter((c) => !c.sessions.length);
+      const from = Math.min(6 * 60, ...sessions.map((s) => Math.floor(mins(s.start) / 60) * 60));
+      const to = Math.max(18 * 60, ...sessions.map((s) => Math.ceil(mins(s.end) / 60) * 60));
       resultHtml = `<div class="row" style="gap:6px">${res.best.map((b, i) => `<button class="btn sm${i === plan.choice ? " ink" : ""}" type="button" data-choice="${i}">Phương án ${i + 1}</button>`).join("")}</div>
-       <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"><div class="cell"><span class="l">Số ngày lên trường</span><span class="v code" style="font-size:28px">${days.size}</span></div><div class="cell"><span class="l">Ngày nghỉ</span><span class="v">${DOW.slice(0, 6).filter((_, i) => !days.has(i)).join(", ") || "Không"}</span></div><div class="cell"><span class="l">Số lớp</span><span class="v code" style="font-size:28px">${secs.length}</span></div><div class="cell"><span class="l">Tín chỉ</span><span class="v code" style="font-size:28px">${credits}</span></div></div>
-       <div class="wk-desktop">${weekGrid(Object.assign(blocks, { dayLabels: DOW_SHORT.slice(0, 6) }), { days: 6, from: 6 * 60, to: 21 * 60 })}</div>
-       <div style="overflow-x:auto"><table class="t" style="min-width:560px"><thead><tr><th>Mã lớp</th><th>Học phần</th><th>Loại</th><th>Thứ</th><th>Giờ</th><th>Tuần</th><th>Phòng</th></tr></thead><tbody>${secs
+       <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"><div class="cell"><span class="l">Số ngày lên trường</span><span class="v code" style="font-size:28px">${days.size}</span></div><div class="cell"><span class="l">Ngày nghỉ</span><span class="v">${DOW.slice(0, 6).filter((_, i) => !days.has(i)).join(", ") || "Không"}</span></div><div class="cell"><span class="l">Số lớp</span><span class="v code" style="font-size:28px">${classes.length}</span></div><div class="cell"><span class="l">Tín chỉ</span><span class="v code" style="font-size:28px">${credits}</span></div></div>
+       <div class="wk-desktop">${weekGrid(Object.assign(blocks, { dayLabels: DOW_SHORT.slice(0, nDays) }), { days: nDays, from, to })}</div>
+       <div style="overflow-x:auto"><table class="t" style="min-width:760px"><thead><tr><th>Mã lớp</th><th>Học phần</th><th>Loại</th><th>Thứ</th><th>Giờ</th><th>Tuần</th><th>Phòng</th><th>Đã ĐK</th><th>Ghi chú</th></tr></thead><tbody>${sessions
          .sort((a, b) => a.day - b.day || mins(a.start) - mins(b.start))
-         .map((x) => `<tr><td class="code" style="font-size:16px">${x.id}</td><td>${x.code} ${esc(x.name)}</td><td>${x.type}</td><td>${DOW[x.day]}</td><td>${x.start}-${x.end}</td><td>${esc(x.weeks || "")}</td><td>${esc(x.room || "")}</td></tr>`)
+         .concat(noTime.map((c) => ({ c, day: null })))
+         .map((s) => `<tr><td class="code" style="font-size:16px">${s.c.id}</td><td>${s.c.code} ${esc(s.c.name)}</td><td>${esc(s.c.type)}</td><td>${s.day === null ? "Chưa xếp" : DOW[s.day]}</td><td>${s.day === null ? "" : `${s.start}-${s.end}`}</td><td>${esc(s.weeks || "")}</td><td>${esc(s.room || "")}</td><td class="num">${seatText(s.c)}</td><td class="small">${esc(s.c.note || "")}</td></tr>`)
          .join("")}</tbody></table></div>
-       <div class="row" style="gap:6px"><button class="btn primary" type="button" data-apply>Đưa vào lịch học kỳ ${PLAN_SEM}</button><button class="btn" type="button" data-copy>Chép danh sách mã lớp</button></div>
-       <p class="tiny muted" style="margin:0">Đã thử ${fmtCount(res.nodes)} tổ hợp. Đăng ký thật vẫn làm trên trang đăng ký học tập của trường; số chỗ còn trống có thể thay đổi.</p>`;
+       ${chosen.pick.some((p) => p.alts.length) ? `<p class="small" style="margin:0">Lớp khác cùng giờ (đổi được nếu lớp trên hết chỗ): ${chosen.pick.filter((p) => p.alts.length).map((p) => `<b>${esc(p.label)}</b>: ${p.alts.join(", ")}`).join("; ")}.</p>` : ""}
+       <div class="row" style="gap:6px"><button class="btn primary" type="button" data-apply>Đưa vào lịch học kỳ ${sem}</button><button class="btn" type="button" data-copy>Chép danh sách mã lớp</button></div>
+       <p class="tiny muted" style="margin:0">Đã thử ${fmtCount(res.nodes)} tổ hợp${res.cut ? " (dừng sớm vì quá nhiều tổ hợp, có thể còn phương án tốt hơn)" : ""}. Mã lớp cần đăng ký là lớp BT/TH kèm (lớp LT đi theo). Đăng ký thật vẫn làm trên trang đăng ký học tập của trường; số chỗ có thể thay đổi.</p>`;
     }
   }
   const html =
-    studyHead("Xếp lịch đăng ký lớp", "xep", `<p class="small muted" style="margin:0">Học kỳ ${PLAN_SEM}. Dữ liệu lớp: ${st.offeringsName ? `<b>${esc(st.offeringsName)}</b> (${list.length} lớp)` : `danh sách mẫu ${list.length} lớp (minh họa, chưa phải lớp mở thật)`}.</p>`) +
+    studyHead(
+      "Xếp lịch đăng ký lớp",
+      "xep",
+      `<p class="small muted" style="margin:0">Học kỳ ${sem}. Dữ liệu lớp: ${meta ? `<b>${esc(meta.name)}</b> (${fmtCount(list.length)} lớp, ${fmtCount(avail.length)} học phần)` : `danh sách mẫu ${list.length} lớp (minh họa, chưa phải lớp mở thật)`}.</p>`,
+    ) +
     `<div class="wrap stack" style="padding-block:20px;gap:24px">
     <div class="two" style="gap:16px">
      <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">1. Danh sách lớp mở</h2>
-      <p class="small" style="margin:0">Tải file thời khóa biểu dự kiến của trường (<b>.xlsx</b> hoặc <b>.csv</b>), hoặc dán bảng từ Excel. Cột cần có: Mã lớp, Mã lớp kèm, Mã HP, Loại lớp, Thứ, Thời gian, Tuần, Phòng.</p>
-      <div class="row" style="gap:6px"><label class="btn sm" for="off-file" style="cursor:pointer">Chọn file TKB</label><input class="sr" id="off-file" type="file" accept=".xlsx,.xls,.csv,.tsv,.txt"><button class="btn sm" type="button" data-offsample>Tải file mẫu</button>${st.offeringsName ? '<button class="btn sm" type="button" data-offreset>Dùng lại dữ liệu mẫu</button>' : ""}</div>
+      <p class="small" style="margin:0">Tải file thời khóa biểu của trường (<b>.xlsx</b> như TKB20261-FULL.xlsx, hoặc <b>.csv</b>), hoặc dán bảng từ Excel. Cột cần có: Mã lớp, Mã lớp kèm, Mã HP, Loại lớp, Thứ, Thời gian, Tuần, Phòng. Nếu có SLĐK, SL Max, Trạng thái, Ghi chú thì dùng để lọc lớp.</p>
+      <div class="row" style="gap:6px"><label class="btn sm" for="off-file" style="cursor:pointer">Chọn file TKB</label><input class="sr" id="off-file" type="file" accept=".xlsx,.xls,.xlsm,.csv,.tsv,.txt"><button class="btn sm" type="button" data-offsample>Tải file mẫu</button>${meta ? '<button class="btn sm" type="button" data-offreset>Dùng lại dữ liệu mẫu</button>' : ""}</div>
+      <p class="small" data-offbusy hidden style="margin:0">Đang đọc file…</p>
       <div class="field"><label for="off-paste">Hoặc dán bảng</label><textarea class="textarea" id="off-paste" style="min-height:60px"></textarea></div><div><button class="btn sm" type="button" data-offpaste>Đọc bảng</button></div></section>
      <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">2. Học phần muốn đăng ký</h2>
-      <div class="row" style="gap:6px">${plan.courses.map((c) => `<span class="why" style="font-size:13px;padding:4px 8px;border:2px solid var(--line);color:var(--ink)">${c} ${esc(course(c)?.name || "")} <button type="button" data-rm="${c}" aria-label="Bỏ ${c}" style="all:unset;cursor:pointer;margin-left:6px;font-weight:700">×</button></span>`).join("") || '<span class="small muted">Chưa chọn học phần nào.</span>'}</div>
-      <form class="row" data-form="addc" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="addc">Thêm học phần</label><input class="input" id="addc" list="addc-list" placeholder="Mã học phần, ví dụ IT3080"><datalist id="addc-list">${avail.map((c) => `<option value="${c}">${esc(course(c)?.name || "")}</option>`).join("")}</datalist><button class="btn ink" type="submit">Thêm</button></form>
+      <div class="row" style="gap:6px">${plan.courses.map((c) => `<span class="why" style="font-size:13px;padding:4px 8px;border:2px solid var(--line);color:var(--ink)">${c} ${esc(courseLabel(c, list))} <button type="button" data-rm="${c}" aria-label="Bỏ ${c}" style="all:unset;cursor:pointer;margin-left:6px;font-weight:700">×</button></span>`).join("") || '<span class="small muted">Chưa chọn học phần nào.</span>'}</div>
+      <form class="row" data-form="addc" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="addc">Thêm học phần</label><input class="input" id="addc" list="addc-list" placeholder="Mã học phần, ví dụ IT3080" autocomplete="off"><datalist id="addc-list"></datalist><button class="btn ink" type="submit">Thêm</button></form>
       ${suggest.length ? `<p class="small" style="margin:0">Theo CTĐT, kỳ tới bạn nên học: ${suggest.map((c) => `<b>${c}</b>`).join(", ")}. <button class="btn sm" type="button" data-sug>Thêm tất cả</button></p>` : ""}
       <p class="tiny muted" style="margin:0">${plan.courses.length} học phần, ${credits} tín chỉ.</p></section>
     </div>
     <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">3. Ưu tiên</h2>
-     <div class="row" style="gap:16px"><label class="check"><input type="checkbox" data-p="compact"${plan.pref.compact ? " checked" : ""}><span>Dồn lịch, ít ngày lên trường</span></label><label class="check"><input type="checkbox" data-p="noEarly"${plan.pref.noEarly ? " checked" : ""}><span>Tránh kíp 6:45</span></label><label class="check"><input type="checkbox" data-p="noEvening"${plan.pref.noEvening ? " checked" : ""}><span>Tránh học tối</span></label></div>
+     <div class="row" style="gap:16px"><label class="check"><input type="checkbox" data-p="compact"${plan.pref.compact ? " checked" : ""}><span>Dồn lịch, ít ngày lên trường</span></label><label class="check"><input type="checkbox" data-p="noEarly"${plan.pref.noEarly ? " checked" : ""}><span>Tránh kíp 6:45</span></label><label class="check"><input type="checkbox" data-p="noEvening"${plan.pref.noEvening ? " checked" : ""}><span>Tránh học tối</span></label><label class="check"><input type="checkbox" data-p="openOnly"${plan.pref.openOnly ? " checked" : ""}><span>Chỉ lớp còn chỗ, còn đăng ký được</span></label></div>
      <div class="row" style="gap:12px"><span class="small">Ngày muốn nghỉ hẳn:</span>${DOW.slice(0, 6).map((d, i) => `<label class="check"><input type="checkbox" data-off="${i}"${plan.pref.offDays.includes(i) ? " checked" : ""}><span>${d}</span></label>`).join("")}</div>
+     <div class="field" style="max-width:520px"><label for="pnote">Ưu tiên lớp có ghi chú chứa</label><input class="input" id="pnote" value="${esc(plan.pref.note)}" placeholder="Ví dụ: K70, Việt Nhật, Cơ điện tử"><span class="hint">Ghi chú lớp trong file thường ghi ngành, khóa (lớp mở riêng cho nhóm nào). Học phần không có lớp khớp thì xét mọi lớp.</span></div>
      <div><button class="btn primary" type="button" data-solve${plan.courses.length ? "" : " disabled"}>Xếp tự động</button></div></section>
     ${res ? `<section class="stack" style="gap:12px" id="ket-qua"><h2 class="h2" style="margin:0">Kết quả</h2>${resultHtml}</section>` : ""}
     </div>`;
   return {
     html,
     mount(root) {
+      // Gợi ý mã học phần: tối đa 60 mục theo chữ đang gõ (file của trường có vài nghìn học phần)
+      const dl = root.querySelector("#addc-list");
+      const fill = (q) => {
+        const t = norm(q).replace(/\s/g, "");
+        const names = new Map();
+        for (const o of list) if (!names.has(o.code)) names.set(o.code, o.name);
+        const hits = avail.filter((c) => !t || norm(c).includes(t) || norm(names.get(c) || "").replace(/\s/g, "").includes(t)).slice(0, 60);
+        dl.innerHTML = hits.map((c) => `<option value="${c}">${esc(names.get(c) || "")}</option>`).join("");
+      };
+      fill("");
+      root.querySelector("#addc").addEventListener("input", (e) => fill(e.target.value));
       const rerun = () => {
         if (plan.result) {
           plan.result = solveSchedule(plan.courses, list, plan.pref);
@@ -3520,36 +3781,45 @@ views["/xep-lich"] = () => {
         save();
         render();
       };
-      const setOfferings = (items, name) => {
-        if (!items.length) return toast("Không đọc được lớp nào. Kiểm tra lại các cột Mã lớp, Mã HP, Thứ, Thời gian.");
-        st.offerings = items;
-        st.offeringsName = name;
+      const setOfferings = async ({ classes, sem }, name) => {
+        if (!classes.length) return toast("Không đọc được lớp nào. File cần có dòng tiêu đề với các cột Mã lớp, Mã HP, Thứ, Thời gian.");
+        await fileDB.put(offeringsKey(u), { name, sem, classes });
+        OFFER.key = offeringsKey(u);
+        OFFER.classes = classes;
+        st.offeringsMeta = { name, sem, count: classes.length, user: u.email };
         plan.result = null;
         save();
-        toast(`Đã đọc ${items.length} lớp.`);
+        toast(`Đã đọc ${fmtCount(classes.length)} lớp, ${fmtCount(new Set(classes.map((c) => c.code)).size)} học phần${sem ? `, kỳ ${sem}` : ""}.`);
         render();
       };
       root.querySelector("#off-file").addEventListener("change", async (e) => {
         const f = e.target.files[0];
         if (!f) return;
+        const busy = root.querySelector("[data-offbusy]");
+        busy.hidden = false;
         try {
-          setOfferings(parseOfferings(await fileToText(f)), f.name);
+          await setOfferings(await offeringsFromFile(f), f.name);
         } catch (err) {
-          toast(err.message);
+          toast(err.message || "Không đọc được file.");
+        } finally {
+          busy.hidden = true;
+          e.target.value = "";
         }
       });
       root.querySelector("[data-offpaste]").addEventListener("click", () => setOfferings(parseOfferings(root.querySelector("#off-paste").value), "Bảng dán vào"));
-      root.querySelector("[data-offsample]").addEventListener("click", () => downloadText(`tkb-du-kien-${PLAN_SEM}-mau.csv`, `﻿${offeringsCsv(list)}`, "text/csv"));
+      root.querySelector("[data-offsample]").addEventListener("click", () => downloadText(`tkb-du-kien-${PLAN_SEM_DEFAULT}-mau.csv`, `﻿${offeringsCsv(sampleOfferings())}`, "text/csv"));
       root.querySelector("[data-offreset]")?.addEventListener("click", () => {
-        st.offerings = null;
+        delete st.offeringsMeta;
+        OFFER.classes = null;
+        fileDB.put(offeringsKey(u), null);
         plan.result = null;
         save();
         render();
       });
       root.querySelector('[data-form="addc"]').addEventListener("submit", (e) => {
         e.preventDefault();
-        const c = (root.querySelector("#addc").value.toUpperCase().match(/[A-Z]{2,4}\d{4}[A-Z]?/) || [])[0];
-        if (!c || !avail.includes(c)) return toast("Học phần này không có lớp mở trong danh sách.");
+        const c = (root.querySelector("#addc").value.toUpperCase().match(/[A-Z]{2,5}\d{3,4}[A-Z]*/) || [])[0];
+        if (!c || !codeSet.has(c)) return toast("Học phần này không có lớp mở trong danh sách.");
         if (!plan.courses.includes(c)) plan.courses.push(c);
         rerun();
       });
@@ -3564,6 +3834,7 @@ views["/xep-lich"] = () => {
         }),
       );
       root.querySelectorAll("[data-p]").forEach((c) => c.addEventListener("change", () => ((plan.pref[c.dataset.p] = c.checked), rerun())));
+      root.querySelector("#pnote").addEventListener("change", (e) => ((plan.pref.note = e.target.value.trim()), rerun()));
       root.querySelectorAll("[data-off]").forEach((c) =>
         c.addEventListener("change", () => {
           const d = +c.dataset.off;
@@ -3572,6 +3843,7 @@ views["/xep-lich"] = () => {
         }),
       );
       root.querySelector("[data-solve]").addEventListener("click", () => {
+        plan.pref.note = root.querySelector("#pnote").value.trim();
         plan.result = solveSchedule(plan.courses, list, plan.pref);
         plan.choice = 0;
         save();
@@ -3580,16 +3852,21 @@ views["/xep-lich"] = () => {
       });
       root.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => ((plan.choice = +b.dataset.choice), save(), render())));
       root.querySelector("[data-apply]")?.addEventListener("click", () => {
-        const sem = SEMESTERS[PLAN_SEM];
-        st.events = st.events.filter((e) => !(e.user === u.email && e.plan === PLAN_SEM));
+        const range = SEMESTERS[sem] || SEMESTERS[PLAN_SEM_DEFAULT];
+        st.events = st.events.filter((e) => !(e.user === u.email && e.plan === sem));
+        let n = 0;
         for (const p of chosen.pick)
           for (const x of p.sec)
-            st.events.push({ id: uid(), user: u.email, kind: "class", plan: PLAN_SEM, title: `${x.name} (${x.type})`, course: x.code, weekly: { day: x.day, from: sem.start, to: sem.end, weeks: x.weeks }, start: x.start, end: x.end, location: x.room });
+            for (const s of x.sessions) {
+              st.events.push({ id: uid(), user: u.email, kind: "class", plan: sem, title: `${x.name} (${x.type})`, course: x.code, weekly: { day: s.day, from: range.start, to: range.end, weeks: s.weeks }, start: s.start, end: s.end, location: s.room });
+              n++;
+            }
         save();
-        toast(`Đã đưa ${chosen.pick.reduce((s, p) => s + p.sec.length, 0)} lớp vào lịch học kỳ ${PLAN_SEM}.`);
+        toast(`Đã đưa ${n} buổi học vào lịch học kỳ ${sem}.`);
       });
       root.querySelector("[data-copy]")?.addEventListener("click", async () => {
-        const ids = chosen.pick.flatMap((p) => p.sec.map((x) => x.id)).join(", ");
+        // Mã lớp cần đăng ký: lớp kèm nếu có (lớp LT tự đi theo), ngược lại là chính lớp đó
+        const ids = chosen.pick.flatMap((p) => (p.sec.length > 1 ? p.sec.slice(1) : p.sec).map((c) => c.id)).join(", ");
         try {
           await navigator.clipboard.writeText(ids);
           toast("Đã chép mã lớp.");
@@ -3661,8 +3938,9 @@ views["/ctdt"] = () => {
       );
       root.querySelector("[data-toplan]")?.addEventListener("click", () => {
         const plan = planOf(u);
-        const avail = new Set(offeringsOf().map((o) => o.code));
-        plan.courses = nextTermCourses(u).filter((c) => avail.has(c));
+        const list = offeringsOf(u);
+        const avail = new Set((list || []).map((o) => o.code));
+        plan.courses = nextTermCourses(u).filter((c) => !list || avail.has(c));
         plan.result = null;
         save();
       });
