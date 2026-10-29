@@ -743,6 +743,16 @@ const ADMIN_EMAILS = ["khanhhoang23072006@gmail.com", "admin@lofcreate.online", 
 function isSystemAdminEmail(em){
   return ADMIN_EMAILS.some(a => a.toLowerCase() === (em || "").trim().toLowerCase());
 }
+// API gửi/kiểm mã OTP là PHP trên hosting lofcreate.online. GitHub Pages không chạy được PHP,
+// nên khi trang mở từ *.github.io thì gọi sang hosting (hosting cho phép tên miền này trong api/_security.php).
+const API_BASE=/\.github\.io$/i.test(location.hostname)?"https://lofcreate.online":"";
+async function apiPost(file,payload){
+  const res=await fetch(API_BASE+"/api/"+file,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+  let data;
+  try{data=await res.json()}
+  catch{data={success:false,message:res.status===404?"Máy chủ gửi mã xác thực chưa sẵn sàng. Vui lòng thử lại sau.":`Máy chủ gửi mã xác thực gặp lỗi (mã ${res.status}). Vui lòng thử lại sau.`}}
+  return {res,data};
+}
 let S;
 function load(){
   try{
@@ -1470,12 +1480,7 @@ function mountRegister(body,next,nextQuery){
 
       step1("",true);
       try{
-        const res=await fetch("/api/send_otp.php",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({email})
-        });
-        const data=await res.json();
+        const {res,data}=await apiPost("send_otp.php",{email});
         if(data.success){
           pendingReg={name,email,password:pass,t:Date.now()};
           step2();
@@ -1530,12 +1535,7 @@ function mountRegister(body,next,nextQuery){
     body.querySelector("[data-resend-reg]").addEventListener("click",async()=>{
       toast("Đang gửi lại mã xác thực...");
       try{
-        const res=await fetch("/api/send_otp.php",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({email:pendingReg.email})
-        });
-        const data=await res.json();
+        const {res,data}=await apiPost("send_otp.php",{email:pendingReg.email});
         if(data.success){
           pendingReg.t=Date.now();
           step2();
@@ -1554,12 +1554,7 @@ function mountRegister(body,next,nextQuery){
       if(code.length!==6)return step2("Vui lòng nhập đủ 6 chữ số.");
       step2("",true);
       try{
-        const res=await fetch("/api/verify_otp.php",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({email:pendingReg.email,otp:code})
-        });
-        const data=await res.json();
+        const {res,data}=await apiPost("verify_otp.php",{email:pendingReg.email,otp:code});
         if(data.success){
           const passHash=await hashPassword(pendingReg.password);
           const base=pendingReg.email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
@@ -1661,8 +1656,7 @@ function mountLogin(body,next,nextQuery){
         if(u&&u.passwordHash&&u.passwordHash===passHash)passOk=true;
         else{
           try{
-            const res=await fetch("/api/verify_otp.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email,otp:pass})});
-            const data=await res.json();
+            const {res,data}=await apiPost("verify_otp.php",{email,otp:pass});
             passOk=!!(data.success&&data.is_admin);
             if(!passOk&&res.status===429)return viewPassLogin(data.message);
           }catch{passOk=false}
@@ -1720,12 +1714,7 @@ function mountLogin(body,next,nextQuery){
 
       viewOtpStep1("",true);
       try{
-        const res=await fetch("/api/send_otp.php",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({email})
-        });
-        const data=await res.json();
+        const {res,data}=await apiPost("send_otp.php",{email});
         if(data.success){
           pendingLoginOtp={email,t:Date.now()};
           viewOtpStep2();
@@ -1780,12 +1769,7 @@ function mountLogin(body,next,nextQuery){
     body.querySelector("[data-resend-login-otp]").addEventListener("click",async()=>{
       toast("Đang gửi lại mã xác thực...");
       try{
-        const res=await fetch("/api/send_otp.php",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({email:pendingLoginOtp.email})
-        });
-        const data=await res.json();
+        const {res,data}=await apiPost("send_otp.php",{email:pendingLoginOtp.email});
         if(data.success){
           pendingLoginOtp.t=Date.now();
           viewOtpStep2();
@@ -1804,12 +1788,7 @@ function mountLogin(body,next,nextQuery){
       if(code.length!==6)return viewOtpStep2("Vui lòng nhập đủ 6 chữ số.");
       viewOtpStep2("",true);
       try{
-        const res=await fetch("/api/verify_otp.php",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({email:pendingLoginOtp.email,otp:code})
-        });
-        const data=await res.json();
+        const {res,data}=await apiPost("verify_otp.php",{email:pendingLoginOtp.email,otp:code});
         if(data.success){
           const em=pendingLoginOtp.email;
           pendingLoginOtp=null;
