@@ -15,15 +15,29 @@ jobs:
     steps:
       - name: Send Mail via Gmail SMTP
         uses: actions/github-script@v7
+        env:
+          # Email gửi OTP và mật khẩu ứng dụng Gmail: đặt ở Settings → Secrets and variables → Actions,
+          # không ghi thẳng vào file (repo công khai, ai cũng đọc được).
+          SMTP_USER: ${{ secrets.OTP_SMTP_USER }}
+          SMTP_PASS: ${{ secrets.OTP_SMTP_PASS }}
+          SMTP_FROM_NAME: ${{ vars.OTP_FROM_NAME || 'HUSTDOCU' }}
         with:
           script: |
             const tls = require('tls');
             const to = context.payload.inputs.to;
             const otp = context.payload.inputs.otp;
-            const user = 'khanhhoang23072006@gmail.com';
-            const pass = 'erzzpayaguwmtwxy';
+            // Che mã OTP và địa chỉ nhận trong log (log Actions của repo công khai ai cũng xem được)
+            core.setSecret(otp);
+            core.setSecret(to);
+            const user = process.env.SMTP_USER;
+            const pass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
+            const fromName = process.env.SMTP_FROM_NAME || 'HUSTDOCU';
+            if (!user || !pass) {
+              core.setFailed('Thiếu secret OTP_SMTP_USER hoặc OTP_SMTP_PASS (Settings → Secrets and variables → Actions).');
+              return;
+            }
 
-            console.log(`Sending OTP ${otp} to ${to}...`);
+            console.log('Sending OTP email...');
 
             await new Promise((resolve, reject) => {
               const client = tls.connect(465, 'smtp.gmail.com', () => {
@@ -57,7 +71,7 @@ jobs:
                 } else if (step === 7 && msg.startsWith('354')) {
                   step = 8;
                   const body = [
-                    `From: "HUSTDOCU" <${user}>`,
+                    `From: "${fromName}" <${user}>`,
                     `To: <${to}>`,
                     `Subject: Mã xác thực đăng nhập HUSTDOCU: ${otp}`,
                     `MIME-Version: 1.0`,
