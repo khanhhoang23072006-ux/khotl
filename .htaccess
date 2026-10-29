@@ -1,0 +1,23 @@
+# Bảo mật cho hosting Apache (lofcreate.online). deploy.bat tải file này lên thư mục gốc web.
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), geolocation=(), microphone=(self)"
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.anthropic.com https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; frame-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+  Header always unset X-Powered-By
+  # Bật khi web đã chạy HTTPS ổn định:
+  # Header always set Strict-Transport-Security "max-age=31536000"
+</IfModule>
+
+# Không cho đọc file cấu hình, dữ liệu, file ẩn, file sao lưu
+<FilesMatch "(^\.|\.(bak|sql|db|sqlite|log|ini|env|bat|md)$|^config\.php$|^_security\.php$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+  </IfModule>
+</FilesMatch>
