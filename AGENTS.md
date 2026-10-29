@@ -9,4 +9,4 @@
 
 ## 2. Quy trình làm việc & Triển khai
 - Tự động thực hiện các yêu cầu mà không hỏi lại người dùng những xác nhận hiển nhiên.
-- Sau khi chỉnh sửa, luôn kiểm tra cú pháp JS, kiểm thử hiển thị bằng Puppeteer, sau đó tự động triển khai lên máy chủ thông qua `deploy.bat` và đồng bộ lên repository GitHub `khanhhoang23072006-ux/khotl`.
+- Sau khi chỉnh sửa, luôn kiểm tra cú pháp JS, kiểm thử hiển thị bằng Puppeteer, sau đó tự động triển khai lên máy chủ thông qua `deploy.bat` (mật khẩu FTP để trong `deploy.local.bat` trên máy, không đưa lên GitHub) và đồng bộ lên repository GitHub `khanhhoang23072006-ux/khotl`.
