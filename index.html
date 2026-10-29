@@ -990,7 +990,7 @@ function renderHeaderInner(){
   const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
   document.getElementById("header").innerHTML=`<div class="wrap">
    <a class="logo" href="#/"><b>HUSTDOCU</b><span class="vol" aria-hidden="true">TẬP ${new Date().getFullYear()%100}</span></a>
-   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/ctdt","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/cong-dong"${["/cong-dong","/bang-xep-hang","/hoi-dap","/khong-gian","/thong-bao-truong","/vinh-danh","/chung-nhan"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Cộng đồng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
+   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/cong-dong"${["/cong-dong","/bang-xep-hang","/hoi-dap","/khong-gian","/thong-bao-truong","/vinh-danh","/chung-nhan"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Cộng đồng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
    <div class="tools">
     <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>
     ${installPrompt?'<button class="btn sm" type="button" data-action="install" style="margin-right:6px">Cài ứng dụng</button>':""}
@@ -2406,7 +2406,7 @@ views["/quan-tri/luot-tai"]=()=>{const u=me();if(!isAdmin(u))return needLogin("/
     root.querySelectorAll("[data-unlock]").forEach(b=>b.addEventListener("click",()=>{delete S.credits.locked[b.dataset.unlock];S.audit.unshift({t:Date.now(),by:u.email,action:"credits.unlock",detail:b.dataset.unlock});save();toast("Đã mở khóa.");render()}))}}};
 
 /* ===================== Giai đoạn 6: học tập thông minh và cá nhân hóa ===================== */
-/* Lịch học, lịch thi, nhắc nhở; xếp lịch đăng ký lớp; CTĐT; ôn tập trắc nghiệm, flashcard (SM-2);
+/* Lịch học, lịch thi, nhắc nhở; xếp lịch đăng ký lớp; ôn tập trắc nghiệm, flashcard (SM-2);
    gợi ý tài liệu; Pomodoro và phòng học chung. Dữ liệu lưu trong S.study (trình duyệt này). */
 const D6 = 86400e3;
 const SEMESTERS = {
@@ -2522,9 +2522,6 @@ function seedStudy() {
     rooms: seedRooms(),
     pomo: [],
     goals: {},
-    program: {
-      [sv]: { prog: "IT1", done: ["MI1111", "MI1121", "MI1141", "PH1110", "PH1120", "IT1110", "FL1100", "FL1101", "SSH1111", "IT3020"] },
-    },
   };
   const sem = SEMESTERS["20261"];
   const classes = [
@@ -2871,7 +2868,6 @@ function studyTabs(active) {
     ["hub", "#/hoc-tap", "Tổng quan"],
     ["lich", "#/lich", "Lịch"],
     ["xep", "#/xep-lich", "Xếp lịch"],
-    ["ctdt", "#/ctdt", "CTĐT"],
     ["ontap", "#/on-tap", "Ôn tập"],
     ["fc", "#/flashcard", "Flashcard"],
     ["chung", "#/hoc-chung", "Học chung"],
@@ -3115,64 +3111,6 @@ function shuffleSeeded(arr, seed) {
   return a;
 }
 
-/* ===================== Chương trình đào tạo (minh họa) ===================== */
-const PROGRAMS = {
-  IT1: {
-    name: "Khoa học Máy tính",
-    faculty: "SOICT",
-    versions: [
-      {
-        id: "K70",
-        label: "Khóa K70 trở đi (áp dụng từ 2025)",
-        updated: "2025-08-15",
-        terms: [
-          ["MI1111", "MI1141", "IT1110", "FL1100", "SSH1111"],
-          ["MI1121", "PH1110", "IT3020", "FL1101", "SSH1121"],
-          ["MI1131", "PH1120", "IT3011", "IT3040", "SSH1131"],
-          ["MI2020", "IT3030", "IT3100", "IT3090", "IT3160"],
-          ["IT3070", "IT3080", "SSH1141", "SSH1151", "EM1180"],
-          ["IT4409", "SSH1170", "EM1010"],
-        ],
-      },
-      {
-        id: "K68",
-        label: "Khóa K68, K69 (áp dụng từ 2023)",
-        updated: "2023-08-10",
-        terms: [
-          ["MI1111", "MI1141", "IT1110", "FL1100", "SSH1111"],
-          ["MI1121", "PH1110", "IT3020", "FL1101", "SSH1121"],
-          ["MI1131", "PH1120", "IT3011", "IT3040", "SSH1131"],
-          ["MI2020", "IT3030", "IT3100", "IT3090", "SSH1141"],
-          ["IT3070", "IT3080", "IT3160", "SSH1151", "EM1180"],
-          ["IT4409", "SSH1170", "EM3100"],
-        ],
-      },
-    ],
-  },
-};
-function programOf(u) {
-  const st = ST();
-  st.program[u.email] = st.program[u.email] || { prog: "IT1", version: null, done: [] };
-  const p = st.program[u.email];
-  const prog = PROGRAMS[p.prog] || PROGRAMS.IT1;
-  const version = prog.versions.find((v) => v.id === p.version) || (u.cohort && u.cohort < 70 ? prog.versions.find((v) => v.id === "K68") : prog.versions[0]);
-  return { p, prog, version };
-}
-/** Các học phần nên học kỳ tới: chưa học, thuộc kỳ sớm nhất còn dở, tối đa khoảng 18 tín chỉ. */
-function nextTermCourses(u) {
-  const { p, version } = programOf(u);
-  const left = version.terms.flat().filter((c) => !p.done.includes(c));
-  const out = [];
-  let credits = 0;
-  for (const c of left) {
-    const cr = course(c)?.credits || 3;
-    if (credits + cr > 18) continue;
-    out.push(c);
-    credits += cr;
-  }
-  return out;
-}
-
 /* ===================== Hành vi xem, tải (cho gợi ý) ===================== */
 function seedActivity() {
   const out = [];
@@ -3199,7 +3137,7 @@ function logAct(u, d, kind) {
 
 /* ===================== Gợi ý tài liệu ===================== */
 /**
- * Điểm mỗi tài liệu = học phần đang theo dõi + sắp thi + đúng CTĐT kỳ tới + mức quan tâm của bạn với học phần
+ * Điểm mỗi tài liệu = học phần đang theo dõi + sắp thi + đúng Viện + mức quan tâm của bạn với học phần
  * (xem, tải gần đây, giảm dần theo thời gian) + "người tải tài liệu bạn tải cũng tải" + độ phổ biến.
  * Lý do hiển thị là thành phần đóng góp nhiều nhất.
  */
@@ -3230,7 +3168,6 @@ function recommend(u, k = 8) {
   const exams = upcoming(u, "exam", 21);
   const examIn = {};
   for (const o of exams) examIn[o.e.course] = Math.min(examIn[o.e.course] ?? 99, daysUntil(o.at));
-  const nextTerm = new Set(nextTermCourses(u));
   const fac = u.faculty;
   const scored = [];
   for (const d of S.docs) {
@@ -3238,8 +3175,7 @@ function recommend(u, k = 8) {
     const parts = [];
     if (follows.includes(d.course)) parts.push([3, `Bạn theo dõi ${d.course}`]);
     if (examIn[d.course] !== undefined) parts.push([5 * (1 - examIn[d.course] / 22) + (d.type.startsWith("EXAM") ? 1.5 : 0), `Sắp thi ${d.course}, còn ${Math.max(0, examIn[d.course])} ngày`]);
-    if (nextTerm.has(d.course)) parts.push([1.5, `Trong CTĐT kỳ tới của bạn`]);
-    else if (fac && course(d.course)?.faculty === fac) parts.push([0.6, "Đúng Viện của bạn"]);
+    if (fac && course(d.course)?.faculty === fac) parts.push([0.6, "Đúng Viện của bạn"]);
     if (courseAff[d.course]) parts.push([3 * (courseAff[d.course] / maxAff), `Vì bạn hay xem ${d.course}`]);
     if (co[d.id]) parts.push([Math.min(3, co[d.id]), "Người tải tài liệu giống bạn cũng tải"]);
     const pop = Math.log10(1 + d.downloads) / 2 + (d.ratingCount ? (avgRating(d) - 3) / 4 : 0);
@@ -3280,7 +3216,7 @@ function loadFeed() {
     .then((j) => {
       if (j && Array.isArray(j.items) && (!hustFeed || j.fetchedAt !== hustFeed.fetchedAt)) {
         hustFeed = j;
-        if (/^\/(hoc-tap|ctdt)/.test(currentPath())) render();
+        if (/^\/hoc-tap/.test(currentPath())) render();
       }
     })
     .catch(() => {});
@@ -3302,7 +3238,7 @@ function sampleOfferings() {
   let seed = 20262;
   const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
   const rooms = ["D9-", "D3-", "D5-", "TC-", "D7-", "D6-"];
-  const codes = [...new Set(Object.values(PROGRAMS).flatMap((p) => p.versions.flatMap((v) => v.terms.flat())))].filter((c) => course(c));
+  const codes = S.courses.map((c) => c.code);
   const out = [];
   let id = 160100;
   for (const c of codes) {
@@ -3509,7 +3445,7 @@ function offeringsOf(u = me()) {
         OFFER.classes = null;
         save();
       }
-      if (currentPath() === "/xep-lich" || currentPath() === "/ctdt") render();
+      if (currentPath() === "/xep-lich") render();
     });
   }
   return null;
@@ -3699,7 +3635,7 @@ views["/xep-lich"] = () => {
     return { html: studyHead("Xếp lịch đăng ký lớp", "xep", "") + `<div class="wrap" style="padding-block:24px"><p class="narr" style="margin:0">Đang mở danh sách lớp${meta ? ` từ file <b>${esc(meta.name)}</b>` : ""}…</p></div>` };
   const codeSet = new Set(list.map((o) => o.code));
   const avail = [...codeSet].sort();
-  const suggest = nextTermCourses(u).filter((c) => codeSet.has(c) && !plan.courses.includes(c));
+  const suggest = (S.follows[u.email] || []).filter((c) => codeSet.has(c) && !plan.courses.includes(c));
   const res = plan.result;
   const chosen = res?.best?.[plan.choice];
   const creditOf = (c) => list.find((o) => o.code === c && o.credits !== null)?.credits ?? course(c)?.credits ?? 0;
@@ -3749,7 +3685,7 @@ views["/xep-lich"] = () => {
      <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">2. Học phần muốn đăng ký</h2>
       <div class="row" style="gap:6px">${plan.courses.map((c) => `<span class="why" style="font-size:13px;padding:4px 8px;border:2px solid var(--line);color:var(--ink)">${c} ${esc(courseLabel(c, list))} <button type="button" data-rm="${c}" aria-label="Bỏ ${c}" style="all:unset;cursor:pointer;margin-left:6px;font-weight:700">×</button></span>`).join("") || '<span class="small muted">Chưa chọn học phần nào.</span>'}</div>
       <form class="row" data-form="addc" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="addc">Thêm học phần</label><input class="input" id="addc" list="addc-list" placeholder="Mã học phần, ví dụ IT3080" autocomplete="off"><datalist id="addc-list"></datalist><button class="btn ink" type="submit">Thêm</button></form>
-      ${suggest.length ? `<p class="small" style="margin:0">Theo CTĐT, kỳ tới bạn nên học: ${suggest.map((c) => `<b>${c}</b>`).join(", ")}. <button class="btn sm" type="button" data-sug>Thêm tất cả</button></p>` : ""}
+      ${suggest.length ? `<p class="small" style="margin:0">Học phần bạn đang theo dõi có lớp mở: ${suggest.map((c) => `<b>${c}</b>`).join(", ")}. <button class="btn sm" type="button" data-sug>Thêm tất cả</button></p>` : ""}
       <p class="tiny muted" style="margin:0">${plan.courses.length} học phần, ${credits} tín chỉ.</p></section>
     </div>
     <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">3. Ưu tiên</h2>
@@ -3873,76 +3809,6 @@ views["/xep-lich"] = () => {
         } catch {
           prompt("Mã lớp", ids);
         }
-      });
-    },
-  };
-};
-
-/* ===================== Chương trình đào tạo ===================== */
-function diffVersions(a, b) {
-  const pos = (v) => Object.fromEntries(v.terms.flatMap((t, i) => t.map((c) => [c, i + 1])));
-  const pa = pos(a);
-  const pb = pos(b);
-  const out = [];
-  for (const c of Object.keys(pa)) if (!(c in pb)) out.push(["Thêm", c, `kỳ ${pa[c]}`]);
-  for (const c of Object.keys(pb)) if (!(c in pa)) out.push(["Bỏ", c, `trước ở kỳ ${pb[c]}`]);
-  for (const c of Object.keys(pa)) if (c in pb && pa[c] !== pb[c]) out.push(["Chuyển", c, `kỳ ${pb[c]} → kỳ ${pa[c]}`]);
-  return out;
-}
-views["/ctdt"] = () => {
-  const u = me();
-  if (!u) return needLogin("/ctdt");
-  loadFeed();
-  const { p, prog, version } = programOf(u);
-  const all = version.terms.flat();
-  const doneCr = all.filter((c) => p.done.includes(c)).reduce((s, c) => s + (course(c)?.credits || 0), 0);
-  const totalCr = all.reduce((s, c) => s + (course(c)?.credits || 0), 0);
-  const older = prog.versions.filter((v) => v.id !== version.id);
-  const syllabus = (c) => S.docs.filter((d) => d.course === c && d.status === "APPROVED" && d.type === "SYLLABUS").sort((a, b) => b.publishedAt - a.publishedAt)[0];
-  const html =
-    studyHead(`Chương trình đào tạo: ${prog.name}`, "ctdt", `<p class="small muted" style="margin:0">${esc(version.label)}, cập nhật ${fmtDate(parseYmd(version.updated))}. Khung chương trình đào tạo chuẩn; thông báo bên dưới cập nhật trực tiếp từ ctt.hust.edu.vn.</p>`) +
-    `<div class="wrap stack" style="padding-block:20px;gap:24px">
-    <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))"><div class="cell"><span class="l">Đã học</span><span class="v code" style="font-size:28px">${doneCr}/${totalCr} TC</span><div class="bar" style="margin-top:6px"><i style="width:${Math.round((doneCr / Math.max(1, totalCr)) * 100)}%"></i></div></div>
-     <div class="cell"><span class="l">Phiên bản</span><select class="select" id="ver" aria-label="Phiên bản chương trình">${prog.versions.map((v) => `<option value="${v.id}"${v.id === version.id ? " selected" : ""}>${esc(v.label)}</option>`).join("")}</select></div>
-     <div class="cell"><span class="l">Kỳ tới nên học</span><span class="v">${nextTermCourses(u).join(", ") || "Đã học hết"}</span><a class="small" href="#/xep-lich" data-toplan>Xếp lịch cho các môn này</a></div></div>
-    <section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Các học kỳ</h2><p class="small muted" style="margin:0">Đánh dấu môn đã học để tính tiến độ và gợi ý môn kỳ tới.</p>
-     <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">${version.terms
-       .map((t, i) => `<div class="tb" style="grid-template-columns:minmax(0,1fr)"><div style="padding:8px 12px;background:var(--fill);color:var(--on-fill)" class="head">Học kỳ ${i + 1} <span class="tiny" style="opacity:.8">${t.reduce((s, c) => s + (course(c)?.credits || 0), 0)} TC</span></div>${t
-         .map((c) => {
-           const sy = syllabus(c);
-           return `<label class="check" style="padding:6px 12px;margin:0;align-items:flex-start"><input type="checkbox" data-done="${c}"${p.done.includes(c) ? " checked" : ""}><span style="display:flex;flex-direction:column"><span><a href="#/hoc-phan/${c}"><b>${c}</b></a> ${esc(course(c)?.name || c)} <span class="tiny muted">${course(c)?.credits || "?"} TC</span></span>${sy ? `<a class="tiny" href="#/tai-lieu/${sy.slug}">Đề cương mới nhất (${fmtDate(sy.publishedAt)})</a>` : ""}</span></label>`;
-         })
-         .join("")}</div>`)
-       .join("")}</div></section>
-    ${older.length ? `<section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Thay đổi so với ${esc(older[0].label)}</h2>${(() => {
-      const d = diffVersions(version, older[0]);
-      return d.length ? `<ul class="tb" style="list-style:none;margin:0;padding:0">${d.map(([k, c, w]) => `<li style="padding:6px 12px"><span class="why" style="margin-right:8px">${k}</span><b>${c}</b> ${esc(course(c)?.name || "")} <span class="tiny muted">${w}</span></li>`).join("")}</ul>` : '<p class="small muted">Không có khác biệt.</p>';
-    })()}</section>` : ""}
-    <section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Thông báo mới về CTĐT, đề cương, đăng ký học tập</h2>${feedList(["ctdt", "decuong", "dangky", "quyche"], 8)}</section>
-    </div>`;
-  return {
-    html,
-    mount(root) {
-      root.querySelector("#ver").addEventListener("change", (e) => {
-        p.version = e.target.value;
-        save();
-        render();
-      });
-      root.querySelectorAll("[data-done]").forEach((c) =>
-        c.addEventListener("change", () => {
-          const code = c.dataset.done;
-          p.done = c.checked ? [...new Set([...p.done, code])] : p.done.filter((x) => x !== code);
-          save();
-          render();
-        }),
-      );
-      root.querySelector("[data-toplan]")?.addEventListener("click", () => {
-        const plan = planOf(u);
-        const list = offeringsOf(u);
-        const avail = new Set((list || []).map((o) => o.code));
-        plan.courses = nextTermCourses(u).filter((c) => !list || avail.has(c));
-        plan.result = null;
-        save();
       });
     },
   };
@@ -5196,17 +5062,16 @@ views["/hoc-tap"] = () => {
   const recs = recommend(u, 8);
   const cell = (label, value, href, red) => `<a class="cell" href="${href}" style="text-decoration:none;color:var(--ink)"><span class="l">${label}</span><span class="v code" style="font-size:30px${red ? ";color:var(--stamp)" : ""}">${value}</span></a>`;
   const html =
-    studyHead("Học tập", "hub", `<p class="small muted" style="margin:0">Lịch, ôn tập và gợi ý dành riêng cho bạn, dựa trên học phần theo dõi, chương trình đào tạo, lịch thi và những gì bạn hay xem.</p>`) +
+    studyHead("Học tập", "hub", `<p class="small muted" style="margin:0">Lịch, ôn tập và gợi ý dành riêng cho bạn, dựa trên học phần theo dõi, lịch thi và những gì bạn hay xem.</p>`) +
     `<div class="wrap stack" style="padding-block:20px;gap:28px">
     <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">${cell("Lớp học hôm nay", today.filter((o) => o.e.kind === "class").length, "#/lich")}${cell(exams.length ? `Thi ${exams[0].e.course}` : "Lịch thi", exams.length ? countdown(exams[0].at).replace("Còn ", "") : "Trống", "#/lich#sap-thi", exams.length && daysUntil(exams[0].at) <= 7)}${cell("Hạn nộp 7 ngày tới", deadlines.length, "#/lich", deadlines.length > 0)}${cell("Flashcard đến hạn", due, "#/flashcard", due > 0)}${cell("Phút tập trung tuần này", focusMinutes(u.email, weekStart(now)), "#/hoc-chung")}</div>
     ${today.length ? `<section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Hôm nay</h2><ul class="tb" style="list-style:none;margin:0;padding:0">${today.map((o) => `<li style="padding:8px 12px;display:flex;gap:12px"><b class="code" style="font-size:16px;flex-shrink:0">${hm(o.e.start)}</b><span style="min-width:0">${esc(o.e.title)}${o.e.location ? ` <span class="tiny muted">${esc(o.e.location)}</span>` : ""}</span></li>`).join("")}</ul></section>` : ""}
     ${examPanel(u)}
-    <section class="stack" style="gap:12px"><h2 class="h2" style="margin:0">Gợi ý tài liệu cho bạn</h2>${recs.length ? recCards(recs) : '<p class="small muted" style="margin:0">Theo dõi vài học phần hoặc xem một số tài liệu để nhận gợi ý.</p>'}<p class="tiny muted" style="margin:0">Gợi ý dựa trên: học phần bạn theo dõi, lịch thi sắp tới, chương trình đào tạo kỳ tới, tài liệu bạn xem và tải gần đây, và những gì người có cùng mối quan tâm đã tải.</p></section>
+    <section class="stack" style="gap:12px"><h2 class="h2" style="margin:0">Gợi ý tài liệu cho bạn</h2>${recs.length ? recCards(recs) : '<p class="small muted" style="margin:0">Theo dõi vài học phần hoặc xem một số tài liệu để nhận gợi ý.</p>'}<p class="tiny muted" style="margin:0">Gợi ý dựa trên: học phần bạn theo dõi, lịch thi sắp tới, Viện của bạn, tài liệu bạn xem và tải gần đây, và những gì người có cùng mối quan tâm đã tải.</p></section>
     <section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Thông báo mới từ trường</h2>${feedList(null, 6)}</section>
     <section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Công cụ</h2><div class="cards">${[
       ["#/lich", "Lịch học, lịch thi", "Nhập tay hoặc từ file, nhắc trước kỳ thi và hạn nộp"],
       ["#/xep-lich", "Xếp lịch đăng ký lớp", "Đọc file TKB, xếp tự động không trùng giờ"],
-      ["#/ctdt", "Chương trình đào tạo", "Tiến độ tín chỉ, môn nên học kỳ tới"],
       ["#/on-tap", "Ôn tập trắc nghiệm", "Chấm điểm, thống kê điểm mạnh, điểm yếu"],
       ["#/flashcard", "Flashcard", "Lặp lại ngắt quãng theo SM-2"],
       ["#/hoc-chung", "Pomodoro, học chung", "Đếm giờ cùng bạn bè"],
@@ -5217,7 +5082,7 @@ views["/hoc-tap"] = () => {
 
 /* Bản dịch tiếng Anh cho giao diện giai đoạn 6 (nội dung học phần, câu hỏi giữ tiếng Việt) */
 Object.assign(EN, {
-  "Học tập": "Study", "Tổng quan": "Overview", "Lịch": "Calendar", "Xếp lịch": "Planner", "CTĐT": "Curriculum", "Ôn tập": "Practice", "Flashcard": "Flashcards", "Học chung": "Study rooms",
+  "Học tập": "Study", "Tổng quan": "Overview", "Lịch": "Calendar", "Xếp lịch": "Planner", "Ôn tập": "Practice", "Flashcard": "Flashcards", "Học chung": "Study rooms",
   "Lịch học, lịch thi": "Class and exam calendar", "Lịch học và lịch thi": "Class and exam calendar", "Sắp thi": "Upcoming exams", "Hạn nộp sắp tới": "Upcoming deadlines", "Đã xong": "Done",
   "Ôn trắc nghiệm": "Practice quiz", "Lập kế hoạch ôn": "Plan review", "Tài liệu nên xem trước khi thi": "Read before the exam", "Thêm vào lịch": "Add to calendar", "Thêm": "Add",
   "Lớp học": "Class", "Lịch thi": "Exam", "Hạn nộp": "Deadline", "Ngày": "Date", "Bắt đầu": "Start", "Kết thúc": "End", "Phòng, địa điểm": "Room, place",
@@ -5230,7 +5095,7 @@ Object.assign(EN, {
   "Chép danh sách mã lớp": "Copy class IDs", "Chưa chọn học phần nào.": "No courses selected.",
   "Đã học": "Completed", "Phiên bản": "Version", "Kỳ tới nên học": "Suggested next term", "Xếp lịch cho các môn này": "Plan these courses", "Các học kỳ": "Terms",
   "Đánh dấu môn đã học để tính tiến độ và gợi ý môn kỳ tới.": "Tick completed courses to track progress and get next-term suggestions.",
-  "Thông báo mới về CTĐT, đề cương, đăng ký học tập": "New notices on curriculum, syllabi, registration", "Thông báo mới từ trường": "Latest university notices",
+  "Thông báo mới từ trường": "Latest university notices",
   "Ôn tập trắc nghiệm": "Practice quiz", "Số câu": "Questions", "Ưu tiên câu hay sai": "Focus on missed questions", "Điểm mạnh, điểm yếu": "Strengths and weaknesses",
   "Các lượt gần đây": "Recent attempts", "Làm một lượt để xem thống kê.": "Take a quiz to see statistics.", "Bạn đang làm tốt các chủ đề đã luyện.": "You are doing well on practiced topics.", "Ôn câu sai bằng flashcard": "Review missed questions with flashcards",
   "Đến hạn hôm nay": "Due today", "Đã thuộc": "Learned", "Tổng số thẻ": "Total cards", "Lật thẻ": "Flip", "Quên": "Again", "Khó": "Hard", "Nhớ": "Good", "Dễ": "Easy",
@@ -5252,7 +5117,7 @@ EN_RX.push(
   [/^Thi ([A-Z]{2,4}\d{4}[A-Z]?)$/, "Exam $1"],
   [/^(\d+) ngày$/, "$1 days"],
 );
-Object.assign(EN, { "Trong CTĐT kỳ tới của bạn": "In your next-term curriculum", "Đúng Viện của bạn": "From your school", "Người tải tài liệu giống bạn cũng tải": "People with similar downloads also got this" });
+Object.assign(EN, { "Đúng Viện của bạn": "From your school", "Người tải tài liệu giống bạn cũng tải": "People with similar downloads also got this" });
 
 /* ===================== Giai đoạn 7: cộng đồng và động lực đóng góp ===================== */
 /* Nhiệm vụ, streak, sự kiện mùa thi; xếp hạng theo Viện, lớp, CLB; huy hiệu hiếm; hỏi đáp theo học phần;
