@@ -6,6 +6,7 @@ export * from "./permissions";
 export * from "./quota";
 export * from "./reasons";
 export * from "./risk";
+export * from "./support";
 export * from "./tags";
 export * from "./term";
 export * from "./validators";

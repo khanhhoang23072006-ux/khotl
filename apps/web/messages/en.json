@@ -43,7 +43,9 @@
     "copyright": "Copyright",
     "takedown": "Request a takedown",
     "display": "Display",
-    "disclaimer": "A student project, not an official channel of Hanoi University of Science and Technology. Documents belong to their authors; if you own one and want it removed, send a takedown request."
+    "disclaimer": "A student project, not an official channel of Hanoi University of Science and Technology. Documents belong to their authors; if you own one and want it removed, send a takedown request.",
+    "support": "Support",
+    "feedback": "Feedback, bug reports"
   },
   "home": {
     "title": "What are you studying today?",
@@ -643,5 +645,65 @@
     "unlimited": "Unlimited downloads",
     "unlimitedLabel": "Downloads: unlimited (moderators and administrators)",
     "staffUnlimited": "Moderators and administrators download without limits."
+  },
+  "feedback": {
+    "title": "Feedback and bug reports",
+    "intro": "Found a bug, need help with your account, spotted a problem with a document, or have an idea? Tell the HUSTDOCU team. You get a ticket code by email and a reply within the expected time shown here.",
+    "kind": "Type",
+    "chooseKind": "Choose a type",
+    "kinds": {
+      "BUG": "Bug report",
+      "ACCOUNT": "Account, sign-in",
+      "CONTENT": "Documents, content",
+      "IDEA": "Idea, suggestion",
+      "OTHER": "Other"
+    },
+    "subject": "Subject",
+    "body": "Description",
+    "bodyHint": "For bugs: what you did, what you expected, what happened. Never send passwords or OTP codes.",
+    "email": "Reply-to email",
+    "emailSignedIn": "Your account email.",
+    "pageUrl": "Page with the problem",
+    "pageUrlHint": "Paste the link if you have one.",
+    "submit": "Send feedback",
+    "sentTitle": "Received, ticket {code}",
+    "sentBody": "We emailed you a confirmation and will reply within about {hours} hours.",
+    "slaTitle": "Expected response time",
+    "slaHours": "{hours} hours",
+    "slaNote": "Counted from submission, weekends included. Problems that block sign-in or downloads come first.",
+    "mailReceivedSubject": "HUSTDOCU received your feedback {code}",
+    "mailReceivedBody": "Hello,\n\nHUSTDOCU received ticket {code}: \"{subject}\".\nWe will reply to this email within about {hours} hours.\n\nTo add details, reply to this email or open a new ticket at {url}.\n\nThe HUSTDOCU team",
+    "mailAdminSubject": "[Feedback {code}] {subject}",
+    "mailAdminBody": "New ticket {code} from {email}:\n\n{body}\n\nReply at {url}",
+    "mailReplySubject": "Reply to your feedback {code} from HUSTDOCU",
+    "mailReplyBody": "Hello,\n\nAbout ticket {code}: \"{subject}\"\n\n{reply}\n\nThe HUSTDOCU team",
+    "admin": {
+      "tab": "Feedback",
+      "open": "Open",
+      "overdue": "Past response time",
+      "answered": "Answered",
+      "medianResponse": "Median reply time (30 days)",
+      "hours": "{hours} h",
+      "filter": "Filter by status",
+      "status": {
+        "OPEN": "Open",
+        "ANSWERED": "Answered",
+        "CLOSED": "Closed"
+      },
+      "lateBadge": "Overdue",
+      "from": "From {email}",
+      "due": "Due {at}",
+      "empty": "No tickets.",
+      "previousReply": "Replied",
+      "reply": "Reply",
+      "replyHint": "Sent by email to the person who wrote in.",
+      "closeAfterReply": "Close the ticket after replying",
+      "send": "Send reply",
+      "replied": "Reply sent.",
+      "close": "Close ticket",
+      "closed": "Ticket closed.",
+      "reopen": "Reopen",
+      "reopened": "Ticket reopened."
+    }
   }
 }

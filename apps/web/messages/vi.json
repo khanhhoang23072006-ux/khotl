@@ -43,7 +43,9 @@
     "copyright": "Bản quyền",
     "takedown": "Yêu cầu gỡ tài liệu",
     "display": "Hiển thị",
-    "disclaimer": "Dự án của sinh viên, không phải kênh chính thức của Đại học Bách khoa Hà Nội. Tài liệu thuộc về tác giả; nếu bạn là chủ sở hữu và muốn gỡ, hãy gửi yêu cầu gỡ tài liệu."
+    "disclaimer": "Dự án của sinh viên, không phải kênh chính thức của Đại học Bách khoa Hà Nội. Tài liệu thuộc về tác giả; nếu bạn là chủ sở hữu và muốn gỡ, hãy gửi yêu cầu gỡ tài liệu.",
+    "support": "Hỗ trợ",
+    "feedback": "Góp ý, báo lỗi"
   },
   "home": {
     "title": "Hôm nay ôn môn gì?",
@@ -643,5 +645,65 @@
     "unlimited": "Tải không giới hạn",
     "unlimitedLabel": "Lượt tải: không giới hạn (kiểm duyệt viên, quản trị viên)",
     "staffUnlimited": "Kiểm duyệt viên và quản trị viên tải không giới hạn, không trừ lượt."
+  },
+  "feedback": {
+    "title": "Góp ý, báo lỗi",
+    "intro": "Gặp lỗi, cần hỗ trợ tài khoản, thấy tài liệu có vấn đề hay có ý tưởng hay? Gửi cho đội HUSTDOCU. Bạn nhận mã phiếu qua email và câu trả lời trong thời gian dự kiến bên cạnh.",
+    "kind": "Loại",
+    "chooseKind": "Chọn loại",
+    "kinds": {
+      "BUG": "Báo lỗi",
+      "ACCOUNT": "Tài khoản, đăng nhập",
+      "CONTENT": "Tài liệu, nội dung",
+      "IDEA": "Ý tưởng, đề xuất",
+      "OTHER": "Khác"
+    },
+    "subject": "Tiêu đề",
+    "body": "Mô tả",
+    "bodyHint": "Với lỗi: bạn đã làm gì, mong đợi gì, thấy gì. Không gửi mật khẩu hay mã OTP.",
+    "email": "Email nhận trả lời",
+    "emailSignedIn": "Email tài khoản của bạn.",
+    "pageUrl": "Trang gặp vấn đề",
+    "pageUrlHint": "Dán đường dẫn nếu có.",
+    "submit": "Gửi góp ý",
+    "sentTitle": "Đã nhận, mã phiếu {code}",
+    "sentBody": "Chúng tôi đã gửi xác nhận vào email của bạn và sẽ trả lời trong khoảng {hours} giờ.",
+    "slaTitle": "Thời gian phản hồi dự kiến",
+    "slaHours": "{hours} giờ",
+    "slaNote": "Tính từ lúc gửi, kể cả cuối tuần. Lỗi khiến không đăng nhập hay không tải được tài liệu được ưu tiên.",
+    "mailReceivedSubject": "HUSTDOCU đã nhận góp ý {code}",
+    "mailReceivedBody": "Chào bạn,\n\nHUSTDOCU đã nhận phiếu {code}: \"{subject}\".\nChúng tôi sẽ trả lời qua email này trong khoảng {hours} giờ.\n\nGửi thêm thông tin: trả lời thư này hoặc gửi phiếu mới tại {url}.\n\nĐội HUSTDOCU",
+    "mailAdminSubject": "[Góp ý {code}] {subject}",
+    "mailAdminBody": "Phiếu mới {code} từ {email}:\n\n{body}\n\nTrả lời tại {url}",
+    "mailReplySubject": "Trả lời góp ý {code} từ HUSTDOCU",
+    "mailReplyBody": "Chào bạn,\n\nVề phiếu {code}: \"{subject}\"\n\n{reply}\n\nĐội HUSTDOCU",
+    "admin": {
+      "tab": "Góp ý",
+      "open": "Đang mở",
+      "overdue": "Quá hạn phản hồi",
+      "answered": "Đã trả lời",
+      "medianResponse": "Trả lời trung vị (30 ngày)",
+      "hours": "{hours} giờ",
+      "filter": "Lọc theo trạng thái",
+      "status": {
+        "OPEN": "Đang mở",
+        "ANSWERED": "Đã trả lời",
+        "CLOSED": "Đã đóng"
+      },
+      "lateBadge": "Quá hạn",
+      "from": "Từ {email}",
+      "due": "Hạn {at}",
+      "empty": "Không có phiếu nào.",
+      "previousReply": "Đã trả lời",
+      "reply": "Trả lời",
+      "replyHint": "Gửi qua email cho người góp ý.",
+      "closeAfterReply": "Đóng phiếu sau khi trả lời",
+      "send": "Gửi trả lời",
+      "replied": "Đã gửi trả lời.",
+      "close": "Đóng phiếu",
+      "closed": "Đã đóng phiếu.",
+      "reopen": "Mở lại",
+      "reopened": "Đã mở lại phiếu."
+    }
   }
 }

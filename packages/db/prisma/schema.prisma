@@ -32,6 +32,20 @@ datasource db {
 // ENUM
 // ---------------------------------------------------------------------
 
+enum FeedbackKind {
+  BUG
+  ACCOUNT
+  CONTENT
+  IDEA
+  OTHER
+}
+
+enum FeedbackStatus {
+  OPEN
+  ANSWERED
+  CLOSED
+}
+
 enum RoleKey {
   STUDENT
   MODERATOR
@@ -283,6 +297,8 @@ model User {
   searchHistory          SearchHistory[]
   downloads              DownloadLog[]
   settingsUpdated        SystemSetting[]
+  feedbackSent           Feedback[]           @relation("FeedbackSender")
+  feedbackAnswered       Feedback[]           @relation("FeedbackResponder")
 
   @@index([facultyId])
   @@map("users")
@@ -1232,4 +1248,31 @@ model SystemSetting {
   updatedBy User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@map("system_settings")
+}
+
+// Góp ý, báo lỗi, hỏi đáp hỗ trợ (Giai đoạn 9). Ai cũng gửi được, kể cả khách (cần email).
+// code là mã phiếu gửi cho người dùng để tra cứu (vd GY-7K3Q9P).
+model Feedback {
+  id            String         @id @default(uuid(7))
+  code          String         @unique
+  kind          FeedbackKind
+  subject       String
+  body          String
+  email         String
+  userId        String?
+  pageUrl       String?
+  userAgent     String?
+  status        FeedbackStatus @default(OPEN)
+  reply         String?
+  respondedById String?
+  respondedAt   DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime       @default(now())
+
+  user        User? @relation("FeedbackSender", fields: [userId], references: [id], onDelete: SetNull)
+  respondedBy User? @relation("FeedbackResponder", fields: [respondedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@map("feedback")
 }

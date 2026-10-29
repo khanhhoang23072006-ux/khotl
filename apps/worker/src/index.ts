@@ -3,6 +3,7 @@ import { prisma } from "@khotl/db";
 import { sendPendingEmails } from "./email";
 import { config } from "./env";
 import { errorMessage, log } from "./log";
+import { flushMonitoring } from "./monitoring";
 import { type PipelineContext, processVersion } from "./pipeline/process-version";
 import { detectTools } from "./tools";
 
@@ -122,9 +123,11 @@ async function main() {
   ]);
   await prisma.$disconnect();
   log.info("Worker đã dừng");
+  await flushMonitoring();
 }
 
-main().catch((error) => {
-  log.error("Worker dừng vì lỗi", { error: errorMessage(error) });
+main().catch(async (error) => {
+  log.error("Worker dừng vì lỗi", { error });
+  await flushMonitoring();
   process.exit(1);
 });

@@ -170,6 +170,8 @@ jobs:
       AUTH_RATE_LIMIT: "off"
       WORKER_CONCURRENCY: "2"
       CLAMAV_REQUIRED: "false"
+      # Bài test khách cần sẵn tài liệu đã duyệt (seed mặc định không tạo tài liệu mẫu từ 1c3509e)
+      SEED_SAMPLE_DOCUMENTS: "true"
     steps:
       - uses: actions/checkout@v4
       - name: Có migration và lockfile chưa

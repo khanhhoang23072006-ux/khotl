@@ -26,6 +26,15 @@ function storageOrigin(): string {
 
 const storage = storageOrigin();
 
+/** Origin nhận báo lỗi Sentry từ trình duyệt (lấy từ DSN, vd https://o123.ingest.sentry.io). */
+const sentryOrigin = (() => {
+  try {
+    return process.env.NEXT_PUBLIC_SENTRY_DSN ? new URL(process.env.NEXT_PUBLIC_SENTRY_DSN).origin : "";
+  } catch {
+    return "";
+  }
+})();
+
 const csp = [
   "default-src 'self'",
   // Next.js chèn script inline để hydrate; 'unsafe-eval' chỉ cần khi dev (React Refresh)
@@ -33,7 +42,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' data: blob: ${storage}`,
   "font-src 'self'",
-  `connect-src 'self' ${storage}`,
+  `connect-src 'self' ${storage} ${sentryOrigin}`,
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   "object-src 'none'",

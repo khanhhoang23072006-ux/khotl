@@ -29,6 +29,9 @@ export async function SiteFooter() {
             <Link href="/go-tai-lieu" className="underline-offset-2 hover:underline">
               {t("takedown")}
             </Link>
+            <Link href="/gop-y" className="underline-offset-2 hover:underline">
+              {t("feedback")}
+            </Link>
           </div>
           <div className="col-span-2 flex items-center justify-between bg-sheet px-1 md:col-span-1">
             <span className="px-2 text-[11px] text-pencil">{t("display")}</span>

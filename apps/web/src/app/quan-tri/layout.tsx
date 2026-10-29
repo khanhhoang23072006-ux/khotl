@@ -8,6 +8,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   await requirePermission(PERMISSIONS.adminCatalog, "/quan-tri");
   const t = await getTranslations("admin");
   const tc = await getTranslations("credits.admin");
+  const tf = await getTranslations("feedback.admin");
   const tab = "flex h-11 items-center bg-sheet px-4 font-head text-sm hover:bg-wash hover:text-ink";
   const active = "bg-ink text-paper hover:bg-ink hover:text-paper";
   return (
@@ -23,6 +24,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           </NavLink>
           <NavLink href="/quan-tri/luot-tai" className={tab} activeClassName={active}>
             {tc("tab")}
+          </NavLink>
+          <NavLink href="/quan-tri/gop-y" className={tab} activeClassName={active}>
+            {tf("tab")}
           </NavLink>
         </nav>
       </div>
