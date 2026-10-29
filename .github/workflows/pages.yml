@@ -1,7 +1,7 @@
 name: Bản demo trên GitHub Pages
 
-# Đăng demo/index.html kèm sw.js, manifest và icons (PWA). Trang là một file HTML, dữ liệu mẫu nhúng sẵn, chạy hoàn toàn trên trình duyệt).
-# Sửa giao diện demo ở demo/template.html rồi chạy: pnpm demo:build
+# Đăng index.html (bản đang chạy ở gốc repo) kèm sw.js, manifest và icons (PWA). Trang là một file HTML, dữ liệu mẫu nhúng sẵn, chạy hoàn toàn trên trình duyệt).
+# Sửa giao diện trực tiếp ở index.html. Không chạy pnpm demo:build: lệnh đó ghi đè index.html bằng demo/template.html (bản cũ).
 on:
   push:
     branches: [main]
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
       - name: Chuẩn bị thư mục
-        run: mkdir -p site && cp demo/index.html site/index.html && cp -r sw.js manifest.webmanifest icons data site/ && touch site/.nojekyll
+        run: mkdir -p site && cp index.html site/index.html && cp -r sw.js manifest.webmanifest icons data site/ && touch site/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

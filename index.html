@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HUSTDOCU</title>
 <meta name="description" content="Hệ thống chia sẻ và tra cứu tài liệu học tập sinh viên Đại học Bách khoa Hà Nội (HUSTDOCU): tìm kiếm tiếng Việt, xem trực tiếp, tải lên, kiểm duyệt chất lượng.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' fill='%23F6F7F5' stroke='%231B1F23' stroke-width='2'/%3E%3Cpath d='M1 21h30M21 21v10' stroke='%231B1F23' stroke-width='2'/%3E%3Crect x='22' y='22' width='8' height='8' fill='%23B3172B'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1.5' y='1.5' width='29' height='29' fill='%23fff' stroke='%23111' stroke-width='3'/%3E%3Cpath d='M1.5 19 L30.5 13' stroke='%23111' stroke-width='3'/%3E%3Cpath d='M4 30 L4 21 L28 16 L28 30 Z' fill='%23D7263D'/%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F6F7F5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#181C22" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FBFAF7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141414" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta property="og:title" content="HUSTDOCU: tài liệu học tập sinh viên Bách khoa">
@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Patrick+Hand&display=swap">
 <style>
 /* Hệ nhận diện "Khung tên": khung tên bản vẽ kỹ thuật. Viền ngoài 2px, đường trong 1px, góc vuông.
    Đỏ chỉ cho hành động chính, dấu ĐÃ DUYỆT và cảnh báo. */
@@ -359,18 +359,319 @@ html.dark .dir-row{border-bottom-color:rgba(255,255,255,0.08)}
 html.dark .dir-row:hover{background:#252D37}
 html.dark .code-tag{background:#21262E;border-color:rgba(255,255,255,0.18)}
 html.dark .code-tag:hover{border-color:var(--stamp);color:var(--stamp);background:#2A313C}
+
+/* =====================================================================
+   GIAO DIỆN "TRANG TRUYỆN" (manga, 2026-10)
+   Giấy trắng, mực đen viền 3px, chấm lưới (screentone), một màu đỏ HUST và vàng dạ quang.
+   Chữ: Anton (tiêu đề, mã học phần), Be Vietnam Pro (nội dung), Patrick Hand (lời thoại, lời dẫn).
+   Khối này nằm cuối <style> nên ghi đè hệ "Khung tên" cũ.
+   ===================================================================== */
+:root{
+ --paper:#FBFAF7;--sheet:#FFFFFF;--ink:#111111;--pencil:#55534E;--grid:#E4E1DA;--wash:#F1EFEA;
+ --line:#111111;--fill:#111111;--on-fill:#FFFFFF;--stamp:#D7263D;--stamp-ink:#FFFFFF;--star:#D7263D;--page:#FFFFFF;
+ --hi:#FFE14D;--on-hi:#111111;--tone:rgba(17,17,17,.9);--tone-lite:rgba(17,17,17,.22);
+ --bw:3px;--shadow:4px 4px 0 var(--line);
+ --font:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+ --display:"Anton","Be Vietnam Pro",Impact,sans-serif;
+ --hand:"Patrick Hand","Be Vietnam Pro",cursive;
+}
+html.dark{
+ --paper:#141414;--sheet:#1D1D1D;--ink:#F5F2EA;--pencil:#B9B5AC;--grid:#333;--wash:#262626;
+ --line:#F5F2EA;--fill:#F5F2EA;--on-fill:#141414;--stamp:#FF4D5E;--stamp-ink:#141414;--star:#FFE14D;
+ --hi:#FFE14D;--on-hi:#111111;--tone:rgba(245,242,234,.85);--tone-lite:rgba(245,242,234,.16);
+}
+body{font-family:var(--font);font-variation-settings:normal;background:var(--paper)}
+::selection{background:var(--hi);color:#111}
+@media (hover:hover){a:hover{color:var(--stamp)}}
+:focus-visible{outline:3px solid var(--stamp);outline-offset:2px}
+mark,html.dark mark{background:var(--hi);color:#111;text-decoration:none;padding:0 2px}
+.code{font-family:var(--display);font-variation-settings:normal;font-weight:400;letter-spacing:.01em}
+.head,.field>label,.btn,.badge,nav.main a,.st,.logo b{font-variation-settings:normal}
+.head{font-weight:800}
+h1,.h2{font-family:var(--display);font-weight:400;letter-spacing:.01em;text-transform:uppercase}
+.h2{font-size:24px;line-height:1.1}
+h1.sr,.sr{text-transform:none}
+.hand{font-family:var(--hand);font-weight:400}
+
+/* Bỏ bo góc của bản trước: manga là khung vuông */
+.btn,.input,.select,.textarea,.badge,.avatar,.tb,.empty,.dir-panel,.code-tag,.course-box,.searchbox .bar,.sugg{border-radius:0!important}
+
+/* Screentone thay cho giấy kẻ ô */
+.gridpaper,html.dark .gridpaper{background-color:var(--paper);background-image:radial-gradient(var(--tone-lite) 1.1px,transparent 1.3px);background-size:7px 7px}
+.tone{background-image:radial-gradient(var(--tone) 1.1px,transparent 1.3px);background-size:7px 7px}
+.tone-lite{background-image:radial-gradient(var(--tone-lite) 1px,transparent 1.2px);background-size:6px 6px}
+
+/* Khung (panel) */
+.tb,html.dark .tb{border:var(--bw) solid var(--line);box-shadow:none}
+.panel{border:var(--bw) solid var(--line);background:var(--sheet);position:relative}
+.cell .l{font-weight:700;letter-spacing:.02em;text-transform:uppercase;font-size:10.5px}
+
+/* Nút: viền mực, bóng cứng lệch */
+.btn{border:var(--bw) solid var(--line);font-weight:800;height:44px;box-shadow:none;transition:transform .1s ease,box-shadow .1s ease,background-color .1s ease}
+.btn:hover,html.dark .btn:not(.primary):hover{background:var(--hi);color:#111;border-color:var(--line)}
+.btn.primary{background:var(--stamp);color:#fff;box-shadow:var(--shadow)}
+html.dark .btn.primary{color:#fff}
+.btn.primary:hover{background:var(--stamp);color:#fff;transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--line)}
+.btn.primary:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--line)}
+.btn.ink{background:var(--fill);color:var(--on-fill)}
+.btn.ink:hover{background:var(--stamp);color:#fff}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.ghost:hover{background:transparent;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px}
+.icon-btn:hover{background:var(--hi);color:#111}
+.dot{background:var(--stamp);border:2px solid var(--paper)}
+
+/* Ô nhập */
+.input,.select,.textarea{border:var(--bw) solid var(--line)}
+.input:focus,.select:focus,.textarea:focus,html.dark .input:focus,html.dark .select:focus,html.dark .textarea:focus{outline:none;border-color:var(--line)!important;box-shadow:var(--shadow)}
+.check input{accent-color:var(--stamp)}
+.note,html.dark .note{border:var(--bw) solid var(--line);border-left-width:var(--bw);background:var(--sheet);font-family:var(--hand);font-size:18px;line-height:1.35}
+.note.red,html.dark .note.red{background:var(--hi);color:#111;border-color:var(--line)}
+.note b,.note a{font-family:var(--font)}
+
+/* Trạng thái trống: khung "lời dẫn" có nhân vật */
+.empty{border:var(--bw) dashed var(--line);background:var(--sheet);display:flex;flex-direction:column;align-items:center;gap:6px}
+.empty .head{font-family:var(--hand);font-weight:400;font-size:22px;line-height:1.25}
+.empty .art{width:150px;height:auto;border:var(--bw) solid var(--line);background:#fff;margin-bottom:8px}
+
+/* Đầu trang */
+header.site{background:var(--paper);backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:var(--bw) solid var(--line)}
+html.dark header.site::after,html.dark .page-head::after{display:none}
+header.site .wrap{height:60px}
+.logo .mark{display:none}
+.logo b{font-family:var(--display);font-weight:400;font-size:28px;letter-spacing:.02em}
+.logo .vol{background:var(--stamp);color:#fff;font-size:10.5px;font-weight:800;padding:3px 6px;transform:rotate(-5deg);white-space:nowrap}
+nav.main{border-left:var(--bw) solid var(--line)}
+nav.main a{font-weight:700}
+nav.main a:hover{background:var(--hi);color:#111}
+nav.main a[aria-current],html.dark nav.main a[aria-current]{background:var(--fill);color:var(--on-fill);border-bottom:0}
+.avatar{border:var(--bw) solid var(--line);background:var(--hi);color:#111;font-family:var(--display);font-variation-settings:normal;font-weight:400}
+.menu-pop,html.dark .menu-pop,.sugg,html.dark .sugg{border:var(--bw) solid var(--line);box-shadow:var(--shadow)}
+.menu-pop .who{background:var(--hi);color:#111}
+.menu-pop a:hover,.menu-pop button:hover{background:var(--fill);color:var(--on-fill)}
+.meter,html.dark .meter{border:var(--bw) solid var(--line)}
+.meter b{color:var(--stamp)}
+.cnt{background:var(--stamp);border-radius:0}
+
+/* Điều hướng dưới (mobile) */
+nav.bottom{border-top:var(--bw) solid var(--line);gap:0;background:var(--paper)}
+nav.bottom a,html.dark nav.bottom a{border-left:1.5px solid var(--grid);font-weight:700}
+nav.bottom a:first-child{border-left:0}
+nav.bottom a[aria-current],html.dark nav.bottom a[aria-current]{background:var(--fill);color:var(--on-fill);border-top:0}
+nav.bottom a.up{background:var(--stamp);color:#fff}
+
+/* Chân trang */
+footer.site{border-top:var(--bw) solid var(--line)}
+.foot{display:grid;gap:0;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));border:var(--bw) solid var(--line);background:var(--sheet)}
+.foot>div{padding:16px 18px;border-right:1.5px solid var(--line);border-bottom:1.5px solid var(--line);margin:0 -1.5px -1.5px 0}
+.foot .l{display:block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--stamp);margin-bottom:6px}
+.foot a{display:block;font-size:14px;font-weight:600;padding:2px 0}
+.foot .brand b{font-family:var(--display);font-weight:400;font-size:28px;letter-spacing:.02em}
+.foot .brand p{font-family:var(--hand);font-size:18px;line-height:1.3;margin:4px 0 0}
+
+/* Thẻ tài liệu: khung truyện */
+.doc.tb{transition:transform .1s ease,box-shadow .1s ease}
+.doc:hover,html.dark .doc:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow)}
+.doc:hover .t{color:var(--stamp)}
+.doc .t{font-weight:700}
+.doc .cc{background:var(--hi)!important;color:#111}
+.doc .cc .l{color:#111}
+.doc .cc .v{font-family:var(--display);font-variation-settings:normal;font-weight:400;font-size:26px}
+.badge{border:2px solid var(--line);font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:.03em}
+.badge.APPROVED,html.dark .badge.APPROVED{background:var(--fill);color:var(--on-fill);border-color:var(--line)}
+.badge.CHANGES_REQUESTED{background:var(--hi);color:#111;border-color:var(--line)}
+.badge.REJECTED,.badge.REMOVED{border-color:var(--stamp);color:var(--stamp)}
+.badge.HELD{border-style:dashed}
+
+/* Bảng */
+table.t{border:var(--bw) solid var(--line)}
+table.t th,table.t td{border:1.5px solid var(--line)}
+table.t thead th{background:var(--fill);color:var(--on-fill);font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+table.t tbody tr:hover td{background:var(--hi);color:#111}
+
+/* Đầu trang con */
+.page-head{border-bottom:var(--bw) solid var(--line)}
+.page-head .wrap{padding-block:28px}
+.page-head h1{font-family:var(--display);font-variation-settings:normal;font-weight:400;font-size:clamp(36px,6vw,60px);line-height:1}
+.page-head p.small{font-weight:700}
+
+/* Ô tìm kiếm: bong bóng thoại */
+.searchbox{margin-bottom:14px}
+.searchbox .bar{position:relative;border:var(--bw) solid var(--line);border-radius:30px!important;background:var(--sheet);height:58px;padding:5px;overflow:visible!important}
+.searchbox .bar::before{content:"";position:absolute;left:46px;bottom:-21px;border-left:12px solid transparent;border-right:12px solid transparent;border-top:19px solid var(--line)}
+.searchbox .bar::after{content:"";position:absolute;left:49.5px;bottom:-14px;border-left:8.5px solid transparent;border-right:8.5px solid transparent;border-top:14px solid var(--sheet)}
+.searchbox .bar:focus-within{outline:none;box-shadow:var(--shadow)}
+.searchbox label{padding-left:16px!important;color:var(--ink)}
+.searchbox input{font-size:16px}
+.searchbox button,.searchbox button[type=submit]{border:0!important;border-radius:24px;background:var(--fill)!important;color:var(--on-fill)!important;font-weight:800;padding:0 22px!important}
+.searchbox button:hover{background:var(--stamp)!important;color:#fff!important}
+.sugg{margin-top:18px}
+.sugg div[aria-selected=true],.sugg div:hover{background:var(--hi);color:#111}
+.filters label{font-weight:700;color:var(--ink);text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+
+/* Tab, chip, thông báo nổi */
+.tabs,html.dark .tabs{border:var(--bw) solid var(--line);gap:0;background:var(--line)}
+.tabs a{font-weight:700;border-left:1.5px solid var(--line)}
+.tabs a:first-child{border-left:0}
+.tabs a[aria-current]{background:var(--fill);color:var(--on-fill)}
+.tabs a:not([aria-current]):hover{background:var(--hi);color:#111}
+.chips a{border:2px solid var(--line);font-weight:600}
+.chips a:hover{background:var(--hi);color:#111}
+.toast,html.dark .toast{border:var(--bw) solid var(--line);background:var(--sheet);color:var(--ink);box-shadow:var(--shadow);font-family:var(--hand);font-size:19px;border-radius:24px;padding:10px 20px}
+.crdlg,.kbd{border:var(--bw) solid var(--line);box-shadow:6px 6px 0 var(--line)}
+.progress,.bar{border:2px solid var(--line);background:var(--sheet)}
+.progress>i,.bar>i{background:var(--stamp)}
+.dropzone{border:var(--bw) dashed var(--line)}
+.dropzone.on{background:var(--hi);color:#111}
+.otp{font-family:var(--display);font-variation-settings:normal;font-weight:400}
+.cards>.rec{border:var(--bw) solid var(--line)}
+.cards>.rec:hover{background:var(--hi);color:#111}
+.rec .why{border:2px solid var(--line);color:var(--ink);background:var(--hi);color:#111;font-weight:800}
+.ad{border:var(--bw) dashed var(--line)}
+.fc-card{border:var(--bw) solid var(--line);box-shadow:6px 6px 0 var(--line)}
+.badge-item{border:var(--bw) solid var(--line)}
+.badge-item .ic{border:var(--bw) solid var(--line);background:var(--hi);color:#111}
+.ai-q{border:var(--bw) solid var(--line);border-radius:22px 22px 4px 22px;background:var(--fill);color:var(--on-fill)}
+.ai-box{border:var(--bw) solid var(--line);border-radius:22px 22px 22px 4px}
+.msg.me .text{border-left:0;border:2px solid var(--line);border-radius:16px 16px 4px 16px;padding:4px 12px;display:inline-block;background:var(--hi);color:#111}
+.room.on{border-left-color:var(--stamp);background:var(--hi);color:#111}
+.rooms{border-right:var(--bw) solid var(--line)}
+
+/* ---------- Trang chủ ---------- */
+.mh{display:grid;gap:12px;grid-template-columns:minmax(0,1fr);padding-block:22px 28px}
+@media (min-width:900px){.mh{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px}}
+.mh-main{padding:30px 28px 34px;display:flex;flex-direction:column;gap:22px}
+.chap{align-self:flex-start;border:2px solid var(--line);background:var(--hi);color:#111;padding:4px 10px;font-size:12.5px;font-weight:800}
+.mh-title{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(52px,7.4vw,92px);line-height:.93;text-transform:uppercase;letter-spacing:.005em}
+.mh-title em{font-style:normal;color:var(--stamp)}
+.mh-sub{margin:0;font-family:var(--hand);font-size:21px;line-height:1.35;max-width:480px}
+.hot{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hot>span{font-weight:800;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em}
+.hot a{display:inline-flex;gap:6px;align-items:center;border:2px solid var(--line);background:var(--sheet);padding:4px 10px;font-size:13px;font-weight:600;text-decoration:none}
+.hot a b{font-family:var(--display);font-weight:400;font-size:15px;letter-spacing:.02em}
+.hot a:hover{background:var(--hi);color:#111}
+.mh-art{display:grid;gap:12px;grid-template-rows:minmax(0,1fr) auto}
+.art-panel{border:var(--bw) solid var(--line);background:#fff;position:relative;overflow:hidden;color:#111}
+.art-panel svg{display:block;width:100%;height:100%}
+.art-panel.big{min-height:380px}
+.art-panel.small{height:190px}
+.art-panels{display:grid;gap:12px;grid-template-columns:1.25fr 1fr}
+.bubble{position:absolute;background:#fff;color:#111;border:var(--bw) solid #111;border-radius:50%;padding:14px 18px;font-family:var(--hand);font-size:20px;line-height:1.1;text-align:center}
+.sfx{position:absolute;font-family:var(--display);font-size:40px;color:var(--stamp);-webkit-text-stroke:2px #111;paint-order:stroke fill;transform:rotate(-8deg);pointer-events:none}
+@media (max-width:899px){.art-panel.big{min-height:300px}.art-panel.small{height:150px}.mh-main{padding:22px 18px 26px}}
+
+.quick-m{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:760px){.quick-m{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.qm{display:flex;flex-direction:column;gap:6px;padding:14px;border:var(--bw) solid var(--line);background:var(--sheet);text-decoration:none;min-height:118px;transition:transform .1s ease,box-shadow .1s ease}
+.qm:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow);color:var(--ink)}
+.qm .ic{width:38px;height:38px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:var(--hi);color:#111}
+.qm .ic svg{margin:0!important}
+.qm b{font-weight:800;font-size:15px;line-height:1.25}
+.qm span.d{font-size:12.5px;color:var(--pencil);line-height:1.35}
+.qm.dark{background:var(--fill);color:var(--on-fill)}
+.qm.dark span.d{color:var(--on-fill);opacity:.8}
+.qm.dark .ic{background:var(--stamp);color:#fff;border-color:var(--on-fill)}
+.qm.toned{background-color:var(--sheet)}
+
+.stat-m{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:var(--bw) solid var(--line);background:var(--line);gap:var(--bw);margin:0}
+@media (min-width:760px){.stat-m{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stat-m>div{background:var(--sheet);padding:12px 16px;display:flex;align-items:baseline;gap:10px}
+.stat-m dd{margin:0;font-family:var(--display);font-size:40px;line-height:1}
+.stat-m dt{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.stat-m>div:first-child dd{color:var(--stamp)}
+
+.chapter{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:var(--bw) solid var(--line);padding-bottom:8px}
+.chapter h2{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(26px,3.4vw,36px);line-height:1.05;text-transform:uppercase}
+.chapter .no{font-family:var(--display);font-size:clamp(26px,3.4vw,36px);color:var(--stamp)}
+.chapter a{margin-left:auto;font-weight:700;font-size:14px}
+
+.course-m{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.cp{display:flex;flex-direction:column;gap:8px;min-height:148px;padding:16px;border:var(--bw) solid var(--line);background:var(--sheet);text-decoration:none;transition:transform .1s ease,box-shadow .1s ease}
+.cp:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow);color:var(--ink)}
+.cp .code{font-size:44px;line-height:1}
+.cp b{font-size:15.5px;line-height:1.3}
+.cp .ft{margin-top:auto;display:flex;justify-content:space-between;gap:8px;font-size:12.5px}
+.cp .ft span:last-child{font-weight:800}
+.cp.v-red .code{color:var(--stamp)}
+.cp.v-ink{background:var(--fill);color:var(--on-fill)}
+.cp.v-ink:hover{color:var(--on-fill)}
+.cp.v-tone{background-color:var(--hi);color:#111;background-image:radial-gradient(rgba(17,17,17,.9) 1.1px,transparent 1.3px);background-size:7px 7px}
+.cp.v-tone .code,.cp.v-tone b,.cp.v-tone .ft{background:var(--hi);align-self:flex-start;padding:0 6px}
+.cp.v-tone .ft{align-self:stretch;border:2px solid #111;padding:3px 6px;background:#fff}
+.cp.v-tone:hover{color:#111}
+
+.news{list-style:none;margin:0;padding:0}
+.news li{display:grid;grid-template-columns:44px 1fr;gap:10px;padding:10px 0;border-top:2px solid var(--line)}
+.news li:first-child{border-top:0}
+.news .n{font-family:var(--display);font-size:30px;line-height:1}
+.news .tg{font-size:11px;font-weight:800;color:var(--stamp);letter-spacing:.03em}
+.news a{font-weight:700;font-size:14px;line-height:1.4;text-decoration:none}
+.news a:hover{text-decoration:underline;text-decoration-thickness:2px}
+.narr{border:2px solid var(--line);background:var(--hi);color:#111;padding:12px 16px;font-family:var(--hand);font-size:20px;line-height:1.35}
+.rank-m{list-style:none;margin:0;padding:0}
+.rank-m li a{display:grid;grid-template-columns:36px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-top:2px solid var(--line);text-decoration:none}
+.rank-m li:first-child a{border-top:0}
+.rank-m .n{font-family:var(--display);font-size:28px;line-height:1}
+.toplist-m{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;border:var(--bw) solid var(--line)}
+.toplist-m a{display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding:10px 12px;text-decoration:none;border-right:1.5px solid var(--line);border-bottom:1.5px solid var(--line);margin:0 -1.5px -1.5px 0}
+.toplist-m a:hover{background:var(--hi);color:#111}
+.toplist-m .code{font-size:22px;line-height:1}
+
+/* Thẻ Viện */
+.fac-m{list-style:none;margin:0;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.fac-m a{display:flex;flex-direction:column;gap:8px;height:100%;padding:16px 18px;border:var(--bw) solid var(--line);background:var(--sheet);text-decoration:none;transition:transform .1s ease,box-shadow .1s ease}
+.fac-m a:hover{transform:translate(-2px,-2px);box-shadow:var(--shadow);color:var(--ink)}
+.fac-m .code{font-size:38px;line-height:1}
+.fac-m .nm{font-weight:600;font-size:14.5px;line-height:1.4}
+.fac-m .meta{margin-top:auto;display:flex;gap:6px;flex-wrap:wrap}
+.fac-m .meta span{font-size:12px;font-weight:800;padding:2px 8px;border:2px solid var(--line)}
+.fac-m li:nth-child(3n+1) a .code{color:var(--stamp)}
+.fac-m li:nth-child(4n+2) a{background:var(--fill);color:var(--on-fill)}
+.fac-m li:nth-child(4n+2) a .meta span{border-color:var(--on-fill)}
+
+/* Học phần */
+.course-hero .code-big{font-family:var(--display);font-weight:400;font-size:clamp(60px,10vw,104px);line-height:.9;letter-spacing:.01em}
+.course-hero .crumb{display:inline-block;border:2px solid var(--line);background:var(--hi);color:#111;padding:3px 10px;font-weight:800;text-decoration:none;font-size:13px}
+
+/* Đăng nhập */
+.auth-m{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+.auth-side{display:flex;flex-direction:column;gap:16px}
+.auth-art{position:relative;height:250px}
+.perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.perks li{display:flex;gap:10px;font-size:14.5px}
+.perks li::before{content:"";flex-shrink:0;width:9px;height:9px;margin-top:6px;background:var(--stamp);transform:rotate(45deg)}
+.auth-card{border:var(--bw) solid var(--line);background:var(--sheet);box-shadow:6px 6px 0 var(--line)}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:var(--bw) solid var(--line)}
+.auth-tabs a{padding:13px;text-align:center;font-weight:800;text-decoration:none;font-size:15px}
+.auth-tabs a+a{border-left:var(--bw) solid var(--line)}
+.auth-tabs a[aria-current]{background:var(--fill);color:var(--on-fill)}
+.auth-tabs a:not([aria-current]):hover{background:var(--hi);color:#111}
+
+/* 404 */
+.nf{display:grid;gap:14px;grid-template-columns:minmax(0,1fr);padding-block:40px}
+@media (min-width:760px){.nf{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch}}
+.nf .art-panel{min-height:300px}
+.nf .big{font-family:var(--display);font-size:120px;line-height:.9;color:var(--stamp)}
+
+/* Tinh chỉnh: chữ hoa tiếng Việt cần khoảng dòng cho dấu; logo trên mobile */
+.mh-title{line-height:1.04}
+.page-head h1,h1{line-height:1.08}
+.chapter h2{line-height:1.15}
+.art-panel.tone{background-image:radial-gradient(rgba(17,17,17,.9) 1.1px,transparent 1.3px);background-size:7px 7px}
+.auth-art{height:290px}
+@media (max-width:479px){.logo b{display:inline;font-size:22px}.logo .vol{display:none}}
+@media (max-width:899px){.art-panel.big{min-height:260px}}
 </style>
 </head>
 <body>
 
 <header class="site" id="header"></header>
 <main id="app" tabindex="-1"></main>
-<footer class="site"><div class="wrap" style="padding-block:24px">
-  <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));font-size:13px">
-    <div class="cell" style="justify-content:flex-start"><span class="l">Công trình</span><b class="head">HUSTDOCU</b><span class="muted">Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.</span></div>
-    <div class="cell" style="justify-content:flex-start"><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
-    <div class="cell" style="justify-content:flex-start"><span class="l">Bản quyền, kiểm duyệt</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a><a href="#/minh-bach">Báo cáo minh bạch</a><a href="#/cong-tac-vien">Cộng tác viên kiểm duyệt</a></div>
-    <div class="cell" style="justify-content:flex-start"><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener">github.com/khanhhoang23072006-ux/khotl</a></div>
+<footer class="site"><div class="wrap" style="padding-block:28px">
+  <div class="foot">
+    <div class="brand"><b>HUSTDOCU</b><p>Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.</p></div>
+    <div><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
+    <div><span class="l">Bản quyền, kiểm duyệt</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a><a href="#/minh-bach">Báo cáo minh bạch</a><a href="#/cong-tac-vien">Cộng tác viên kiểm duyệt</a></div>
+    <div><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener">github.com/khanhhoang23072006-ux/khotl</a></div>
   </div>
   <p class="small muted" style="margin:12px 0 0">Hệ thống chia sẻ tài liệu học tập sinh viên Đại học Bách khoa Hà Nội. Bản quyền tài liệu thuộc về tác giả và cộng đồng sinh viên chia sẻ.</p>
 </div></footer>
@@ -593,6 +894,88 @@ const icon={
  arrowRight:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>',
  calendar:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
 };
+/* ===================== Minh họa nét manga (vẽ tay bằng SVG, nguyên bản) =====================
+   Hai nhân vật: bạn nữ tóc dài (Thu) và bạn nam đeo kính (Nam). Nét đen trên nền trắng, điểm đỏ.
+   Dùng: mangaArt("girl-hero" | "boy-hero" | "girl-empty" | "boy-404" | "girl-wave", nhãn) */
+const MG={ink:"#111",red:"#D7263D",hi:"#FFE14D"};
+function mgSpeed(cx,cy,n=26,r1=60,r2=700,w=1.5,op=.5){let d="";for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2+((i*37)%7)*.02;const r=r1+((i*53)%5)*14;d+=`M${(cx+Math.cos(a)*r).toFixed(1)} ${(cy+Math.sin(a)*r).toFixed(1)}L${(cx+Math.cos(a)*r2).toFixed(1)} ${(cy+Math.sin(a)*r2).toFixed(1)}`}return `<path d="${d}" stroke="${MG.ink}" stroke-width="${w}" opacity="${op}"/>`}
+function mgMouth(m){return {
+  smile:`<path d="M188 272 Q200 282 212 272" stroke="${MG.ink}" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+  grin:`<path d="M184 268 Q200 290 216 268 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/><path d="M190 278 Q200 284 210 278" stroke="${MG.red}" stroke-width="3" fill="none"/>`,
+  o:`<ellipse cx="200" cy="276" rx="7" ry="9" fill="${MG.ink}"/>`,
+  flat:`<path d="M190 276 h20" stroke="${MG.ink}" stroke-width="3" stroke-linecap="round"/>`,
+}[m]||""}
+function mgEyes(kind){
+  const shut=kind==="happy";
+  if(shut)return `<path d="M144 220 Q162 202 180 220M220 220 Q238 202 256 220" stroke="${MG.ink}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  const sm=kind==="small";
+  const e=(x)=>`<path d="M${x-18} 214 C${x-14} 198 ${x+14} 196 ${x+18} 212 C${x+18} 232 ${x+12} 246 ${x} 246 C${x-12} 246 ${x-18} 232 ${x-18} 214 Z" fill="${MG.ink}" ${sm?`transform="translate(${x} 222) scale(.62) translate(${-x} -222)"`:""}/>
+    <circle cx="${x-6}" cy="${sm?216:212}" r="${sm?4:6}" fill="#fff"/><circle cx="${x+6}" cy="${sm?226:232}" r="${sm?1.8:2.6}" fill="#fff"/>`;
+  return e(162)+e(238);
+}
+function mgFace(){return `<path d="M176 300 L178 344 C190 352 210 352 222 344 L224 300" fill="#fff" stroke="${MG.ink}" stroke-width="3"/>
+  <path d="M124 196 C124 128 162 98 200 98 C238 98 276 128 276 196 C276 262 244 306 200 314 C156 306 124 262 124 196 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3"/>`}
+function mgBlush(){return `<path d="M138 256 l10 -6M148 260 l10 -6M242 260 l10 -6M252 256 l10 -6" stroke="${MG.red}" stroke-width="2.6" stroke-linecap="round"/>`}
+function mgSweat(x,y){return `<path d="M${x} ${y} C${x-10} ${y+18} ${x-8} ${y+30} ${x} ${y+30} C${x+8} ${y+30} ${x+10} ${y+18} ${x} ${y} Z" fill="#fff" stroke="${MG.ink}" stroke-width="2.6"/>`}
+function mgUniform(tie){return `<path d="M88 452 C92 380 130 346 200 338 C270 346 308 380 312 452 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M150 352 L200 404 L250 352" fill="none" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
+  ${tie?`<path d="M200 380 L190 394 L200 452 L210 394 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/><path d="M190 372 L200 382 L210 372 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>`
+  :`<path d="M176 364 L200 388 L224 364 L216 398 L200 388 L184 398 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>`}
+  <path d="M110 420 L118 452M290 420 L282 452" stroke="${MG.ink}" stroke-width="2.4"/>`}
+/** Bạn nữ: tóc dài đen có vệt sáng, kẹp tóc ngôi sao. */
+function mangaGirl({eyes="normal",mouth="smile",blush=true,sweat=false,brows="up"}={}){
+  return `<g>
+  <path d="M112 214 C100 290 112 360 92 430 C130 410 144 330 142 270 Z M288 214 C300 290 288 360 308 430 C270 410 256 330 258 270 Z" fill="${MG.ink}"/>
+  ${mgUniform(false)}${mgFace()}
+  ${mgEyes(eyes)}
+  ${eyes!=="happy"?`<path d="M140 202 C150 188 176 186 188 200M212 200 C224 186 250 188 260 202" stroke="${MG.ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`:""}
+  ${brows==="worry"?`<path d="M146 178 L182 188M218 188 L254 178" stroke="${MG.ink}" stroke-width="3.5" stroke-linecap="round"/>`:`<path d="M146 186 L184 182M216 182 L254 186" stroke="${MG.ink}" stroke-width="3.5" stroke-linecap="round"/>`}
+  ${mgMouth(mouth)}${blush?mgBlush():""}
+  <path d="M112 214 C96 132 136 74 202 72 C270 74 312 132 292 222 C286 194 280 170 268 150 C258 176 236 190 214 194 C224 178 228 162 226 146 C206 170 176 184 146 186 C160 172 168 158 170 146 C152 164 132 186 126 216 Z" fill="${MG.ink}"/>
+  <path d="M148 104 C176 86 214 84 244 98" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M262 104 l4 9 10 1.5 -7 7 1.8 10 -8.8 -4.6 -8.8 4.6 1.8 -10 -7 -7 10 -1.5z" fill="${MG.hi}" stroke="${MG.ink}" stroke-width="2.4" stroke-linejoin="round"/>
+  ${sweat?mgSweat(286,170):""}
+  </g>`}
+/** Bạn nam: tóc ngắn dựng, kính tròn, cà vạt đỏ. */
+function mangaBoy({eyes="normal",mouth="smile",glare=false,sweat=false,brows="up"}={}){
+  return `<g>
+  ${mgUniform(true)}${mgFace()}
+  ${glare?"":mgEyes(eyes)}
+  <g fill="${glare?"#fff":"none"}" stroke="${MG.ink}" stroke-width="3.2"><circle cx="162" cy="220" r="27"/><circle cx="238" cy="220" r="27"/></g>
+  <path d="M189 218 Q200 212 211 218M135 214 L124 208M265 214 L276 208" stroke="${MG.ink}" stroke-width="3.2" fill="none"/>
+  ${glare?`<path d="M144 232 L176 202M154 240 L184 212M220 232 L252 202M230 240 L260 212" stroke="${MG.ink}" stroke-width="3" stroke-linecap="round"/>`:`<path d="M146 210 l8 -8" stroke="${MG.ink}" stroke-width="2" opacity=".5"/>`}
+  ${brows==="worry"?`<path d="M144 180 L182 190M218 190 L256 180" stroke="${MG.ink}" stroke-width="4" stroke-linecap="round"/>`:`<path d="M144 186 L182 180M218 180 L256 186" stroke="${MG.ink}" stroke-width="4" stroke-linecap="round"/>`}
+  ${mgMouth(mouth)}
+  <path d="M118 200 C104 118 146 66 204 64 C266 66 304 118 284 204 L276 168 L262 190 L254 146 L236 176 L226 134 L208 168 L196 128 L180 166 L168 136 L154 176 L142 148 L132 186 Z" fill="${MG.ink}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M196 66 C190 40 214 24 236 22 C222 36 220 50 222 66 Z" fill="${MG.ink}"/>
+  <path d="M152 92 C176 76 216 74 248 86" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round"/>
+  ${sweat?mgSweat(110,160):""}
+  </g>`}
+function mangaArt(kind,label=""){
+  const a11y=label?`role="img" aria-label="${label}"`:`aria-hidden="true"`;
+  if(kind==="girl-hero")return `<svg viewBox="0 0 400 440" preserveAspectRatio="xMidYMid slice" ${a11y}>${mgSpeed(200,210,30,70,700,1.4,.5)}
+    ${mangaGirl({eyes:"normal",mouth:"grin"})}
+    <g transform="translate(296 318) rotate(-26)"><rect width="16" height="118" fill="${MG.hi}" stroke="${MG.ink}" stroke-width="3"/><path d="M0 118 L8 138 L16 118 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/><rect width="16" height="14" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3"/></g>
+    <ellipse cx="290" cy="404" rx="24" ry="18" fill="#fff" stroke="${MG.ink}" stroke-width="3" transform="rotate(-14 290 404)"/></svg>`;
+  if(kind==="boy-hero")return `<svg viewBox="20 110 380 230" preserveAspectRatio="xMidYMid slice" ${a11y}>
+    <g stroke="${MG.ink}" stroke-width="1.2" opacity=".35">${Array.from({length:22},(_,i)=>`<path d="M${40+i*16} 60 V320"/>`).join("")}</g>
+    ${mangaBoy({glare:true,mouth:"grin"})}
+    <g transform="translate(262 228) rotate(8)"><rect width="100" height="128" fill="#fff" stroke="${MG.ink}" stroke-width="3"/><text x="50" y="34" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="26" fill="${MG.red}">ĐỀ</text><path d="M16 52h68M16 66h68M16 80h48M16 94h60" stroke="${MG.ink}" stroke-width="3"/></g>
+    <circle cx="276" cy="300" r="16" fill="#fff" stroke="${MG.ink}" stroke-width="3"/></svg>`;
+  if(kind==="girl-empty")return `<svg viewBox="40 60 320 330" ${a11y}><rect x="40" y="60" width="320" height="330" fill="#fff"/>${mgSpeed(200,220,18,120,500,1.2,.35)}${mangaGirl({eyes:"small",mouth:"o",sweat:true,brows:"worry"})}</svg>`;
+  if(kind==="boy-404")return `<svg viewBox="0 20 400 420" preserveAspectRatio="xMidYMid slice" ${a11y}>
+    <g fill="${MG.ink}" opacity=".12">${Array.from({length:14},(_,i)=>`<circle cx="${(i*67)%400}" cy="${40+((i*91)%380)}" r="${10+(i%4)*8}"/>`).join("")}</g>
+    ${mangaBoy({eyes:"small",mouth:"flat",sweat:true,brows:"worry"})}
+    <text x="300" y="120" font-family="Anton,Impact,sans-serif" font-size="74" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" paint-order="stroke" transform="rotate(12 300 120)">?!</text>
+    <path d="M70 90 q10 -20 0 -40M86 98 q16 -24 6 -48" stroke="${MG.ink}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+  if(kind==="girl-wave")return `<svg viewBox="20 40 380 360" preserveAspectRatio="xMidYMid slice" ${a11y}>${mgSpeed(200,200,24,120,600,1.2,.3)}
+    <path d="M296 420 C320 360 340 300 330 250" stroke="${MG.ink}" stroke-width="40" stroke-linecap="round" fill="none"/><path d="M296 420 C320 360 340 300 330 250" stroke="#fff" stroke-width="33" stroke-linecap="round" fill="none"/>
+    ${mangaGirl({eyes:"happy",mouth:"grin"})}
+    <g transform="translate(330 232)"><path d="M-14 6 C-18 -14 -12 -34 -6 -40 C0 -44 4 -38 2 -26 L6 -46 C8 -54 18 -52 16 -42 L14 -24 L22 -40 C26 -48 36 -42 32 -32 L22 -8 C18 8 6 16 -4 14 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/></g>
+    <path d="M362 170 l14 -10M368 196 l18 -2M356 146 l8 -14" stroke="${MG.ink}" stroke-width="3" stroke-linecap="round"/></svg>`;
+  return "";
+}
+
 function toast(msg){const t=document.getElementById("toast");t.textContent=typeof tr==="function"?tr(msg):msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>{t.hidden=true},3200)}
 function go(hash){if(location.hash===hash)render();else location.hash=hash}
 function currentPath(){return (location.hash.slice(1)||"/").split("?")[0]}
@@ -606,7 +989,7 @@ function renderHeaderInner(){
   const u=me(),path=currentPath(),unread=u?S.notifications.filter(n=>n.to===u.email&&!n.read).length:0;
   const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
   document.getElementById("header").innerHTML=`<div class="wrap">
-   <a class="logo" href="#/"><span class="mark" aria-hidden="true"><span></span><span><span></span><i></i></span></span><b>HUSTDOCU</b></a>
+   <a class="logo" href="#/"><b>HUSTDOCU</b><span class="vol" aria-hidden="true">TẬP ${new Date().getFullYear()%100}</span></a>
    <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/ctdt","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/cong-dong"${["/cong-dong","/bang-xep-hang","/hoi-dap","/khong-gian","/thong-bao-truong","/vinh-danh","/chung-nhan"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Cộng đồng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
    <div class="tools">
     <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>
@@ -643,7 +1026,7 @@ function searchBox(value="",extra={}){return `<form class="searchbox searchbox-m
   </div>
   <div class="sugg" id="sugg" role="listbox" hidden style="border-radius:4px;overflow:hidden"></div></form>`}
 function pageHead(title,kicker="",extra=""){return `<section class="page-head gridpaper"><div class="wrap">${kicker?`<p class="small muted" style="margin:0">${kicker}</p>`:""}<h1>${title}</h1>${extra}</div></section>`}
-function empty(t,sub=""){return `<div class="empty"><p class="head" style="margin:0">${t}</p>${sub?`<div class="small muted" style="margin-top:8px">${sub}</div>`:""}</div>`}
+function empty(t,sub=""){return `<div class="empty"><div class="art">${mangaArt("girl-empty")}</div><p class="head" style="margin:0">${t}</p>${sub?`<div class="small muted" style="margin-top:8px">${sub}</div>`:""}</div>`}
 function needLogin(next){go(`#/dang-nhap?next=${encodeURIComponent(next)}`);return {html:""}}
 
 /* ===================== Các trang ===================== */
@@ -656,221 +1039,73 @@ views["/"]=()=>{
   const mine=fac?[...docs].filter(d=>course(d.course)?.faculty===fac.code).sort((a,b)=>b.publishedAt-a.publishedAt).slice(0,3):[];
   const top=[...S.courses].map(c=>({c,n:courseDocCount(c.code)})).filter(x=>x.n>0).sort((a,b)=>b.n-a.n||a.c.code.localeCompare(b.c.code)).slice(0,8);
   const most=[...docs].sort((a,b)=>b.downloads-a.downloads).slice(0,5);
-  
-  const coreCourseCodes = ["MI1111", "MI1141", "IT3011", "PH1110", "IT3040", "SSH1111"];
-  const coreCourses = coreCourseCodes.map(code => course(code)).filter(Boolean);
-
-  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)">
-    <div class="wrap hero-wrap" style="padding-block:32px">
-      <!-- Left: Academic Title and Search -->
-      <div class="stack" style="gap:16px;justify-content:center">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="badge" style="background:var(--wash);border-color:var(--line);font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:6px;padding:2px 8px">
-            ${icon.graduation} HỆ THỐNG HỌC LIỆU BÁCH KHOA
-          </span>
-          <span class="tiny muted" style="font-weight:600">ĐẠI HỌC BÁCH KHOA HÀ NỘI</span>
-        </div>
-
-        <div class="stack" style="gap:8px">
-          <h1 style="font-variation-settings:'wdth' 62.5;font-weight:800;font-size:clamp(36px,5.5vw,56px);line-height:1;margin:0">
-            Hôm nay ôn môn gì?
-          </h1>
-          <p class="small muted" style="margin:0;font-size:14px;max-width:540px;line-height:1.5">
-            ${u ? `Chào mừng trở lại, <b>${esc(displayName(u))}</b>${u.cohort && fac ? ` &bull; K${u.cohort} ${esc(fac.shortName)}` : ""}. Kho tài liệu sinh viên Bách khoa chia sẻ, kiểm duyệt minh bạch.` : "Kho lưu trữ đề thi, bài giảng, slide và phòng tự học nhóm trực tuyến dành riêng cho sinh viên Bách khoa Hà Nội."}
-          </p>
-        </div>
-
-        <div class="stack" style="gap:8px">
-          ${searchBox()}
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span class="tiny muted" style="font-weight:700">Môn phổ biến:</span>
-            ${coreCourses.map(c => `<a href="#/hoc-phan/${c.code}" class="code-tag"><span class="code" style="color:var(--stamp)">${c.code}</span> <span>${esc(c.name)}</span></a>`).join("")}
-          </div>
-        </div>
+  const core=["MI1111","IT3011","PH1110","MI1141","IT3040","SSH1111"].map(code=>course(code)).filter(Boolean);
+  const variant=["","v-tone","v-ink","v-red","","v-tone"];
+  const quick=[
+    ["","#/tim-kiem?type=EXAM_FINAL",icon.exam,"Đề thi","Giữa kỳ, cuối kỳ các năm"],
+    ["","#/tim-kiem?type=SLIDE",icon.book,"Slide bài giảng","Theo từng học phần"],
+    ["","#/tim-kiem?type=SOLUTION",icon.file,"Bài giải","Lời giải mẫu, bài tập lớn"],
+    ["dark","#/hoc-chung",icon.clock,"Phòng học chung","Pomodoro nhóm, bật mic"],
+    ["","#/tro-ly",icon.sparkles,"Trợ lý AI","Hỏi dựa trên tài liệu trong kho"],
+  ];
+  const sem=currentTerm();const chapName=new Date().getMonth()+1>=10&&new Date().getMonth()+1<=11||new Date().getMonth()+1>=3&&new Date().getMonth()+1<=4?"Mùa thi giữa kỳ":"Học kỳ "+sem;
+  return {html:`<section class="gridpaper" style="border-bottom:var(--bw) solid var(--line)"><div class="wrap">
+    <div class="mh">
+      <div class="panel mh-main">
+        <span class="chap">Chương 1: ${chapName}</span>
+        ${u?`<p class="hand" style="margin:-8px 0 -10px;font-size:20px">Chào ${esc(displayName(u))}${u.cohort&&fac?`, K${u.cohort} ${esc(fac.shortName)}`:""}!</p>`:""}
+        <h1 class="mh-title">Hôm nay<br>ôn môn <em>gì</em>?</h1>
+        ${searchBox()}
+        <p class="mh-sub">Đề thi, slide, bài giải do chính sinh viên Bách khoa chia sẻ, có người kiểm duyệt. Gõ không dấu vẫn ra.</p>
+        <div class="hot"><span>Môn hot</span>${core.slice(0,4).map(c=>`<a href="#/hoc-phan/${c.code}"><b>${c.code}</b>${esc(c.name)}</a>`).join("")}</div>
       </div>
-
-      <!-- Right: Technical Directory Block -->
-      <div class="dir-panel">
-        <div style="padding:10px 14px;border-bottom:2px solid var(--line);background:var(--wash);display:flex;justify-content:space-between;align-items:center">
-          <b class="head small" style="text-transform:uppercase;letter-spacing:0.04em">Danh mục tài liệu</b>
-          <span class="tiny muted code">PHÂN LOẠI</span>
-        </div>
-
-        <a href="#/tim-kiem?type=EXAM" class="dir-row">
-          <span style="display:flex;align-items:center;gap:10px">
-            <span style="color:var(--stamp)">${icon.exam}</span>
-            <span>
-              <b class="head" style="font-size:14px;display:block">Ngân hàng Đề thi</b>
-              <span class="tiny muted">Đề thi giữa kỳ &amp; cuối kỳ kèm đáp án</span>
-            </span>
-          </span>
-          <span class="tiny muted code">&rarr;</span>
-        </a>
-
-        <a href="#/tim-kiem?type=LECTURE" class="dir-row">
-          <span style="display:flex;align-items:center;gap:10px">
-            <span style="color:var(--stamp)">${icon.book}</span>
-            <span>
-              <b class="head" style="font-size:14px;display:block">Bài giảng &amp; Slide</b>
-              <span class="tiny muted">Slide chính thức từ Viện, Trường</span>
-            </span>
-          </span>
-          <span class="tiny muted code">&rarr;</span>
-        </a>
-
-        <a href="#/tim-kiem?type=EXERCISE" class="dir-row">
-          <span style="display:flex;align-items:center;gap:10px">
-            <span style="color:var(--stamp)">${icon.file}</span>
-            <span>
-              <b class="head" style="font-size:14px;display:block">Bài tập &amp; Đề cương</b>
-              <span class="tiny muted">Bài tập lớn, hướng dẫn giải bài mẫu</span>
-            </span>
-          </span>
-          <span class="tiny muted code">&rarr;</span>
-        </a>
-
-        <a href="#/hoc-chung" class="dir-row">
-          <span style="display:flex;align-items:center;gap:10px">
-            <span style="color:var(--stamp)">${icon.mic}</span>
-            <span>
-              <b class="head" style="font-size:14px;display:block">Phòng học Pomodoro</b>
-              <span class="tiny muted">Đồng hồ nhóm &amp; đàm thoại âm thanh</span>
-            </span>
-          </span>
-          <span class="badge" style="font-size:10px;padding:0 5px">TRỰC TUYẾN</span>
-        </a>
-
-        <div style="padding:10px 14px;background:var(--wash);border-top:1px solid var(--grid);display:flex;justify-content:space-between;align-items:center;font-size:13px">
-          <a href="#/tro-ly" style="display:inline-flex;align-items:center;gap:6px;font-weight:600;text-decoration:none">${icon.sparkles} Trợ lý học tập</a>
-          <a href="#/vien" style="font-weight:600;text-decoration:none">10 Viện, Trường &rarr;</a>
+      <div class="mh-art">
+        <div class="art-panel big">${mangaArt("girl-hero","Bạn nữ sinh viên Bách khoa cầm bút chì, quyết tâm ôn thi")}
+          <div class="bubble" style="top:16px;right:16px;max-width:170px">Qua môn này<br>là được!</div>
+          <span class="sfx" style="left:16px;bottom:14px">QUYẾT!</span></div>
+        <div class="art-panels">
+          <div class="art-panel small">${mangaArt("boy-hero","Bạn nam đeo kính, kính lóe sáng, giơ tờ đề thi")}<span class="sfx" style="right:10px;top:8px;font-size:30px">LÓE!</span></div>
+          <div class="art-panel small tone" style="display:flex;align-items:center;justify-content:center;padding:14px;background-color:#fff">
+            <p class="hand" style="margin:0;background:#fff;color:#111;border:var(--bw) solid #111;padding:10px 12px;font-size:19px;line-height:1.25;text-align:center">Đề năm ngoái<br>có trong kho rồi nè.</p></div>
         </div>
       </div>
     </div>
+    <nav class="quick-m" aria-label="Lối tắt">${quick.map(([c,h,ic,t,d])=>`<a class="qm ${c}" href="${h}"><span class="ic">${ic}</span><b>${t}</b><span class="d">${d}</span></a>`).join("")}</nav>
+    <dl class="stat-m" style="margin:12px 0 28px">
+      <div><dd>${fmtCount(docs.length)}</dd><dt>Tài liệu đã duyệt</dt></div>
+      <div><dd>${fmtCount(S.courses.length)}</dd><dt>Học phần</dt></div>
+      <div><dd>${fmtCount(DATA.faculties.length)}</dd><dt>Viện, Trường</dt></div>
+      <div><dd>${fmtCount(S.users.length)}</dd><dt>Thành viên</dt></div>
+    </dl>
+  </div></section>
 
-    <!-- Authentic Stats Strip -->
-    <div class="wrap" style="padding-bottom:24px">
-      <dl class="tb" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:0">
-        <div class="cell" style="padding:12px 16px;gap:2px">
-          <dt class="tiny muted">${icon.file} TÀI LIỆU ĐÃ DUYỆT</dt>
-          <dd class="code" style="margin:0;font-size:32px;line-height:1;color:var(--stamp)">${fmtCount(docs.length)}</dd>
-        </div>
-        <div class="cell" style="padding:12px 16px;gap:2px">
-          <dt class="tiny muted">${icon.book} HỌC PHẦN ĐÀO TẠO</dt>
-          <dd class="code" style="margin:0;font-size:32px;line-height:1">${fmtCount(S.courses.length)}</dd>
-        </div>
-        <div class="cell" style="padding:12px 16px;gap:2px">
-          <dt class="tiny muted">${icon.graduation} VIỆN, TRƯỜNG, KHOA</dt>
-          <dd class="code" style="margin:0;font-size:32px;line-height:1">${fmtCount(DATA.faculties.length)}</dd>
-        </div>
-        <div class="cell" style="padding:12px 16px;gap:2px">
-          <dt class="tiny muted">${icon.users} TÀI KHOẢN ĐỒNG HÀNH</dt>
-          <dd class="code" style="margin:0;font-size:32px;line-height:1">${fmtCount(S.users.length)}</dd>
-        </div>
-      </dl>
-    </div>
-  </section>
-
-  <div class="wrap home-grid" style="padding-block:32px;gap:32px">
-    <!-- Left Column: Core courses & Latest docs -->
-    <div class="stack" style="gap:28px">
-      ${u && typeof recSection === "function" ? recSection(u) : ""}
-
-      <!-- Khối học phần đại cương & cơ sở ngành -->
-      <section class="stack" style="gap:12px">
-        <div class="sechead">
-          <h2 class="h2" style="display:flex;align-items:center;gap:8px">
-            ${icon.book} Học phần đại cương &amp; cơ sở ngành
-          </h2>
-          <a href="#/vien">Tất cả Viện &rarr;</a>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">
-          ${coreCourses.map(c => `
-            <a href="#/hoc-phan/${c.code}" class="course-box">
-              <div>
-                <div style="display:flex;justify-content:space-between;align-items:center">
-                  <span class="code" style="font-size:22px;color:var(--stamp);font-weight:800">${c.code}</span>
-                  <span class="tiny muted">${c.credits} tín chỉ</span>
-                </div>
-                <b class="head" style="font-size:15px;display:block;margin-top:4px;line-height:1.3">${esc(c.name)}</b>
-              </div>
-              <div style="display:flex;justify-content:space-between;align-items:center;padding-top:6px;border-top:1px solid var(--grid)" class="tiny muted">
-                <span>${faculty(c.faculty)?.shortName || "HUST"}</span>
-                <span style="font-weight:600;color:var(--ink)">${courseDocCount(c.code)} tài liệu</span>
-              </div>
-            </a>
-          `).join("")}
-        </div>
+  <div class="wrap home-grid" style="padding-block:36px;gap:36px">
+    <div class="stack" style="gap:32px">
+      ${u&&typeof recSection==="function"?recSection(u):""}
+      <section class="stack" style="gap:14px">
+        <div class="chapter"><span class="no">02</span><h2>Học phần đại cương</h2><a href="#/vien">Tất cả 10 Viện ${icon.arrowRight}</a></div>
+        <div class="course-m">${core.map((c,i)=>`<a href="#/hoc-phan/${c.code}" class="cp ${variant[i]}"><span class="code">${c.code}</span><b>${esc(c.name)}</b><span class="ft"><span>${esc(faculty(c.faculty)?.shortName||"HUST")} · ${c.credits} TC</span><span>${courseDocCount(c.code)} tài liệu</span></span></a>`).join("")}</div>
       </section>
 
-      ${u && (S.follows[u.email] || []).length ? `<section class="stack"><div class="sechead"><h2 class="h2">Học phần bạn theo dõi</h2><a href="#/vien">Tìm thêm</a></div><div class="tb" style="display:flex;flex-wrap:wrap">${S.follows[u.email].map(code => { const c = course(code); return c ? `<a href="#/hoc-phan/${c.code}" style="flex:1 1 160px;display:flex;flex-direction:column;gap:2px;padding:10px 12px;text-decoration:none"><span class="code" style="font-size:26px;line-height:1">${c.code}</span><span class="small muted" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span></a>` : ""; }).join("")}</div></section>` : ""}
+      ${u&&(S.follows[u.email]||[]).length?`<section class="stack" style="gap:14px"><div class="chapter"><h2>Học phần bạn theo dõi</h2><a href="#/vien">Tìm thêm</a></div><div class="toplist-m">${S.follows[u.email].map(code=>{const c=course(code);return c?`<a href="#/hoc-phan/${c.code}" style="flex-direction:column;align-items:flex-start"><span class="code">${c.code}</span><span class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${esc(c.name)}</span></a>`:""}).join("")}</div></section>`:""}
 
-      ${mine.length ? `<section class="stack"><div class="sechead"><h2 class="h2">Mới ở ${esc(fac.shortName)}</h2><a href="#/tim-kiem?sort=newest&faculty=${fac.code}">Xem thêm</a></div>${mine.map(d => docRow(d)).join("")}</section>` : ""}
+      ${mine.length?`<section class="stack" style="gap:14px"><div class="chapter"><h2>Mới ở ${esc(fac.shortName)}</h2><a href="#/tim-kiem?sort=newest&faculty=${fac.code}">Xem thêm</a></div>${mine.map(d=>docRow(d)).join("")}</section>`:""}
 
-      <!-- Latest docs or clean academic empty state -->
-      <section class="stack" style="gap:12px">
-        <div class="sechead">
-          <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.file} Tài liệu mới duyệt</h2>
-          <a href="#/tim-kiem?sort=newest">Xem thêm &rarr;</a>
-        </div>
-        ${latest.length ? latest.map(d => docRow(d)).join("") : `
-          <div class="empty" style="border:2px dashed var(--line);padding:24px 16px;text-align:center">
-            <p class="head" style="margin:0;font-size:15px">Chưa có tài liệu nào được duyệt trong kỳ này</p>
-            <p class="small muted" style="margin:6px 0 14px">Bạn đang có đề thi, bài tập hoặc slide bài giảng? Hãy đóng góp cho cộng đồng sinh viên.</p>
-            <a href="#/tai-len" class="btn primary sm">${icon.plus} Đóng góp tài liệu</a>
-          </div>
-        `}
+      <section class="stack" style="gap:14px">
+        <div class="chapter"><span class="no">03</span><h2>Tài liệu mới duyệt</h2><a href="#/tim-kiem?sort=newest">Xem thêm ${icon.arrowRight}</a></div>
+        ${latest.length?latest.map(d=>docRow(d)).join(""):`<div class="panel" style="padding:20px;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:center">
+          <div class="art-panel" style="height:200px">${mangaArt("girl-empty","Bạn nữ ngạc nhiên vì kho còn trống")}</div>
+          <div class="stack" style="gap:14px;align-items:flex-start"><p class="narr" style="margin:0">Lời dẫn: Kho đang chờ tài liệu đầu tiên của kỳ này. Ai sẽ là người mở màn?</p><a href="#/tai-len" class="btn primary">${icon.plus} Đóng góp tài liệu</a></div></div>`}
       </section>
     </div>
 
-    <!-- Right Column: School Notices & Popular -->
-    <div class="stack" style="gap:28px">
-      ${typeof feedWidget === "function" ? feedWidget() : ""}
-      ${typeof adSlot === "function" ? adSlot("home") : ""}
-
-      <section class="stack" style="gap:12px">
-        <div class="sechead">
-          <h2 class="h2">Học phần nhiều tài liệu</h2>
-          <a href="#/vien">Tất cả Viện &rarr;</a>
-        </div>
-        <div class="tb" style="grid-template-columns:repeat(2,1fr)">
-          ${top.map(({ c, n }) => `
-            <a href="#/hoc-phan/${c.code}" style="display:flex;justify-content:space-between;align-items:flex-end;gap:8px;padding:10px 12px;background:var(--paper);text-decoration:none">
-              <span style="display:flex;flex-direction:column;min-width:0">
-                <span class="code" style="font-size:22px;line-height:1">${c.code}</span>
-                <span class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span>
-              </span>
-              <span class="tiny muted">${n}</span>
-            </a>
-          `).join("")}
-        </div>
-        <p class="tiny muted" style="margin:0">Số bên phải là số tài liệu đã duyệt của học phần.</p>
-      </section>
-
-      <section class="stack" style="gap:12px">
+    <div class="stack" style="gap:32px">
+      ${typeof feedWidget==="function"?feedWidget():""}
+      ${typeof adSlot==="function"?adSlot("home"):""}
+      ${top.length?`<section class="stack" style="gap:14px"><div class="chapter"><h2>Học phần nhiều tài liệu</h2></div><div class="toplist-m">${top.map(({c,n})=>`<a href="#/hoc-phan/${c.code}"><span style="display:flex;flex-direction:column;min-width:0;gap:4px"><span class="code">${c.code}</span><span class="small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(c.name)}</span></span><b class="small">${n}</b></a>`).join("")}</div></section>`:""}
+      <section class="panel stack" style="gap:10px;padding:20px">
         <h2 class="h2">Được tải nhiều nhất</h2>
-        <table class="t">
-          <thead>
-            <tr>
-              <th style="width:48px">Hạng</th>
-              <th>Tài liệu</th>
-              <th class="num" style="width:80px">Lượt tải</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${most.length ? most.map((d, i) => `
-              <tr>
-                <td class="code" style="font-size:24px;line-height:1;text-align:center">${i + 1}</td>
-                <td>
-                  <a href="#/tai-lieu/${esc(d.slug)}" style="display:flex;flex-direction:column;text-decoration:none">
-                    <b style="font-weight:600">${esc(d.title)}</b>
-                    <span class="head small muted">${d.course}</span>
-                  </a>
-                </td>
-                <td class="num"><b>${fmtCount(d.downloads)}</b></td>
-              </tr>
-            `).join("") : '<tr><td colspan="3" class="small muted" style="padding:16px;text-align:center">Chưa có tài liệu tải xuống</td></tr>'}
-          </tbody>
-        </table>
+        ${most.length?`<ol class="rank-m">${most.map((d,i)=>`<li><a href="#/tai-lieu/${esc(d.slug)}"><span class="n" style="${i===0?"color:var(--stamp)":""}">${i+1}</span><span style="display:flex;flex-direction:column;min-width:0"><b style="font-size:14px">${esc(d.title)}</b><span class="tiny muted">${d.course}</span></span><b class="small">${fmtCount(d.downloads)}</b></a></li>`).join("")}</ol>`:`<p class="hand" style="margin:0;font-size:19px">Chưa có lượt tải nào. Tài liệu đầu tiên được tải sẽ lên bảng ở đây.</p>`}
       </section>
     </div>
   </div>`};
@@ -904,8 +1139,8 @@ views["/tim-kiem"]=()=>{
   </div>`};
 };
 
-views["/vien"]=()=>({html:pageHead("Viện, Trường và Khoa","Chọn đơn vị để xem danh sách học phần")+`<div class="wrap" style="padding-block:24px"><ul class="tb" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));list-style:none;margin:0;padding:0">
- ${DATA.faculties.map(f=>{const cs=S.courses.filter(c=>c.faculty===f.code);const n=cs.reduce((s,c)=>s+courseDocCount(c.code),0);return `<li><a href="#/vien/${f.slug}" style="display:grid;grid-template-columns:1fr auto;gap:0 12px;padding:12px;text-decoration:none;height:100%"><span class="code" style="font-size:30px;line-height:1">${f.code}</span><span class="tiny muted" style="grid-row:span 2;align-self:end;text-align:right">${cs.length} học phần<br>${n} tài liệu</span><span class="small">${esc(f.name)}</span></a></li>`}).join("")}</ul></div>`});
+views["/vien"]=()=>({html:pageHead("Viện, Trường và Khoa","Chọn đơn vị để xem danh sách học phần")+`<div class="wrap" style="padding-block:28px"><ul class="fac-m">
+ ${DATA.faculties.map(f=>{const cs=S.courses.filter(c=>c.faculty===f.code);const n=cs.reduce((s,c)=>s+courseDocCount(c.code),0);return `<li><a href="#/vien/${f.slug}"><span class="code">${f.code}</span><span class="nm">${esc(f.name)}</span><span class="meta"><span>${cs.length} học phần</span><span>${n} tài liệu</span></span></a></li>`}).join("")}</ul></div>`});
 
 views["/vien/:slug"]=({slug})=>{
   const f=DATA.faculties.find(x=>x.slug===slug);if(!f)return views.notfound();
@@ -920,9 +1155,9 @@ views["/hoc-phan/:code"]=({code})=>{
   const list=all.filter(d=>(!type||d.type===type)&&(!ky||d.term===ky)).sort((a,b)=>(b.term||"").localeCompare(a.term||"")||b.downloads-a.downloads);
   const counts={};all.forEach(d=>counts[d.type]=(counts[d.type]||0)+1);const terms=[...new Set(all.map(d=>d.term).filter(Boolean))].sort().reverse();
   const tab=(t)=>`#/hoc-phan/${c.code}${t||ky?"?"+new URLSearchParams({...(t?{loai:t}:{}),...(ky?{ky}:{})}).toString():""}`;
-  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap stack" style="padding-block:24px;gap:16px">
-   <p class="small muted" style="margin:0"><a href="#/vien/${f.slug}">${esc(f.shortName)}</a></p>
-   <h1 style="display:flex;flex-direction:column"><span class="code" style="font-size:clamp(56px,9vw,76px);line-height:.9">${c.code}</span><span class="head" style="font-size:24px">${esc(c.name)}</span></h1>
+  return {html:`<section class="gridpaper course-hero" style="border-bottom:var(--bw) solid var(--line)"><div class="wrap stack" style="padding-block:28px;gap:16px">
+   <p style="margin:0"><a class="crumb" href="#/vien/${f.slug}">${esc(f.shortName)}</a></p>
+   <h1 style="display:flex;flex-direction:column;gap:6px;text-transform:none"><span class="code-big">${c.code}</span><span style="font-family:var(--font);font-weight:800;font-size:26px;text-transform:none">${esc(c.name)}</span></h1>
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Tín chỉ</span><span class="v">${c.credits??"–"}</span></div><div class="cell"><span class="l">Tài liệu</span><span class="v">${all.length}</span></div><div class="cell"><span class="l">Đơn vị</span><span class="v">${esc(f.shortName)}</span></div></div>
    ${c.grading?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 4px">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Độ khó</span><span class="v">${fmt1(cs.difficulty)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Khối lượng</span><span class="v">${fmt1(cs.workload)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Theo dõi</span><span class="v">${cs.followers}</span></div></div>
@@ -1100,27 +1335,28 @@ function authCardView(isLoginTab){
   const nextQuery=next!=="/"?`?next=${encodeURIComponent(next)}`:"";
 
   return {
-    html:`<div class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="padding-block:40px;display:grid;gap:32px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));max-width:960px">
-     <div class="stack">
-      <h1 class="code" style="font-size:clamp(40px,6vw,56px);line-height:.95">${isLoginTab?"Đăng nhập":"Đăng ký"}</h1>
+    html:`<div class="gridpaper" style="border-bottom:var(--bw) solid var(--line)"><div class="wrap auth-m" style="padding-block:36px;max-width:1000px">
+     <div class="auth-side">
+      <div class="art-panel auth-art">${mangaArt("girl-wave","Bạn nữ cười, giơ tay chào")}<div class="bubble" style="left:14px;top:14px;max-width:180px">${isLoginTab?"A, bạn<br>về rồi!":"Chào mừng<br>tân binh!"}</div></div>
+      <h1 style="font-size:clamp(40px,5.6vw,60px);line-height:.95">${isLoginTab?"Đăng nhập":"Đăng ký"}</h1>
       <p style="margin:0;max-width:440px">${isLoginTab
-        ?"Đăng nhập bằng tài khoản và mật khẩu của bạn, hoặc dùng mã OTP gửi về Email nếu quên mật khẩu."
+        ?"Đăng nhập bằng tài khoản và mật khẩu của bạn, hoặc dùng mã OTP gửi về email nếu quên mật khẩu."
         :"Tạo tài khoản HUSTDOCU mới. Mã OTP 6 số sẽ được gửi về email của bạn để xác thực và kích hoạt ngay."}
       </p>
-      <ul class="small muted" style="margin:0;padding-left:18px">
+      <ul class="perks">
         <li>Đọc toàn bộ tài liệu học tập ngay trên trình duyệt.</li>
-        <li>Tải file gốc chất lượng cao về máy không giới hạn.</li>
+        <li>Tải file gốc chất lượng cao về máy.</li>
         <li>Đóng góp tài liệu và nhận điểm thưởng uy tín.</li>
-        <li>Hỗ trợ email sinh viên Bách khoa và hộp thư cá nhân Gmail.</li>
+        <li>Hỗ trợ email sinh viên Bách khoa và Gmail cá nhân.</li>
         ${!isLoginTab?'<li><b>Bắt buộc xác thực OTP 6 số</b> gửi về email để bảo vệ tài khoản.</li>':''}
       </ul>
      </div>
-     <div style="border:2px solid var(--line);background:var(--sheet);box-shadow:6px 6px 0 var(--line);overflow:hidden" class="stack" data-auth-card>
-      <div class="row" style="gap:0;border-bottom:2px solid var(--line);background:var(--wash);margin:0">
-        <a href="#/dang-nhap${nextQuery}" style="flex:1;text-align:center;padding:12px;font-weight:700;text-decoration:none;border-right:1px solid var(--line);${isLoginTab?'background:var(--sheet);border-bottom:2px solid var(--sheet);margin-bottom:-2px;color:var(--ink)':'color:var(--pencil);background:transparent'}">Đăng nhập</a>
-        <a href="#/dang-ky${nextQuery}" style="flex:1;text-align:center;padding:12px;font-weight:700;text-decoration:none;${!isLoginTab?'background:var(--sheet);border-bottom:2px solid var(--sheet);margin-bottom:-2px;color:var(--ink)':'color:var(--pencil);background:transparent'}">Đăng ký (Xác thực OTP)</a>
-      </div>
-      <div style="padding:20px" class="stack" data-auth-body></div>
+     <div class="auth-card" data-auth-card>
+      <nav class="auth-tabs" aria-label="Đăng nhập hoặc đăng ký">
+        <a href="#/dang-nhap${nextQuery}"${isLoginTab?' aria-current="page"':""}>Đăng nhập</a>
+        <a href="#/dang-ky${nextQuery}"${!isLoginTab?' aria-current="page"':""}>Đăng ký (OTP)</a>
+      </nav>
+      <div style="padding:20px 22px 24px" class="stack" data-auth-body></div>
      </div>
     </div></div>`,
     mount(root){
@@ -5705,27 +5941,18 @@ function feedWidget() {
   loadFeed();
   if (!hustFeed?.items?.length) return "";
   const items = hustFeed.items.filter((x) => x.date).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
-  return `<section class="stack" style="gap:12px">
-    <div class="sechead">
-      <h2 class="h2" style="display:flex;align-items:center;gap:8px">${icon.bell} Thông báo từ trường</h2>
-      <a href="#/thong-bao-truong" style="font-weight:600">Xem tất cả &rarr;</a>
-    </div>
-    <ul class="tb" style="list-style:none;margin:0;padding:0;border-radius:4px;overflow:hidden">
-      ${items.map((x) => {
+  return `<section class="panel stack" style="gap:10px;padding:20px">
+    <div class="sechead"><h2 class="h2">Tin vắn từ trường</h2><a href="#/thong-bao-truong" style="font-weight:700">Xem tất cả</a></div>
+    <ol class="news">
+      ${items.map((x, i) => {
         let tag = "THÔNG BÁO";
         if (x.title.includes("HỌC PHÍ") || x.title.includes("học phí")) tag = "HỌC PHÍ";
         else if (x.title.includes("KHEN THƯỞNG") || x.title.includes("học bổng")) tag = "HỌC BỔNG";
         else if (x.title.includes("CTSV")) tag = "CTSV";
         else if (x.title.includes("ĐÀO TẠO") || x.title.includes("ĐTĐH")) tag = "ĐÀO TẠO";
-        return `<li style="padding:12px 14px;display:flex;flex-direction:column;gap:6px;border-bottom:1px solid var(--grid)">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-            <span class="badge" style="background:var(--wash);border-color:var(--grid);font-size:10px;padding:1px 6px;border-radius:3px;color:var(--stamp);font-weight:700">${tag}</span>
-            <span class="tiny muted" style="display:inline-flex;align-items:center;gap:4px">${icon.calendar}${fmtDate(Date.parse(x.date))}</span>
-          </div>
-          <a href="${esc(x.url)}" target="_blank" rel="noopener" style="font-weight:600;font-size:14px;line-height:1.4;text-decoration:none;transition:color 0.15s ease">${esc(x.title)}</a>
-        </li>`;
+        return `<li><span class="n">${String(i + 1).padStart(2, "0")}</span><span><span class="tg">${tag} · ${fmtDate(Date.parse(x.date))}</span><br><a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title)}</a></span></li>`;
       }).join("")}
-    </ul>
+    </ol>
   </section>`;
 }
 
@@ -6742,7 +6969,7 @@ docContent = function (doc) {
   return pages;
 };
 
-views.notfound=()=>({html:`<div class="wrap" style="max-width:640px;padding-block:64px"><div class="tb" style="grid-template-columns:96px 1fr"><div class="code" style="display:flex;align-items:center;justify-content:center;font-size:40px;background:var(--fill);color:var(--on-fill)">404</div><div style="padding:12px 16px"><h1 class="head" style="font-size:20px">Không tìm thấy trang</h1><p class="small muted" style="margin:0">Trang không tồn tại, đã bị gỡ hoặc bạn không có quyền xem.</p></div></div><div class="row" style="margin-top:16px"><a class="btn ink" href="#/">Về trang chủ</a><a class="btn" href="#/tim-kiem">Tìm tài liệu</a></div></div>`});
+views.notfound=()=>({html:`<div class="wrap nf"><div class="art-panel">${mangaArt("boy-404","Bạn nam bối rối, đổ mồ hôi")}</div><div class="panel stack" style="padding:28px;gap:14px;justify-content:center"><span class="big">404</span><h1 style="font-size:34px;line-height:1.05">Trang này lạc mất rồi</h1><p class="narr" style="margin:0">Lời dẫn: Trang không tồn tại, đã bị gỡ hoặc bạn không có quyền xem.</p><div class="row" style="margin-top:6px"><a class="btn primary" href="#/">Về trang chủ</a><a class="btn" href="#/tim-kiem">Tìm tài liệu</a></div></div></div>`});
 
 /* ===================== Bộ định tuyến ===================== */
 const ROUTES=Object.keys(views).filter(k=>k.startsWith("/")).map(k=>({k,re:new RegExp("^"+k.replace(/:[a-z]+/g,"([^/]+)")+"$"),names:(k.match(/:[a-z]+/g)||[]).map(n=>n.slice(1))})).sort((a,b)=>b.k.length-a.k.length);
