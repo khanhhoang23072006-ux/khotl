@@ -9,6 +9,9 @@ on:
         description: 'OTP Code'
         required: true
 
+# Không cần quyền gì trên repo
+permissions: {}
+
 jobs:
   send:
     runs-on: ubuntu-latest
@@ -29,6 +32,11 @@ jobs:
             // Che mã OTP và địa chỉ nhận trong log (log Actions của repo công khai ai cũng xem được)
             core.setSecret(otp);
             core.setSecret(to);
+            // Chặn chèn lệnh SMTP: chỉ nhận một địa chỉ email hợp lệ và mã 6 chữ số
+            if (!/^[^\s@<>\r\n,;]+@[^\s@<>\r\n,;]+\.[^\s@<>\r\n,;]+$/.test(to) || to.length > 120 || !/^\d{6}$/.test(otp)) {
+              core.setFailed('Tham số không hợp lệ.');
+              return;
+            }
             const user = process.env.SMTP_USER;
             const pass = (process.env.SMTP_PASS || '').replace(/\s+/g, '');
             const fromName = process.env.SMTP_FROM_NAME || 'HUSTDOCU';

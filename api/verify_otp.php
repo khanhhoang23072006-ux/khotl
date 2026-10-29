@@ -1,28 +1,18 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Chỉ chấp nhận phương thức POST']);
-    exit;
-}
+require_once __DIR__ . '/_security.php';
+api_headers(['POST']);
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = isset($input['email']) ? trim(strtolower($input['email'])) : '';
 $otp = isset($input['otp']) ? trim($input['otp']) : '';
 
-if (!$email || !$otp) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Vui lòng cung cấp email và mã OTP.']);
-    exit;
+if (!$email || !$otp || strlen($email) > 120 || strlen($otp) > 200) {
+    api_fail(400, 'Vui lòng cung cấp email và mã OTP.');
+}
+// Chống dò mã từ một IP: tối đa 30 lần xác thực mỗi 15 phút
+$wait = rate_limit('verify-ip', client_ip(), 30, 900);
+if ($wait > 0) {
+    api_fail(429, 'Thử quá nhiều lần. Vui lòng thử lại sau ' . wait_text($wait) . '.', ['retry_after' => $wait]);
 }
 
 @include_once __DIR__ . '/config.php';
@@ -42,11 +32,7 @@ $passcodeHash = isset($ADMIN_PASSCODE_HASH) ? (string)$ADMIN_PASSCODE_HASH : '';
 
 if (in_array($email, $adminEmails) && ($passcode !== '' || $passcodeHash !== '')) {
     // Chặn dò mã: sai 5 lần trong 15 phút thì khóa 15 phút
-    $lockDir = __DIR__ . '/data/otps';
-    if (!is_dir($lockDir)) {
-        @mkdir($lockDir, 0755, true);
-        @file_put_contents($lockDir . '/.htaccess', "Order Deny,Allow\nDeny from all\n");
-    }
+    $lockDir = api_data_dir();
     $lockFile = $lockDir . '/admin-' . md5($email) . '.json';
     $lock = file_exists($lockFile) ? (json_decode(file_get_contents($lockFile), true) ?: []) : [];
     $now = time();
@@ -77,7 +63,7 @@ if (in_array($email, $adminEmails) && ($passcode !== '' || $passcodeHash !== '')
     }
 }
 
-$storageDir = __DIR__ . '/data/otps';
+$storageDir = api_data_dir();
 $hashKey = md5($email);
 $filePath = $storageDir . '/' . $hashKey . '.json';
 
@@ -109,9 +95,9 @@ if ($data['attempts'] > 5) {
     echo json_encode(['success' => false, 'message' => 'Bạn đã nhập sai quá số lần cho phép. Vui lòng yêu cầu mã mới.']);
     exit;
 }
-file_put_contents($filePath, json_encode($data));
+file_put_contents($filePath, json_encode($data), LOCK_EX);
 
-if (trim($data['otp']) !== $otp) {
+if (!hash_equals(trim((string)$data['otp']), $otp)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Mã xác thực không chính xác.']);
     exit;

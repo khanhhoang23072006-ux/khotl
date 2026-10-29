@@ -1,19 +1,29 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
+require_once __DIR__ . '/_security.php';
+api_headers(['GET', 'POST']);
 
 $dbDir = __DIR__ . '/data';
-if (!is_dir($dbDir)) {
-    @mkdir($dbDir, 0755, true);
-    @file_put_contents($dbDir . '/.htaccess', "Order Deny,Allow\nDeny from all\n");
+api_data_dir();
+if (!file_exists($dbDir . '/.htaccess')) {
+    @file_put_contents($dbDir . '/.htaccess', "<IfModule mod_authz_core.c>\nRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\nOrder Deny,Allow\nDeny from all\n</IfModule>\n");
 }
+
+// Giới hạn: mỗi IP tối đa 600 yêu cầu/phút (poll mỗi giây vẫn dư), dữ liệu đầu vào ngắn gọn
+$wait = rate_limit('voice-ip', client_ip(), 600, 60);
+if ($wait > 0) {
+    api_fail(429, 'Quá nhiều yêu cầu.', ['retry_after' => $wait]);
+}
+function vs_id($v)
+{
+    $v = trim((string)$v);
+    return preg_match('/^[A-Za-z0-9:_.\-]{1,80}$/', $v) ? $v : '';
+}
+function vs_text($v, $max)
+{
+    $v = trim(preg_replace('/[\x00-\x1F\x7F]/u', '', (string)$v) ?? '');
+    return function_exists('mb_substr') ? mb_substr($v, 0, $max) : substr($v, 0, $max);
+}
+$VS_TYPES = ['join', 'welcome', 'state', 'leave', 'offer', 'answer', 'ice', 'mic-on', 'mic-off'];
 
 $dbPath = $dbDir . '/voice_signal.db';
 try {
@@ -49,21 +59,21 @@ try {
     $db->exec("DELETE FROM voice_signals WHERE created_at < " . ($now - 60));
 
 } catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
-    exit;
+    error_log('voice_signal: ' . $e->getMessage());
+    api_fail(500, 'Máy chủ tạm thời không xử lý được, thử lại sau.');
 }
 
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    $rawBody = file_get_contents('php://input', false, null, 0, 65536);
+    $input = json_decode($rawBody, true) ?: [];
 
     if ($action === 'heartbeat' || $action === 'join') {
-        $roomId = isset($input['roomId']) ? trim($input['roomId']) : '';
-        $peerId = isset($input['peerId']) ? trim($input['peerId']) : '';
-        $email = isset($input['email']) ? trim($input['email']) : '';
-        $name = isset($input['name']) ? trim($input['name']) : '';
+        $roomId = vs_id($input['roomId'] ?? '');
+        $peerId = vs_id($input['peerId'] ?? '');
+        $email = vs_text($input['email'] ?? '', 120);
+        $name = vs_text($input['name'] ?? '', 80);
         $mic = !empty($input['mic']) ? 1 : 0;
         $speaking = !empty($input['speaking']) ? 1 : 0;
 
@@ -72,6 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        $cnt = $db->prepare("SELECT COUNT(*) FROM voice_peers WHERE room_id = :r AND peer_id != :p");
+        $cnt->execute([':r' => $roomId, ':p' => $peerId]);
+        if ((int)$cnt->fetchColumn() >= 30) {
+            api_fail(409, 'Phòng đã đủ 30 người.');
+        }
         $stmt = $db->prepare("INSERT INTO voice_peers (room_id, peer_id, email, name, mic, speaking, updated_at) 
             VALUES (:r, :p, :e, :n, :m, :s, :u) 
             ON CONFLICT(room_id, peer_id) DO UPDATE SET 
@@ -108,13 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'send') {
-        $roomId = isset($input['roomId']) ? trim($input['roomId']) : '';
-        $fromPeer = isset($input['fromPeer']) ? trim($input['fromPeer']) : '';
-        $toPeer = isset($input['toPeer']) ? trim($input['toPeer']) : 'ALL';
-        $msgType = isset($input['msgType']) ? trim($input['msgType']) : '';
+        $roomId = vs_id($input['roomId'] ?? '');
+        $fromPeer = vs_id($input['fromPeer'] ?? '');
+        $toPeer = isset($input['toPeer']) && $input['toPeer'] !== 'ALL' ? vs_id($input['toPeer']) : 'ALL';
+        $msgType = in_array($input['msgType'] ?? '', $VS_TYPES, true) ? $input['msgType'] : '';
         $payload = isset($input['payload']) ? json_encode($input['payload']) : '{}';
 
-        if (!$roomId || !$fromPeer || !$msgType) {
+        if (!$roomId || !$fromPeer || !$toPeer || !$msgType || strlen($payload) > 32768) {
             echo json_encode(['error' => 'Invalid signal parameters']);
             exit;
         }
@@ -139,8 +154,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'leave') {
-        $roomId = isset($input['roomId']) ? trim($input['roomId']) : '';
-        $peerId = isset($input['peerId']) ? trim($input['peerId']) : '';
+        $roomId = vs_id($input['roomId'] ?? '');
+        $peerId = vs_id($input['peerId'] ?? '');
 
         if ($roomId && $peerId) {
             $db->prepare("DELETE FROM voice_peers WHERE room_id = :r AND peer_id = :p")->execute([':r' => $roomId, ':p' => $peerId]);
@@ -153,9 +168,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'poll') {
-    $roomId = isset($_GET['roomId']) ? trim($_GET['roomId']) : '';
-    $peerId = isset($_GET['peerId']) ? trim($_GET['peerId']) : '';
-    $since = isset($_GET['since']) ? (int)$_GET['since'] : 0;
+    $roomId = vs_id($_GET['roomId'] ?? '');
+    $peerId = vs_id($_GET['peerId'] ?? '');
+    $since = isset($_GET['since']) ? max(0, (int)$_GET['since']) : 0;
 
     if (!$roomId) {
         echo json_encode(['error' => 'Missing roomId']);

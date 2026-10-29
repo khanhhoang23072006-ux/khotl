@@ -25,7 +25,8 @@ e2e/screenshots/
 
 # Cấu hình máy chủ có mật khẩu, token: chỉ để trên hosting
 api/config.php
-api/data/otps/*.json
+api/data/**/*.json
+api/data/*.db*
 
 # Mật khẩu FTP dùng cho deploy.bat: chỉ để trên máy
 deploy.local.bat

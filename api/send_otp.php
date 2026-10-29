@@ -1,37 +1,25 @@
 <?php
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
-header('Content-Type: application/json; charset=UTF-8');
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Chỉ chấp nhận phương thức POST']);
-    exit;
-}
+require_once __DIR__ . '/_security.php';
+api_headers(['POST']);
 
 $input = json_decode(file_get_contents('php://input'), true);
 $email = isset($input['email']) ? trim(strtolower($input['email'])) : '';
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Địa chỉ email không hợp lệ.']);
-    exit;
+if (strlen($email) > 120 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    api_fail(400, 'Địa chỉ email không hợp lệ.');
+}
+
+// Chống lạm dụng gửi mail (spam người khác, dò mã OTP): mỗi email 1 lần/60 giây và 5 lần/giờ; mỗi IP 15 lần/giờ
+foreach ([['otp-mail-1m', $email, 1, 60], ['otp-mail-1h', $email, 5, 3600], ['otp-ip-1h', client_ip(), 15, 3600]] as $r) {
+    $wait = rate_limit($r[0], $r[1], $r[2], $r[3]);
+    if ($wait > 0) {
+        api_fail(429, 'Bạn yêu cầu mã quá nhiều lần. Vui lòng thử lại sau ' . wait_text($wait) . '.', ['retry_after' => $wait]);
+    }
 }
 
 @include_once __DIR__ . '/config.php';
 
-// Ensure OTP storage directory exists and is protected
-$storageDir = __DIR__ . '/data/otps';
-if (!is_dir($storageDir)) {
-    @mkdir($storageDir, 0755, true);
-    @file_put_contents($storageDir . '/.htaccess', "Order Deny,Allow\nDeny from all\n");
-}
+$storageDir = api_data_dir();
 
 // Generate secure 6-digit OTP
 $otp = (string)random_int(100000, 999999);
@@ -46,7 +34,7 @@ $payload = [
     'attempts' => 0
 ];
 
-file_put_contents($filePath, json_encode($payload));
+file_put_contents($filePath, json_encode($payload), LOCK_EX);
 
 // Trigger workflow dispatch to send email via Gmail SMTP
 $token = isset($GITHUB_TOKEN) ? $GITHUB_TOKEN : '';
@@ -94,19 +82,13 @@ $backupHeaders = [
 ];
 @mail($email, $backupSubject, $backupBody, implode("\r\n", $backupHeaders));
 
-if ($httpCode === 204 || $httpCode === 200) {
-    echo json_encode([
-        'success' => true,
-        'message' => 'Mã xác thực đã được gửi về email của bạn qua Gmail.',
-        'email' => $email,
-        'expires_in' => 600
-    ]);
-} else {
-    echo json_encode([
-        'success' => true,
-        'message' => 'Mã xác thực đã được gửi tới email của bạn.',
-        'email' => $email,
-        'expires_in' => 600,
-        'warning' => $curlError ?: "HTTP {$httpCode}"
-    ]);
+if ($httpCode !== 204 && $httpCode !== 200) {
+    // Ghi lỗi vào log máy chủ, không trả chi tiết cho người dùng
+    error_log('send_otp: workflow dispatch failed: ' . ($curlError ?: "HTTP {$httpCode}"));
 }
+echo json_encode([
+    'success' => true,
+    'message' => 'Mã xác thực đã được gửi tới email của bạn.',
+    'email' => $email,
+    'expires_in' => 600
+]);
