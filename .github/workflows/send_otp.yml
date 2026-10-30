@@ -45,65 +45,78 @@ jobs:
               return;
             }
 
-            console.log('Sending OTP email...');
+            const enc = (t) => (/[^\x20-\x7E]/.test(t) ? `=?UTF-8?B?${Buffer.from(t).toString('base64')}?=` : t);
+            const b64 = (t) => Buffer.from(t).toString('base64').replace(/.{76}/g, '$&\r\n');
+            const subject = `Mã xác thực HUSTDOCU: ${otp}`;
+            const text = `Mã xác thực đăng nhập HUSTDOCU của bạn là: ${otp}\r\n\r\nMã có hiệu lực trong 10 phút. Nếu bạn không yêu cầu mã này, hãy bỏ qua email.`;
+            const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:0 auto;border:2px solid #111;padding:24px;background:#fff"><h2 style="margin:0 0 16px;color:#D7263D">HUSTDOCU</h2><p>Mã xác thực đăng nhập của bạn là:</p><div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#111;padding:16px 0;text-align:center;background:#f4f4f4;border:1px dashed #999;margin:16px 0">${otp}</div><p style="font-size:13px;color:#555">Mã có hiệu lực trong 10 phút. Nếu bạn không yêu cầu mã này, hãy bỏ qua email.</p></div>`;
+            const boundary = 'b' + require('crypto').randomBytes(12).toString('hex');
+            const message = [
+              `Date: ${new Date().toUTCString().replace('GMT', '+0000')}`,
+              `Message-ID: <${require('crypto').randomBytes(16).toString('hex')}@${user.split('@')[1]}>`,
+              `From: ${enc(fromName)} <${user}>`,
+              `To: <${to}>`,
+              `Subject: ${enc(subject)}`,
+              'MIME-Version: 1.0',
+              `Content-Type: multipart/alternative; boundary="${boundary}"`,
+              '',
+              `--${boundary}`,
+              'Content-Type: text/plain; charset=UTF-8',
+              'Content-Transfer-Encoding: base64',
+              '',
+              b64(text),
+              `--${boundary}`,
+              'Content-Type: text/html; charset=UTF-8',
+              'Content-Transfer-Encoding: base64',
+              '',
+              b64(html),
+              `--${boundary}--`,
+            ].join('\r\n');
+
+            // Hội thoại SMTP: mỗi lệnh chờ đúng mã phản hồi, sai mã thì dừng ngay và báo lý do
+            const steps = [
+              [null, 220, 'chào'],
+              ['EHLO github-actions', 250, 'EHLO'],
+              ['AUTH LOGIN', 334, 'AUTH'],
+              [Buffer.from(user).toString('base64'), 334, 'tài khoản'],
+              [Buffer.from(pass).toString('base64'), 235, 'mật khẩu ứng dụng Gmail (sai hoặc đã bị thu hồi?)'],
+              [`MAIL FROM:<${user}>`, 250, 'MAIL FROM'],
+              [`RCPT TO:<${to}>`, 250, 'RCPT TO'],
+              ['DATA', 354, 'DATA'],
+              [message + '\r\n.', 250, 'gửi thư'],
+            ];
 
             await new Promise((resolve, reject) => {
-              const client = tls.connect(465, 'smtp.gmail.com', () => {
-                console.log('Connected to Gmail SMTP');
-              });
-
-              let step = 0;
+              const client = tls.connect({ port: 465, host: 'smtp.gmail.com', servername: 'smtp.gmail.com' });
+              const timer = setTimeout(() => { client.destroy(); reject(new Error('Hết thời gian chờ Gmail SMTP')); }, 20000);
+              let buf = '';
+              let i = 0;
               client.on('data', (d) => {
-                const msg = d.toString();
-                if (step === 0 && msg.startsWith('220')) {
-                  step = 1;
-                  client.write('EHLO localhost\r\n');
-                } else if (step === 1 && msg.includes('250 ')) {
-                  step = 2;
-                  client.write('AUTH LOGIN\r\n');
-                } else if (step === 2 && msg.startsWith('334')) {
-                  step = 3;
-                  client.write(Buffer.from(user).toString('base64') + '\r\n');
-                } else if (step === 3 && msg.startsWith('334')) {
-                  step = 4;
-                  client.write(Buffer.from(pass).toString('base64') + '\r\n');
-                } else if (step === 4 && msg.startsWith('235')) {
-                  step = 5;
-                  client.write(`MAIL FROM:<${user}>\r\n`);
-                } else if (step === 5 && msg.startsWith('250')) {
-                  step = 6;
-                  client.write(`RCPT TO:<${to}>\r\n`);
-                } else if (step === 6 && msg.startsWith('250')) {
-                  step = 7;
-                  client.write('DATA\r\n');
-                } else if (step === 7 && msg.startsWith('354')) {
-                  step = 8;
-                  const body = [
-                    `From: "${fromName}" <${user}>`,
-                    `To: <${to}>`,
-                    `Subject: Mã xác thực đăng nhập HUSTDOCU: ${otp}`,
-                    `MIME-Version: 1.0`,
-                    `Content-Type: text/html; charset=UTF-8`,
-                    ``,
-                    `<div style="font-family:sans-serif;max-width:520px;margin:0 auto;border:2px solid #222;padding:24px;background:#fdfbf7">`,
-                    `  <h2 style="margin:0 0 16px;color:#c00">HUSTDOCU</h2>`,
-                    `  <p>Chào bạn,</p>`,
-                    `  <p>Mã xác thực đăng nhập vào hệ thống HUSTDOCU của bạn là:</p>`,
-                    `  <div style="font-size:32px;font-weight:bold;letter-spacing:6px;color:#111;padding:16px 0;text-align:center;background:#f0eee9;border:1px dashed #999;margin:16px 0">`,
-                    `    ${otp}`,
-                    `  </div>`,
-                    `  <p style="font-size:13px;color:#666">Mã có hiệu lực trong vòng 10 phút. Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p>`,
-                    `</div>`,
-                    `.`
-                  ].join('\r\n');
-                  client.write(body + '\r\n');
-                } else if (step === 8 && msg.startsWith('250')) {
-                  console.log('EMAIL SENT SUCCESSFULLY!');
-                  client.write('QUIT\r\n');
-                  resolve();
+                if (i >= steps.length) return; // phản hồi của QUIT sau khi đã xong
+                buf += d.toString();
+                // Chờ đủ dòng cuối của phản hồi ("250 ..." chứ không phải "250-...")
+                const lines = buf.split('\r\n').filter(Boolean);
+                const last = lines[lines.length - 1] || '';
+                if (!buf.endsWith('\r\n') || last[3] === '-') return;
+                const code = parseInt(last.slice(0, 3), 10);
+                const [, expect, what] = steps[i];
+                buf = '';
+                if (code !== expect) {
+                  i = steps.length;
+                  clearTimeout(timer);
+                  client.end('QUIT\r\n');
+                  reject(new Error(`SMTP ${what}: ${last}`));
+                  return;
                 }
+                i += 1;
+                if (i === steps.length) {
+                  clearTimeout(timer);
+                  client.end('QUIT\r\n');
+                  resolve();
+                  return;
+                }
+                client.write(steps[i][0] + '\r\n');
               });
-
-              client.on('error', reject);
-              setTimeout(() => reject(new Error('Timeout sending email')), 15000);
+              client.on('error', (e) => { clearTimeout(timer); reject(e); });
             });
+            console.log('Đã gửi thư mã OTP.');
