@@ -21,12 +21,7 @@ if ($wait > 0) {
 //   $ADMIN_PASSCODE = 'mã-chỉ-bạn-biết';
 // hoặc bản băm: $ADMIN_PASSCODE_HASH = '$2y$10$...';  (tạo bằng password_hash)
 // Chưa đặt thì không có đăng nhập bằng mã quản trị, chỉ dùng OTP qua email.
-$adminEmails = [
-    'khanhhoang23072006@gmail.com',
-    'admin@lofcreate.online',
-    'admin@hust.edu.vn',
-    'admin.demo@hust.edu.vn'
-];
+$adminEmails = API_ADMIN_EMAILS; // danh sách ở api/_security.php
 $passcode = isset($ADMIN_PASSCODE) ? (string)$ADMIN_PASSCODE : '';
 $passcodeHash = isset($ADMIN_PASSCODE_HASH) ? (string)$ADMIN_PASSCODE_HASH : '';
 
@@ -44,7 +39,7 @@ if (in_array($email, $adminEmails) && ($passcode !== '' || $passcodeHash !== '')
             'success' => true,
             'message' => 'Đăng nhập Quản trị viên thành công!',
             'email' => $email,
-            'token' => bin2hex(random_bytes(24)),
+            'token' => admin_session_issue($email),
             'is_admin' => true,
             'timestamp' => $now
         ]);
@@ -111,14 +106,15 @@ if (!$okOtp) {
 // Successful verification: remove OTP file to prevent reuse
 @unlink($filePath);
 
-// Generate lightweight auth session token
-$sessionToken = bin2hex(random_bytes(24));
+// Quản trị viên nhận token phiên lưu trên máy chủ (dùng cho việc cần quyền thật như đăng extension)
+$isAdmin = in_array($email, $adminEmails, true);
+$sessionToken = $isAdmin ? admin_session_issue($email) : bin2hex(random_bytes(24));
 
 echo json_encode([
     'success' => true,
     'message' => 'Xác thực thành công!',
     'email' => $email,
     'token' => $sessionToken,
-    'is_admin' => in_array($email, $adminEmails),
+    'is_admin' => $isAdmin,
     'timestamp' => time()
 ]);

@@ -30,3 +30,4 @@ api/data/*.db*
 
 # Mật khẩu FTP dùng cho deploy.bat: chỉ để trên máy
 deploy.local.bat
+api/data/extensions/*.zip

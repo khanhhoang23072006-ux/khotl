@@ -671,7 +671,8 @@ table.t tbody tr:hover td{background:var(--hi);color:#111}
     <div class="brand"><b>HUSTDOCU</b><p>Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.</p></div>
     <div><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
     <div><span class="l">Bản quyền, kiểm duyệt</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a><a href="#/minh-bach">Báo cáo minh bạch</a><a href="#/cong-tac-vien">Cộng tác viên kiểm duyệt</a></div>
-    <div><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener">github.com/khanhhoang23072006-ux/khotl</a></div>
+    <div><span class="l">Tiện ích</span><a href="#/extension">Extension trình duyệt</a></div>
+    <div><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener" style="overflow-wrap:anywhere">github.com/khanhhoang23072006-ux/khotl</a></div>
   </div>
   <p class="small muted" style="margin:12px 0 0">Hệ thống chia sẻ tài liệu học tập sinh viên Đại học Bách khoa Hà Nội. Bản quyền tài liệu thuộc về tác giả và cộng đồng sinh viên chia sẻ.</p>
 </div></footer>
@@ -751,6 +752,7 @@ async function apiPost(file,payload){
   let data;
   try{data=await res.json()}
   catch{data={success:false,message:res.status===404?"Máy chủ gửi mã xác thực chưa sẵn sàng. Vui lòng thử lại sau.":`Máy chủ gửi mã xác thực gặp lỗi (mã ${res.status}). Vui lòng thử lại sau.`}}
+  if(file==="verify_otp.php"&&data&&data.success&&data.is_admin&&data.token)setAdminToken(data.token);
   return {res,data};
 }
 let S;
@@ -877,6 +879,9 @@ function snippet(d,terms){if(!terms.length)return"";const text=docContent(d).fla
 
 /* ===================== Giao diện chung ===================== */
 const icon={
+ puzzle:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M9 3h4v2a2 2 0 1 0 4 0V3h4v6h-2a2 2 0 1 0 0 4h2v8h-6v-2a2 2 0 1 0-4 0v2H3v-6h2a2 2 0 1 0 0-4H3V3z"/></svg>',
+ upload:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 16V4M6 9l6-6 6 6M4 21h16"/></svg>',
+ trash:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>',
  link:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
  help:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-2px;margin-right:4px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
  search:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
@@ -1001,7 +1006,7 @@ function renderHeaderInner(){
   const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
   document.getElementById("header").innerHTML=`<div class="wrap">
    <a class="logo" href="#/"><b>HUSTDOCU</b><span class="vol" aria-hidden="true">TẬP ${new Date().getFullYear()%100}</span></a>
-   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/cong-dong"${["/cong-dong","/bang-xep-hang","/hoi-dap","/khong-gian","/thong-bao-truong","/vinh-danh","/chung-nhan"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Cộng đồng</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
+   <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/cong-dong"${["/cong-dong","/bang-xep-hang","/hoi-dap","/khong-gian","/thong-bao-truong","/vinh-danh","/chung-nhan"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Cộng đồng</a><a href="#/extension"${cur("/extension")}>Extension</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
    <div class="tools">
     <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>
     ${installPrompt?'<button class="btn sm" type="button" data-action="install" style="margin-right:6px">Cài ứng dụng</button>':""}
@@ -2055,7 +2060,7 @@ views["/kiem-duyet/bao-cao"]=()=>{
 };
 
 /* ----- Quản trị ----- */
-function adminTabs(a){return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px"><h1 class="code" style="font-size:40px;line-height:1">Quản trị</h1><nav class="tabs" aria-label="Quản trị"><a href="#/quan-tri/hoc-phan"${a==="c"?' aria-current="page"':""}>Học phần</a><a href="#/quan-tri/nguoi-dung"${a==="u"?' aria-current="page"':""}>Phân quyền</a><a href="#/quan-tri/luot-tai"${a==="cr"?' aria-current="page"':""}>Lượt tải</a><a href="#/quan-tri/quang-cao"${a==="ad"?' aria-current="page"':""}>Quảng cáo</a><a href="#/quan-tri/nhat-ky"${a==="l"?' aria-current="page"':""}>Nhật ký</a></nav></div>`}
+function adminTabs(a){return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px"><h1 class="code" style="font-size:40px;line-height:1">Quản trị</h1><nav class="tabs" aria-label="Quản trị"><a href="#/quan-tri/hoc-phan"${a==="c"?' aria-current="page"':""}>Học phần</a><a href="#/quan-tri/nguoi-dung"${a==="u"?' aria-current="page"':""}>Phân quyền</a><a href="#/quan-tri/luot-tai"${a==="cr"?' aria-current="page"':""}>Lượt tải</a><a href="#/quan-tri/quang-cao"${a==="ad"?' aria-current="page"':""}>Quảng cáo</a><a href="#/quan-tri/extension"${a==="ext"?' aria-current="page"':""}>Extension</a><a href="#/quan-tri/nhat-ky"${a==="l"?' aria-current="page"':""}>Nhật ký</a></nav></div>`}
 function audit(action,detail){S.audit.unshift({t:Date.now(),by:me().email,action,detail});save()}
 views["/quan-tri"]=()=>{go("#/quan-tri/hoc-phan");return{html:""}};
 views["/quan-tri/hoc-phan"]=()=>{
@@ -6094,6 +6099,192 @@ views["/quan-tri/quang-cao"] = () => {
   };
 };
 
+/* ===================== Extension trình duyệt =====================
+   File lưu trên hosting (api/extensions.php), không lưu trên trình duyệt như dữ liệu mẫu.
+   Đăng, xoá cần token quản trị do máy chủ cấp sau khi xác minh OTP hoặc mã quản trị (vai trò trên trình duyệt không đủ). */
+const ADMIN_TOKEN_KEY="hustdocu-admin-token";
+function adminToken(){try{return localStorage.getItem(ADMIN_TOKEN_KEY)||""}catch{return ""}}
+function setAdminToken(t){try{t?localStorage.setItem(ADMIN_TOKEN_KEY,t):localStorage.removeItem(ADMIN_TOKEN_KEY)}catch{}EXT.admin="";EXT.checked=!t}
+const EXT={items:null,loading:false,tried:false,err:"",admin:"",checked:false,checking:false};
+const extOnPage=()=>["/extension","/quan-tri/extension"].includes(currentPath());
+async function loadExtensions(force=false){
+  if(EXT.loading||(EXT.tried&&!force))return;
+  EXT.loading=true;EXT.tried=true;
+  try{
+    const res=await fetch(API_BASE+"/api/extensions.php?action=list",{cache:"no-store"});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.message||"");
+    EXT.items=data.items||[];EXT.err="";
+  }catch{EXT.err="Chưa tải được danh sách extension từ máy chủ. Vui lòng thử lại sau."}
+  finally{EXT.loading=false}
+  if(extOnPage())render();
+}
+async function checkAdminToken(){
+  const t=adminToken();
+  if(!t){EXT.admin="";EXT.checked=true;return}
+  if(EXT.checking)return;EXT.checking=true;
+  try{
+    const res=await fetch(API_BASE+"/api/extensions.php?action=check",{method:"POST",headers:{"X-Admin-Token":t}});
+    const data=await res.json();
+    EXT.admin=data.success?data.email:"";
+    if(!data.success)setAdminToken("");
+  }catch{EXT.admin=""}
+  finally{EXT.checking=false;EXT.checked=true}
+  if(extOnPage())render();
+}
+const extDownloadUrl=(it)=>`${API_BASE}/api/extensions.php?action=download&id=${encodeURIComponent(it.id)}`;
+function extGuideHtml(){return `<ol class="small" style="margin:0;padding-left:20px;line-height:1.7">
+  <li>Bấm <b>Tải về</b> để lấy file <code>.zip</code>, rồi <b>giải nén</b> ra một thư mục (chuột phải → Extract All / Giải nén tất cả).</li>
+  <li>Mở trình duyệt Chrome, Edge hoặc Cốc Cốc, gõ vào thanh địa chỉ <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>).</li>
+  <li>Bật <b>Chế độ dành cho nhà phát triển</b> (Developer mode) ở góc trên bên phải.</li>
+  <li>Bấm <b>Tải tiện ích đã giải nén</b> (Load unpacked) và chọn thư mục vừa giải nén, đúng thư mục có file <code>manifest.json</code>.</li>
+  <li>Ghim extension lên thanh công cụ bằng biểu tượng mảnh ghép để dùng nhanh. Không xoá thư mục đã giải nén, nếu xoá extension sẽ ngừng chạy.</li>
+</ol>`}
+function extCard(it,admin){
+  const perms=(it.permissions||[]).slice(0,8);
+  return `<article style="border:2px solid var(--line);background:var(--sheet);padding:16px;display:flex;flex-direction:column;gap:10px">
+   <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:nowrap">
+    <div style="display:flex;gap:12px;align-items:flex-start;min-width:0">
+     <div style="width:42px;height:42px;flex:none;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;background:var(--paper)">${icon.puzzle}</div>
+     <div style="min-width:0"><h2 class="h2" style="margin:0;font-size:19px;overflow-wrap:anywhere">${esc(it.name)}</h2>
+      <p class="tiny muted" style="margin:2px 0 0">${it.version?`Phiên bản ${esc(it.version)} · `:""}${fmtSize((it.size||0)/1024)} · Đăng ${fmtDate((it.created_at||0)*1000)} · ${fmtCount(it.downloads||0)} lượt tải</p></div>
+    </div>
+   </div>
+   ${it.description?`<p class="small" style="margin:0;white-space:pre-line">${esc(it.description)}</p>`:""}
+   ${perms.length?`<p class="tiny muted" style="margin:0">Quyền truy cập: ${perms.map(p=>`<code>${esc(p)}</code>`).join(", ")}${(it.permissions||[]).length>perms.length?"…":""}</p>`:""}
+   ${it.guide?`<details><summary class="small"><b>Hướng dẫn riêng</b></summary><p class="small" style="margin:8px 0 0;white-space:pre-line">${esc(it.guide)}</p></details>`:""}
+   <div class="row" style="gap:6px;margin-top:auto">
+    <a class="btn primary" href="${extDownloadUrl(it)}" rel="noopener" download>${icon.down} Tải về</a>
+    ${admin?`<button class="btn ghost" type="button" data-delext="${esc(it.id)}">${icon.trash} Xoá</button>`:""}
+   </div>
+  </article>`;
+}
+
+views["/extension"]=()=>{
+  const u=me();
+  loadExtensions();
+  const items=EXT.items;
+  return {html:`<div class="wrap stack" style="padding-block:20px;gap:20px">
+   <div class="row" style="justify-content:space-between;align-items:flex-end;gap:12px">
+    <div><h1 class="code" style="font-size:40px;line-height:1">Extension</h1><p class="small muted" style="margin:6px 0 0">Tiện ích trình duyệt hỗ trợ học tập do quản trị viên HUSTDOCU đăng.</p></div>
+    ${isAdmin(u)?`<a class="btn ink" href="#/quan-tri/extension">${icon.plus} Đăng extension</a>`:""}
+   </div>
+   <p class="note" style="margin:0">Extension chạy trực tiếp trong trình duyệt của bạn. Trước khi cài, đọc mô tả và <b>quyền truy cập</b> của nó; chỉ cài khi bạn hiểu nó làm gì.</p>
+   ${EXT.err&&!items?`<p class="err" role="alert">${esc(EXT.err)} <button class="btn sm" type="button" data-reloadext>Thử lại</button></p>`:""}
+   ${!items&&!EXT.err?`<p class="small muted">Đang tải danh sách…</p>`:""}
+   ${items&&!items.length?`<p class="note">Chưa có extension nào.</p>`:""}
+   ${items&&items.length?`<div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">${items.map(it=>extCard(it,false)).join("")}</div>`:""}
+   <section style="border:2px solid var(--line);background:var(--sheet);padding:16px"><h2 class="h2" style="margin:0 0 10px">Cách cài extension</h2>${extGuideHtml()}</section>
+  </div>`,
+  mount(root){root.querySelector("[data-reloadext]")?.addEventListener("click",()=>{loadExtensions(true);render()})}};
+};
+
+views["/quan-tri/extension"]=()=>{
+  const u=me();
+  if(!isAdmin(u))return needLogin("/quan-tri/extension");
+  loadExtensions();
+  if(!EXT.checked)checkAdminToken();
+  const ok=!!EXT.admin;
+  const items=EXT.items||[];
+  const verifyBox=!EXT.checked?`<p class="small muted">Đang kiểm tra quyền quản trị trên máy chủ…</p>`:ok?
+   `<p class="note" style="margin:0">${icon.key} Đã xác minh quyền quản trị trên máy chủ: <b>${esc(EXT.admin)}</b>. <button class="btn sm ghost" type="button" data-extlogout>Huỷ xác minh</button></p>`:
+   `<form class="stack" data-form="extverify" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px">
+     <h2 class="h2" style="margin:0">Xác minh quyền quản trị</h2>
+     <p class="small muted" style="margin:0">File extension lưu trên máy chủ, nên máy chủ cần tự kiểm tra bạn là quản trị viên. Gửi mã OTP tới <b>${esc(u.email)}</b> rồi nhập mã, hoặc nhập mã quản trị (đặt trong <code>api/config.php</code>). Xác minh có hiệu lực 7 ngày trên trình duyệt này.</p>
+     <div class="row" style="gap:8px;align-items:flex-end">
+      <button class="btn" type="button" data-extotp>${icon.mail} Gửi mã OTP</button>
+      <div class="field" style="flex:1;min-width:180px;margin:0"><label for="ext-code">Mã OTP hoặc mã quản trị</label><input class="input" id="ext-code" autocomplete="one-time-code" maxlength="200"></div>
+      <button class="btn primary" type="submit">Xác minh</button>
+     </div>
+     <p class="err" data-verr role="alert" hidden></p>
+    </form>`;
+  return {html:`<div class="wrap stack" style="padding-block:20px;gap:20px">${adminTabs("ext")}
+   ${verifyBox}
+   <form class="stack" data-form="extup" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"${ok?"":" hidden"}>
+    <h2 class="h2" style="margin:0">Đăng extension mới</h2>
+    <p class="small muted" style="margin:0">Nén <b>thư mục chứa <code>manifest.json</code></b> thành file <code>.zip</code> (tối đa 25 MB). Tên, phiên bản, mô tả để trống sẽ lấy từ <code>manifest.json</code>.</p>
+    <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+     <div class="field" style="grid-column:1/-1"><label for="ext-file">File .zip</label><input class="input" id="ext-file" type="file" accept=".zip,application/zip" required></div>
+     <div class="field"><label for="ext-name">Tên</label><input class="input" id="ext-name" maxlength="80"></div>
+     <div class="field"><label for="ext-ver">Phiên bản</label><input class="input" id="ext-ver" maxlength="30" placeholder="1.0.0"></div>
+     <div class="field" style="grid-column:1/-1"><label for="ext-desc">Mô tả</label><textarea class="textarea" id="ext-desc" maxlength="1000" style="min-height:64px" placeholder="Extension làm gì, dùng ở trang nào"></textarea></div>
+     <div class="field" style="grid-column:1/-1"><label for="ext-guide">Hướng dẫn riêng (không bắt buộc)</label><textarea class="textarea" id="ext-guide" maxlength="3000" style="min-height:64px" placeholder="Cách dùng sau khi cài, lưu ý…"></textarea></div>
+    </div>
+    <p class="err" data-uerr role="alert" hidden></p>
+    <div><button class="btn primary" type="submit" data-upbtn>${icon.upload} Đăng extension</button></div>
+   </form>
+   <section class="stack" style="gap:12px"><div class="row" style="justify-content:space-between"><h2 class="h2" style="margin:0">Đã đăng (${items.length})</h2><a class="btn sm" href="#/extension">Xem trang công khai ${icon.arrowRight}</a></div>
+    ${EXT.err&&!EXT.items?`<p class="err" role="alert">${esc(EXT.err)}</p>`:""}
+    ${EXT.items&&!items.length?`<p class="note">Chưa có extension nào.</p>`:""}
+    <div style="display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">${items.map(it=>extCard(it,ok)).join("")}</div>
+   </section>
+  </div>`,
+  mount(root){
+    const vf=root.querySelector('[data-form="extverify"]');
+    if(vf){
+      const verr=vf.querySelector("[data-verr]");const vfail=(m)=>{verr.textContent=m;verr.hidden=false};
+      vf.querySelector("[data-extotp]").addEventListener("click",async(e)=>{
+        e.target.disabled=true;
+        try{const {data}=await apiPost("send_otp.php",{email:u.email});if(data.success){toast("Đã gửi mã OTP tới email của bạn.");verr.hidden=true}else vfail(data.message||"Không gửi được mã.")}
+        catch{vfail("Không kết nối được máy chủ gửi thư.")}
+        finally{e.target.disabled=false}
+      });
+      vf.addEventListener("submit",async(e)=>{
+        e.preventDefault();
+        const code=vf.querySelector("#ext-code").value.trim();
+        if(!code)return vfail("Nhập mã OTP hoặc mã quản trị.");
+        try{
+          const {data}=await apiPost("verify_otp.php",{email:u.email,otp:code});
+          if(data.success&&data.is_admin&&data.token){EXT.admin=data.email;EXT.checked=true;toast("Đã xác minh quyền quản trị.");render()}
+          else if(data.success)vfail(`Máy chủ không ghi nhận ${u.email} là quản trị viên (danh sách ở api/_security.php).`);
+          else vfail(data.message||"Mã không đúng.");
+        }catch{vfail("Không kết nối được máy chủ xác thực.")}
+      });
+    }
+    root.querySelector("[data-extlogout]")?.addEventListener("click",async()=>{
+      const t=adminToken();setAdminToken("");EXT.admin="";EXT.checked=true;
+      try{await fetch(API_BASE+"/api/extensions.php?action=logout",{method:"POST",headers:{"X-Admin-Token":t}})}catch{}
+      render();
+    });
+    const up=root.querySelector('[data-form="extup"]');
+    up?.addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const uerr=up.querySelector("[data-uerr]");const ufail=(m)=>{uerr.textContent=m;uerr.hidden=false};uerr.hidden=true;
+      const file=up.querySelector("#ext-file").files[0];
+      if(!file)return ufail("Chọn file .zip.");
+      if(!/\.zip$/i.test(file.name))return ufail("Chỉ nhận file .zip.");
+      if(file.size>25*1024*1024)return ufail("File phải nhỏ hơn 25 MB.");
+      const fd=new FormData();
+      fd.append("file",file);
+      for(const [k,id] of [["name","#ext-name"],["version","#ext-ver"],["description","#ext-desc"],["guide","#ext-guide"]])fd.append(k,up.querySelector(id).value.trim());
+      const btn=up.querySelector("[data-upbtn]");btn.disabled=true;btn.textContent="Đang tải lên…";
+      try{
+        const res=await fetch(API_BASE+"/api/extensions.php?action=upload",{method:"POST",headers:{"X-Admin-Token":adminToken()},body:fd});
+        let data;try{data=await res.json()}catch{data={success:false,message:res.status===413?"File vượt giới hạn tải lên của hosting.":`Máy chủ lỗi (mã ${res.status}).`}}
+        if(data.success){
+          S.audit?.unshift({t:Date.now(),by:u.email,action:"extension.create",detail:data.item.name});save();
+          toast(`Đã đăng "${data.item.name}".`);await loadExtensions(true);render();
+        }else{
+          if(data.need_admin){setAdminToken("");EXT.admin="";EXT.checked=true;render();toast(data.message);return}
+          ufail(data.message||"Không đăng được.");
+        }
+      }catch{ufail("Không kết nối được máy chủ.")}
+      finally{btn.disabled=false;btn.innerHTML=`${icon.upload} Đăng extension`}
+    });
+    root.querySelectorAll("[data-delext]").forEach(b=>b.addEventListener("click",async()=>{
+      const it=items.find(x=>x.id===b.dataset.delext);
+      if(b.dataset.sure!=="1"){b.dataset.sure="1";b.textContent="Bấm lần nữa để xoá";setTimeout(()=>{if(b.isConnected){b.dataset.sure="";b.innerHTML=`${icon.trash} Xoá`}},4000);return}
+      b.disabled=true;
+      try{
+        const res=await fetch(API_BASE+"/api/extensions.php?action=delete",{method:"POST",headers:{"Content-Type":"application/json","X-Admin-Token":adminToken()},body:JSON.stringify({id:it.id})});
+        const data=await res.json();
+        if(data.success){S.audit?.unshift({t:Date.now(),by:u.email,action:"extension.delete",detail:it.name});save();toast(`Đã xoá "${it.name}".`);await loadExtensions(true);render()}
+        else{if(data.need_admin){setAdminToken("");EXT.admin="";EXT.checked=true;render()}toast(data.message||"Không xoá được.");b.disabled=false}
+      }catch{toast("Không kết nối được máy chủ.");b.disabled=false}
+    }));
+  }};
+};
+
 /* ===================== Thông báo từ trường ===================== */
 views["/thong-bao-truong"] = () => {
   const u = me();
@@ -7161,7 +7352,7 @@ views.notfound=()=>({html:`<div class="wrap nf"><div class="art-panel">${mangaAr
 
 /* ===================== Bộ định tuyến ===================== */
 const ROUTES=Object.keys(views).filter(k=>k.startsWith("/")).map(k=>({k,re:new RegExp("^"+k.replace(/:[a-z]+/g,"([^/]+)")+"$"),names:(k.match(/:[a-z]+/g)||[]).map(n=>n.slice(1))})).sort((a,b)=>b.k.length-a.k.length);
-const TITLES={"/tro-ly":"Trợ lý AI","/chat":"Chat","/da-luu":"Đã lưu","/bang-xep-hang":"Bảng xếp hạng","/":"HUSTDOCU","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/dang-ky":"Đăng ký tài khoản","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
+const TITLES={"/extension":"Extension","/quan-tri/extension":"Quản trị extension","/tro-ly":"Trợ lý AI","/chat":"Chat","/da-luu":"Đã lưu","/bang-xep-hang":"Bảng xếp hạng","/":"HUSTDOCU","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/dang-ky":"Đăng ký tài khoản","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
 let lastPath=null;
 function render(){
   const path=currentPath();let view=views.notfound,args={};
@@ -7188,7 +7379,7 @@ function bindSearch(root){
 /* Hành động dùng chung (vào nhanh, đăng xuất, đổi nền, tải xuống, đặt lại) */
 document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-action]");if(!el)return;const a=el.dataset.action;
   if(a==="quick"){e.preventDefault();const next=params().get("next");S.session=el.dataset.email;save();toast(`Đã vào bằng ${displayName(me())}`);go(next?"#"+next:el.dataset.email.startsWith("kdv")?"#/kiem-duyet":el.dataset.email.startsWith("admin")?"#/quan-tri/hoc-phan":el.dataset.email.startsWith("nguyen.thu.ha")?"#/ctv":location.hash||"#/");render()}
-  else if(a==="logout"){S.session=null;save();toast("Đã đăng xuất.");go("#/")}
+  else if(a==="logout"){const at=adminToken();if(at){setAdminToken("");fetch(API_BASE+"/api/extensions.php?action=logout",{method:"POST",headers:{"X-Admin-Token":at}}).catch(()=>{})}S.session=null;save();toast("Đã đăng xuất.");go("#/")}
   else if(a==="lang"){try{localStorage.setItem("hustdocu-lang",getLang()==="en"?"vi":"en")}catch{}render()}
   else if(a==="install"){if(installPrompt){installPrompt.prompt();await installPrompt.userChoice.catch(()=>{});installPrompt=null;renderHeader()}}
   else if(a==="theme"){try{localStorage.setItem("khotl-theme",isDark()?"light":"dark")}catch{}applyTheme();renderHeader()}

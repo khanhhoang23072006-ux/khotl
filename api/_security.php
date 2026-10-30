@@ -35,7 +35,7 @@ function api_headers(array $methods)
         if ($allowed) {
             header('Access-Control-Allow-Origin: ' . rtrim($origin, '/'));
             header('Access-Control-Allow-Methods: ' . implode(', ', $methods) . ', OPTIONS');
-            header('Access-Control-Allow-Headers: Content-Type');
+            header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token');
             header('Access-Control-Max-Age: 600');
         }
     }
@@ -115,4 +115,86 @@ function rate_limit(string $bucket, string $key, int $max, int $window): int
 function wait_text(int $sec): string
 {
     return $sec >= 60 ? ceil($sec / 60) . ' phút' : $sec . ' giây';
+}
+
+/* ---------- Phiên quản trị lưu trên máy chủ ----------
+ * Dữ liệu trang chạy trên trình duyệt nên không tin được vai trò "quản trị" phía trình duyệt.
+ * Việc cần quyền thật (đăng extension…) phải có token do verify_otp.php cấp sau khi xác minh OTP hoặc mã quản trị.
+ * Máy chủ chỉ lưu bản băm SHA-256 của token. */
+const API_ADMIN_EMAILS = [
+    'khanhhoang23072006@gmail.com',
+    'admin@lofcreate.online',
+    'admin@hust.edu.vn',
+    'admin.demo@hust.edu.vn',
+];
+const ADMIN_SESSION_TTL = 7 * 86400;
+
+function is_admin_email(string $email): bool
+{
+    return in_array(strtolower(trim($email)), API_ADMIN_EMAILS, true);
+}
+
+function admin_session_dir(): string
+{
+    $dir = __DIR__ . '/data/sessions';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    if (!file_exists($dir . '/.htaccess')) {
+        @file_put_contents($dir . '/.htaccess', "Order Deny,Allow\nDeny from all\n");
+    }
+    return $dir;
+}
+
+/** Cấp token phiên quản trị (trả về token gốc để gửi cho trình duyệt). */
+function admin_session_issue(string $email): string
+{
+    $token = bin2hex(random_bytes(32));
+    $dir = admin_session_dir();
+    @file_put_contents($dir . '/' . hash('sha256', $token) . '.json', json_encode([
+        'email' => strtolower(trim($email)),
+        'expires_at' => time() + ADMIN_SESSION_TTL,
+    ]), LOCK_EX);
+    // Dọn phiên hết hạn thỉnh thoảng
+    if (mt_rand(1, 50) === 1) {
+        foreach (glob($dir . '/*.json') ?: [] as $f) {
+            $d = json_decode((string)@file_get_contents($f), true);
+            if (!$d || ($d['expires_at'] ?? 0) < time()) {
+                @unlink($f);
+            }
+        }
+    }
+    return $token;
+}
+
+/** Email quản trị của token, hoặc '' nếu token sai/hết hạn. */
+function admin_session_email(string $token): string
+{
+    if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
+        return '';
+    }
+    $file = admin_session_dir() . '/' . hash('sha256', $token) . '.json';
+    $d = is_file($file) ? json_decode((string)@file_get_contents($file), true) : null;
+    if (!$d || ($d['expires_at'] ?? 0) < time() || !is_admin_email((string)($d['email'] ?? ''))) {
+        @unlink($file);
+        return '';
+    }
+    return (string)$d['email'];
+}
+
+function admin_session_revoke(string $token): void
+{
+    if (preg_match('/^[a-f0-9]{64}$/', $token)) {
+        @unlink(admin_session_dir() . '/' . hash('sha256', $token) . '.json');
+    }
+}
+
+/** Dừng với lỗi 401 nếu yêu cầu không kèm token quản trị hợp lệ (header X-Admin-Token). */
+function require_admin(): string
+{
+    $email = admin_session_email(trim((string)($_SERVER['HTTP_X_ADMIN_TOKEN'] ?? '')));
+    if ($email === '') {
+        api_fail(401, 'Cần xác minh quyền quản trị (mã OTP hoặc mã quản trị) trước khi thực hiện.', ['need_admin' => true]);
+    }
+    return $email;
 }
