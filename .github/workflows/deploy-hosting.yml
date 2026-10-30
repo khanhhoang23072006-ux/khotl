@@ -39,12 +39,29 @@ jobs:
             api/_security.php api/_mailer.php api/send_otp.php api/verify_otp.php api/voice_signal.php
             api/data/.htaccess api/data/otps/.htaccess
             data/hust-feed.json icons/icon.svg icons/icon-192.png icons/icon-512.png icons/og.png"
+          # Chọn cách kết nối: FTP mã hoá (FTPS) có kiểm tra chứng chỉ. Hosting dùng chung thường cấp chứng chỉ
+          # đứng tên máy chủ của nhà cung cấp, không phải IP: đọc tên đó từ chứng chỉ rồi kết nối bằng tên này.
+          # Chỉ khi máy chủ không có FTPS hợp lệ mới gửi FTP thường (như deploy.bat).
+          host="$FTP_HOST"; tls="--ssl-reqd"; resolve=()
+          probe() { curl -sS --ssl-reqd --connect-timeout 20 --user "$FTP_USER:$FTP_PASS" "${resolve[@]}" --list-only "ftp://$host/" -o /dev/null 2>/tmp/ftp-err; }
+          if ! probe; then
+            cn=$(echo | timeout 20 openssl s_client -connect "$FTP_HOST:21" -starttls ftp 2>/dev/null \
+                  | openssl x509 -noout -ext subjectAltName -subject 2>/dev/null \
+                  | grep -oE '(DNS:|CN ?= ?)[A-Za-z0-9*.-]+' | head -1 | sed -E 's/^(DNS:|CN ?= ?)//; s/^\*\./ftp./')
+            if [ -n "$cn" ]; then
+              host="$cn"; resolve=(--resolve "$cn:21:$FTP_HOST")
+              echo "Chứng chỉ FTP đứng tên $cn: kết nối bằng tên này"
+            fi
+            if ! probe; then
+              echo "::warning::Hosting không có FTP mã hoá hợp lệ ($(head -c 200 /tmp/ftp-err)). Gửi bằng FTP thường như deploy.bat."
+              host="$FTP_HOST"; tls=""; resolve=()
+            fi
+          fi
           fail=0
           for f in $files; do
             [ -f "$f" ] || { echo "Bỏ qua $f (không có)"; continue; }
-            # --ssl: dùng FTP mã hoá nếu hosting hỗ trợ, không thì gửi thường như deploy.bat
-            if curl -sS --fail --ssl --ftp-create-dirs --retry 2 --connect-timeout 20 \
-                 --user "$FTP_USER:$FTP_PASS" -T "$f" "ftp://$FTP_HOST$FTP_DIR/$f"; then
+            if curl -sS --fail $tls "${resolve[@]}" --ftp-create-dirs --retry 2 --connect-timeout 20 \
+                 --user "$FTP_USER:$FTP_PASS" -T "$f" "ftp://$host$FTP_DIR/$f"; then
               echo "Đã tải $f"
             else
               echo "::error::Không tải được $f"
