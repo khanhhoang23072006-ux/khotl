@@ -660,6 +660,92 @@ table.t tbody tr:hover td{background:var(--hi);color:#111}
 .auth-art{height:290px}
 @media (max-width:479px){.logo b{display:inline;font-size:22px}.logo .vol{display:none}}
 @media (max-width:899px){.art-panel.big{min-height:260px}}
+/* =====================================================================
+   NHỊP CHỮ VÀ KHOẢNG CÁCH (2026-10-30)
+   - Chữ hoa Anton: chừa khoảng dòng cho dấu mũ, dấu thanh tiếng Việt (Ô, Ầ, Ặ…) để không chạm dòng trên
+   - Thang khoảng cách 4/8/12/16/24: nhãn → giá trị → khối đều nhau
+   - Nhãn chữ hoa nhỏ giãn chữ để dễ đọc; đoạn văn dòng thoáng hơn
+   ===================================================================== */
+body{line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-kerning:normal;text-rendering:optimizeLegibility}
+p,li{text-wrap:pretty}
+.small{line-height:1.55}
+.tiny{line-height:1.45}
+
+/* Tiêu đề Anton */
+h1,.h2,.code{letter-spacing:.012em}
+h1,.page-head h1{line-height:1.14}
+.h2{line-height:1.22}
+.mh-title{line-height:1.2;letter-spacing:.01em}
+.chapter h2{line-height:1.2}
+.chapter{gap:12px;padding-bottom:10px}
+.course-hero .code-big{line-height:1}
+.course-hero h1{gap:10px!important}
+.auth-side h1{margin-top:6px}
+.wrap.stack>.h2,section.stack>.h2,.sechead .h2{margin-top:4px}
+
+/* Nhãn chữ hoa nhỏ: giãn chữ */
+.cell .l,.foot .l,.filters label,table.t thead th,.badge,.hot>span,.stat-m dt,.news .tg{letter-spacing:.06em}
+.cell{gap:3px;padding:10px 14px}
+.cell .v{font-size:14px;line-height:1.35}
+
+/* Ô nhập, nhãn */
+.field{gap:8px}
+.field>label,.field>div>label{font-weight:700;font-size:14px;line-height:1.3}
+.field .hint,.field .err{line-height:1.45}
+.filters{gap:10px 12px}
+.filters .field{gap:6px}
+
+/* Nút: chữ không dính viền */
+.btn{letter-spacing:.005em}
+.btn.sm{padding:0 14px}
+
+/* Lời dẫn, ghi chú (Patrick Hand) */
+.note,html.dark .note{line-height:1.45;padding:10px 14px}
+.empty{padding:36px 20px;gap:10px}
+.empty .head{line-height:1.35}
+.narr,.mh-sub{line-height:1.45}
+.toast,html.dark .toast{line-height:1.35}
+
+/* Trang chủ */
+.mh-main{justify-content:center;gap:24px}
+.hot{gap:8px 10px}
+.qm{gap:8px;padding:14px}
+.qm b{line-height:1.3}
+.qm span.d{line-height:1.45}
+.stat-m>div{padding:14px 18px;gap:12px}
+.news li{gap:12px;padding:12px 0}
+.news a{line-height:1.45}
+.news .tg{display:inline-block;margin-bottom:2px}
+.cp{gap:10px;padding:18px}
+.cp b{line-height:1.35}
+.fac-m a{gap:10px}
+.fac-m .nm{line-height:1.45}
+
+/* Đăng nhập */
+.perks{gap:8px}
+.perks li{line-height:1.5}
+.perks li::before{margin-top:7px}
+
+/* Chân trang */
+.foot>div{padding:18px 20px}
+.foot .l{margin-bottom:8px}
+.foot a{padding:3px 0;line-height:1.45}
+.foot .brand p{line-height:1.4;margin-top:6px}
+footer.site .wrap>p.small{line-height:1.6}
+
+/* Điện thoại: thanh đầu trang không tràn ngang */
+@media (max-width:479px){
+ header.site .wrap{padding-right:0}
+ .logo{padding-right:8px}
+ .logo b{font-size:21px}
+ .tools{padding-right:12px;gap:0}
+ .tools .icon-btn{width:34px}
+ .tools .btn.sm{padding:0 9px;font-size:13px;height:34px}
+ .tools>a:not(.btn),.tools>.btn.ghost{padding-inline:6px}
+ .mh-title{font-size:clamp(46px,13vw,60px)}
+ .mh-sub{font-size:19px}
+}
+@media (max-width:374px){.logo b{font-size:19px}.logo{padding-right:4px}.tools .icon-btn{width:30px}.tools .btn.sm{padding:0 8px}.mh-title{font-size:44px}}
 </style>
 </head>
 <body>
@@ -1145,7 +1231,7 @@ views["/tim-kiem"]=()=>{
     <div class="row" style="align-items:flex-end"><button class="btn ink sm" style="height:40px;flex:1" type="submit">Lọc</button>${q.faculty||q.type||q.term||q.format||q.course?`<a class="small" style="font-weight:600" href="#/tim-kiem${q.q?`?q=${encodeURIComponent(q.q)}`:""}">Bỏ lọc</a>`:""}</div>
    </form></div></section>
   <div class="wrap stack" style="padding-block:24px;gap:24px">
-   ${courses.length?`<section class="stack" style="gap:8px"><h2 class="h2">Học phần</h2><div class="tb" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">${courses.map(c=>`<a href="#/hoc-phan/${c.code}" style="display:flex;flex-direction:column;padding:10px 12px;text-decoration:none"><span class="code" style="font-size:24px;line-height:1">${highlight(c.code,r.terms)}</span><span class="small">${highlight(c.name,r.terms)}</span><span class="tiny muted">${courseDocCount(c.code)} tài liệu</span></a>`).join("")}</div></section>`:""}
+   ${courses.length?`<section class="stack" style="gap:10px"><h2 class="h2">Học phần</h2><div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">${courses.map(c=>`<a href="#/hoc-phan/${c.code}" style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;text-decoration:none"><span class="code" style="font-size:24px;line-height:1">${highlight(c.code,r.terms)}</span><span class="small">${highlight(c.name,r.terms)}</span><span class="tiny muted">${courseDocCount(c.code)} tài liệu</span></a>`).join("")}</div></section>`:""}
    <section class="stack"><div class="sechead"><h2 class="h2">${q.q?`${r.hits.length} kết quả cho “${esc(q.q)}”`:`${r.hits.length} tài liệu`}</h2>${q.course?`<a href="#/hoc-phan/${esc(q.course)}">Trong học phần ${esc(q.course)}</a>`:""}</div>
     ${r.fuzzy&&r.hits.length?`<p class="note red" style="margin:0">Không có kết quả khớp chính xác. Đây là các tài liệu có tiêu đề gần giống, có thể bạn gõ nhầm.</p>`:""}
     ${r.hits.slice((page-1)*per,page*per).map(d=>docRow(d,r.terms,{snippet:true})).join("")||empty("Không tìm thấy tài liệu phù hợp.","Gõ không dấu vẫn tìm được, ví dụ “cau truc du lieu”.")}${r.hits.length&&typeof adSlot==="function"?adSlot("search"):""}
@@ -1210,7 +1296,7 @@ views["/hoc-phan/:code"]=({code})=>{
    <p style="margin:0"><a class="crumb" href="#/vien/${f.slug}">${esc(f.shortName)}</a></p>
    <h1 style="display:flex;flex-direction:column;gap:6px;text-transform:none"><span class="code-big">${c.code}</span><span style="font-family:var(--font);font-weight:800;font-size:26px;text-transform:none">${esc(c.name)}</span></h1>
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Tín chỉ</span><span class="v">${c.credits??"–"}</span></div><div class="cell"><span class="l">Tài liệu</span><span class="v">${all.length}</span></div><div class="cell"><span class="l">Đơn vị</span><span class="v">${esc(f.shortName)}</span></div></div>
-   ${c.grading?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 4px">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
+   ${c.grading?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Độ khó</span><span class="v">${fmt1(cs.difficulty)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Khối lượng</span><span class="v">${fmt1(cs.workload)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Theo dõi</span><span class="v">${cs.followers}</span></div></div>
    <div class="row"><a class="btn primary" href="#/tai-len?hp=${c.code}">Đóng góp tài liệu cho học phần này</a><a class="btn" href="#/chat/${encodeURIComponent("c:"+c.code)}">Phòng chat</a><a class="btn" href="#/hoi-dap?hp=${encodeURIComponent(c.code)}">Hỏi đáp${typeof CM==="function"&&CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length?` (${CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length})`:""}</a><button class="btn${follows(me(),c.code)?" ink":""}" type="button" data-follow="${c.code}" aria-pressed="${follows(me(),c.code)}">${follows(me(),c.code)?"Đang theo dõi":"Theo dõi"}</button>${isAdmin(me())?`<a class="btn ink" href="#/hoc-phan/${c.code}${p.get("sua")?"":"?sua=1"}" aria-expanded="${!!p.get("sua")}">${p.get("sua")?"Đóng chỉnh sửa":"Sửa học phần"}</a>`:""}</div>${isAdmin(me())&&p.get("sua")?courseEditForm(c):""}</div></section>
   <div class="wrap stack" style="padding-block:24px">
