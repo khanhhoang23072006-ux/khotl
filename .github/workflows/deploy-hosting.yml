@@ -79,6 +79,10 @@ jobs:
             # 400 = API chạy và từ chối email rỗng (đúng mong đợi)
             [ "$code" = "400" ]
           }
+          # Chẩn đoán: trang tĩnh và API có cùng lỗi không (502 ở cả trang tĩnh = máy chủ hosting lỗi, không phải code PHP)
+          for u in http://lofcreate.online/ http://lofcreate.online/sw.js http://lofcreate.online/api/extensions.php?action=list; do
+            echo "::notice::$u → HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$u" || true)"
+          done
           if check https://lofcreate.online/api/send_otp.php; then
             echo "::notice::API OTP chạy qua HTTPS: trang GitHub Pages gửi được mã."
           elif check http://lofcreate.online/api/send_otp.php; then
