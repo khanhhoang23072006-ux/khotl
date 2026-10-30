@@ -21,6 +21,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Hosting treo thì dừng sau 10 phút, không giữ hàng chờ nhiều giờ
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +45,7 @@ jobs:
           # đứng tên máy chủ của nhà cung cấp, không phải IP: đọc tên đó từ chứng chỉ rồi kết nối bằng tên này.
           # Chỉ khi máy chủ không có FTPS hợp lệ mới gửi FTP thường (như deploy.bat).
           host="$FTP_HOST"; tls="--ssl-reqd"; resolve=()
-          probe() { curl -sS --ssl-reqd --connect-timeout 20 --user "$FTP_USER:$FTP_PASS" "${resolve[@]}" --list-only "ftp://$host/" -o /dev/null 2>/tmp/ftp-err; }
+          probe() { curl -sS --ssl-reqd --connect-timeout 20 --max-time 60 --user "$FTP_USER:$FTP_PASS" "${resolve[@]}" --list-only "ftp://$host/" -o /dev/null 2>/tmp/ftp-err; }
           if ! probe; then
             cn=$(echo | timeout 20 openssl s_client -connect "$FTP_HOST:21" -starttls ftp 2>/dev/null \
                   | openssl x509 -noout -ext subjectAltName -subject 2>/dev/null \
@@ -60,7 +62,7 @@ jobs:
           fail=0
           for f in $files; do
             [ -f "$f" ] || { echo "Bỏ qua $f (không có)"; continue; }
-            if curl -sS --fail $tls "${resolve[@]}" --ftp-create-dirs --retry 2 --connect-timeout 20 \
+            if curl -sS --fail $tls "${resolve[@]}" --ftp-create-dirs --retry 2 --connect-timeout 20 --max-time 120 \
                  --user "$FTP_USER:$FTP_PASS" -T "$f" "ftp://$host$FTP_DIR/$f"; then
               echo "Đã tải $f"
             else
