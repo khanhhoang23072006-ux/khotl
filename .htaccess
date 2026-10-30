@@ -12,7 +12,7 @@
 </IfModule>
 
 # Không cho đọc file cấu hình, dữ liệu, file ẩn, file sao lưu
-<FilesMatch "(^\.|\.(bak|sql|db|sqlite|log|ini|env|bat|md)$|^config\.php$|^_security\.php$)">
+<FilesMatch "(^\.|\.(bak|sql|db|sqlite|log|ini|env|bat|md)$|^config\.php$|^_[A-Za-z0-9_-]+\.php$)">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

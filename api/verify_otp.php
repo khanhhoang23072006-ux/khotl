@@ -74,7 +74,7 @@ if (!file_exists($filePath)) {
 }
 
 $data = json_decode(file_get_contents($filePath), true);
-if (!$data || !isset($data['otp']) || !isset($data['expires_at'])) {
+if (!$data || (!isset($data['otp_hash']) && !isset($data['otp'])) || !isset($data['expires_at'])) {
     @unlink($filePath);
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Dữ liệu xác thực không hợp lệ. Vui lòng thử lại.']);
@@ -97,9 +97,14 @@ if ($data['attempts'] > 5) {
 }
 file_put_contents($filePath, json_encode($data), LOCK_EX);
 
-if (!hash_equals(trim((string)$data['otp']), $otp)) {
+// File mới lưu bản băm; file cũ (trước bản sửa) còn lưu mã gốc trong tối đa 10 phút
+$okOtp = isset($data['otp_hash'])
+    ? hash_equals((string)$data['otp_hash'], hash_hmac('sha256', $otp, $email))
+    : hash_equals(trim((string)$data['otp']), $otp);
+if (!$okOtp) {
+    $left = 5 - $data['attempts'];
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Mã xác thực không chính xác.']);
+    echo json_encode(['success' => false, 'message' => $left > 0 ? "Mã xác thực không chính xác. Bạn còn {$left} lần thử." : 'Mã xác thực không chính xác. Bạn đã hết lượt thử, hãy bấm Gửi lại mã.']);
     exit;
 }
 

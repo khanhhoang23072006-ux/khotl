@@ -18,81 +18,114 @@ foreach ([['otp-mail-1m', $email, 1, 60], ['otp-mail-1h', $email, 5, 3600], ['ot
 }
 
 @include_once __DIR__ . '/config.php';
+require_once __DIR__ . '/_mailer.php';
 
 $storageDir = api_data_dir();
 
-// Generate secure 6-digit OTP
+// Mã 6 số ngẫu nhiên an toàn; trên máy chủ chỉ lưu bản băm (lộ thư mục dữ liệu cũng không đọc được mã)
 $otp = (string)random_int(100000, 999999);
-$hashKey = md5($email);
-$filePath = $storageDir . '/' . $hashKey . '.json';
-
+$filePath = $storageDir . '/' . md5($email) . '.json';
 $payload = [
     'email' => $email,
-    'otp' => $otp,
+    'otp_hash' => hash_hmac('sha256', $otp, $email),
     'created_at' => time(),
-    'expires_at' => time() + 600, // 10 minutes
+    'expires_at' => time() + 600, // 10 phút
     'attempts' => 0
 ];
-
 file_put_contents($filePath, json_encode($payload), LOCK_EX);
 
-// Gửi mail qua workflow send_otp.yml (Gmail SMTP, tài khoản đặt trong GitHub Secrets)
-$token = isset($GITHUB_TOKEN) ? trim((string)$GITHUB_TOKEN) : '';
-$repo = isset($REPO_NAME) && $REPO_NAME ? $REPO_NAME : 'khanhhoang23072006-ux/khotl';
-$dispatched = false;
-if ($token !== '' && function_exists('curl_init')) {
-    $ch = curl_init("https://api.github.com/repos/{$repo}/actions/workflows/send_otp.yml/dispatches");
-    curl_setopt_array($ch, [
-        CURLOPT_POST => true,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_CONNECTTIMEOUT => 5,
-        CURLOPT_TIMEOUT => 10,
-        CURLOPT_HTTPHEADER => [
-            "Authorization: Bearer {$token}",
-            'Accept: application/vnd.github+json',
-            'X-GitHub-Api-Version: 2022-11-28',
-            'User-Agent: HUSTDOCU-Auth-Service',
-            'Content-Type: application/json'
-        ],
-        CURLOPT_POSTFIELDS => json_encode([
-            'ref' => 'main',
-            'inputs' => ['to' => $email, 'otp' => $otp]
-        ])
-    ]);
-    $response = curl_exec($ch);
-    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-    $dispatched = ($httpCode === 204 || $httpCode === 200);
-    if (!$dispatched) {
-        // Ghi lỗi vào log máy chủ, không trả chi tiết cho người dùng
-        error_log('send_otp: workflow dispatch failed: ' . ($curlError ?: "HTTP {$httpCode} " . substr((string)$response, 0, 200)));
+[$subject, $text, $html] = otp_mail_content($otp);
+$errors = [];
+$sentVia = '';
+
+// 1. SMTP trực tiếp từ hosting (nhanh nhất, thư tới sau vài giây). Cấu hình $SMTP_USER, $SMTP_PASS trong api/config.php
+if (!empty($SMTP_USER) && !empty($SMTP_PASS)) {
+    try {
+        smtp_send([
+            'host' => $SMTP_HOST ?? 'smtp.gmail.com',
+            'port' => $SMTP_PORT ?? 465,
+            'secure' => $SMTP_SECURE ?? (($SMTP_PORT ?? 465) == 465 ? 'ssl' : 'tls'),
+            'user' => $SMTP_USER,
+            'pass' => $SMTP_PASS,
+            'from' => $SMTP_FROM ?? $SMTP_USER,
+            'from_name' => $SMTP_FROM_NAME ?? 'HUSTDOCU',
+        ], $email, $subject, $text, $html);
+        $sentVia = 'smtp';
+    } catch (Throwable $e) {
+        $errors[] = 'smtp: ' . $e->getMessage();
     }
-} else {
-    error_log('send_otp: chưa đặt $GITHUB_TOKEN trong api/config.php hoặc máy chủ thiếu cURL');
 }
 
-// Gửi dự phòng bằng mail() của hosting chỉ khi workflow không nhận việc, tránh người dùng nhận hai mã
-$mailed = false;
-if (!$dispatched) {
-    $subject = '=?UTF-8?B?' . base64_encode("Mã xác thực đăng nhập HUSTDOCU: {$otp}") . '?=';
-    $body = "<html><body style='font-family:sans-serif;'><h2>HUSTDOCU</h2><p>Mã xác thực của bạn: <b style='font-size:24px;color:#c00;'>{$otp}</b></p><p>Hiệu lực trong 10 phút. Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</p></body></html>";
-    $headers = [
-        'MIME-Version: 1.0',
-        'Content-type: text/html; charset=UTF-8',
-        'From: HUSTDOCU <no-reply@lofcreate.online>'
-    ];
-    $mailed = @mail($email, $subject, $body, implode("\r\n", $headers));
+// 2. Dự phòng: nhờ GitHub Actions gửi (workflow send_otp.yml, chậm hơn 20-60 giây)
+if ($sentVia === '' && !empty($GITHUB_TOKEN)) {
+    $repo = !empty($REPO_NAME) ? $REPO_NAME : 'khanhhoang23072006-ux/khotl';
+    $dispatch = function (array $extra) use ($repo, $GITHUB_TOKEN, $email, $otp) {
+        $ch = curl_init("https://api.github.com/repos/{$repo}/actions/workflows/send_otp.yml/dispatches");
+        curl_setopt_array($ch, $extra + [
+            CURLOPT_POST => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_HTTPHEADER => [
+                "Authorization: Bearer {$GITHUB_TOKEN}",
+                'Accept: application/vnd.github+json',
+                'X-GitHub-Api-Version: 2022-11-28',
+                'User-Agent: HUSTDOCU-Auth-Service',
+                'Content-Type: application/json'
+            ],
+            CURLOPT_POSTFIELDS => json_encode(['ref' => 'main', 'inputs' => ['to' => $email, 'otp' => $otp]])
+        ]);
+        $body = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+        return [$code, $err, is_string($body) ? substr($body, 0, 200) : ''];
+    };
+    [$code, $err, $body] = $dispatch([]);
+    if ($code === 0) {
+        // Một số hosting phân giải DNS api.github.com lỗi: thử lại bằng IP cố định của GitHub
+        [$code, $err, $body] = $dispatch([CURLOPT_RESOLVE => ['api.github.com:443:140.82.112.6', 'api.github.com:443:140.82.113.6', 'api.github.com:443:140.82.114.6']]);
+    }
+    if ($code === 204) {
+        $sentVia = 'github';
+    } else {
+        // 401: token sai/hết hạn; 403: token thiếu quyền Actions; 404: sai tên repo hoặc workflow
+        $errors[] = 'github: ' . ($err ?: "HTTP {$code} {$body}");
+    }
 }
 
-if (!$dispatched && !$mailed) {
+// 3. Dự phòng cuối: hàm mail() của hosting (hay bị xếp vào Spam)
+if ($sentVia === '') {
+    $from = !empty($MAIL_FROM) ? $MAIL_FROM : 'no-reply@' . preg_replace('/^www\./', '', preg_replace('/[^A-Za-z0-9.\-]/', '', $_SERVER['SERVER_NAME'] ?? 'lofcreate.online'));
+    $boundaryMail = mail_build($from, 'HUSTDOCU', $email, $subject, $text, $html);
+    // mail() tự thêm To và Subject: tách phần header còn lại ra khỏi thư đã dựng
+    [$head, $bodyMail] = explode("\r\n\r\n", $boundaryMail, 2);
+    $head = implode("\r\n", array_filter(explode("\r\n", $head), function ($h) {
+        return stripos($h, 'To:') !== 0 && stripos($h, 'Subject:') !== 0;
+    }));
+    if (function_exists('mail') && @mail($email, mail_header_text($subject), $bodyMail, $head, '-f' . $from)) {
+        $sentVia = 'mail';
+    } else {
+        $errors[] = 'mail(): thất bại hoặc bị tắt';
+    }
+}
+
+if ($errors) {
+    // Ghi lý do vào log máy chủ (không chứa mã OTP), không trả chi tiết cho người dùng
+    error_log('send_otp: ' . implode(' | ', $errors));
+}
+
+if ($sentVia === '') {
     @unlink($filePath);
-    api_fail(502, 'Hệ thống chưa gửi được email xác thực. Vui lòng thử lại sau ít phút.');
+    api_fail(503, 'Hệ thống gửi email đang gặp sự cố, chưa gửi được mã. Vui lòng thử lại sau ít phút hoặc báo quản trị viên.');
 }
 
 echo json_encode([
     'success' => true,
-    'message' => 'Mã xác thực đã được gửi tới email của bạn.',
+    'message' => $sentVia === 'smtp'
+        ? 'Mã xác thực đã được gửi tới email của bạn.'
+        : 'Mã xác thực đang được gửi, thư có thể đến sau khoảng 1 phút. Nhớ kiểm tra cả mục Spam.',
     'email' => $email,
-    'expires_in' => 600
+    'expires_in' => 600,
+    'slow' => $sentVia !== 'smtp'
 ]);

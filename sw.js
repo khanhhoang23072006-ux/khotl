@@ -1,5 +1,5 @@
 // Service worker HUSTDOCU: trang chính lấy mạng trước (để luôn có bản mới), mất mạng thì dùng bản đã lưu.
-const CACHE = "hustdocu-v1";
+const CACHE = "hustdocu-v2";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));
@@ -33,6 +33,8 @@ self.addEventListener("fetch", (e) => {
     return;
   }
   if (url.origin !== location.origin) return;
+  // API (OTP, voice) luôn đi thẳng mạng, không lưu: mỗi lượt poll có URL riêng, lưu lại sẽ làm đầy bộ nhớ
+  if (url.pathname.startsWith("/api/")) return;
   e.respondWith(
     fetch(req)
       .then((res) => {
