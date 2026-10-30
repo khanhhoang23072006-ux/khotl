@@ -6,6 +6,12 @@ if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === basename(__FILE__)) {
     exit;
 }
 
+/**
+ * Tên miền khác được phép gọi API từ trình duyệt (CORS). Bản trang chạy trên GitHub Pages không chạy được PHP
+ * nên gọi sang hosting này. Chỉ liệt kê tên miền của chính dự án, không bao giờ dùng '*'.
+ */
+const API_ALLOWED_ORIGINS = ['https://khanhhoang23072006-ux.github.io'];
+
 /** Header chung: JSON, không cho nhúng, không đoán kiểu, không cache. Chỉ nhận yêu cầu từ chính trang web. */
 function api_headers(array $methods)
 {
@@ -14,22 +20,31 @@ function api_headers(array $methods)
     header('X-Frame-Options: DENY');
     header('Referrer-Policy: same-origin');
     header('Cache-Control: no-store');
+    header('Vary: Origin');
+    // Chặn trang khác gọi API bằng trình duyệt của người dùng (CSRF): Origin, nếu có, phải trùng tên miền
+    // hoặc nằm trong API_ALLOWED_ORIGINS
+    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+    if ($origin !== '') {
+        $host = $_SERVER['HTTP_HOST'] ?? '';
+        $originHost = parse_url($origin, PHP_URL_HOST) . (parse_url($origin, PHP_URL_PORT) ? ':' . parse_url($origin, PHP_URL_PORT) : '');
+        $sameHost = $host !== '' && strcasecmp($originHost, $host) === 0;
+        $allowed = in_array(rtrim($origin, '/'), API_ALLOWED_ORIGINS, true);
+        if (!$sameHost && !$allowed) {
+            api_fail(403, 'Yêu cầu không hợp lệ.');
+        }
+        if ($allowed) {
+            header('Access-Control-Allow-Origin: ' . rtrim($origin, '/'));
+            header('Access-Control-Allow-Methods: ' . implode(', ', $methods) . ', OPTIONS');
+            header('Access-Control-Allow-Headers: Content-Type');
+            header('Access-Control-Max-Age: 600');
+        }
+    }
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
-        // Không bật CORS: trang web và API cùng tên miền nên không cần
         http_response_code(204);
         exit;
     }
     if (!in_array($_SERVER['REQUEST_METHOD'] ?? '', $methods, true)) {
         api_fail(405, 'Phương thức không được hỗ trợ.');
-    }
-    // Chặn trang khác gọi API bằng trình duyệt của người dùng (CSRF): Origin, nếu có, phải trùng tên miền
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-    if ($origin !== '') {
-        $host = $_SERVER['HTTP_HOST'] ?? '';
-        $originHost = parse_url($origin, PHP_URL_HOST) . (parse_url($origin, PHP_URL_PORT) ? ':' . parse_url($origin, PHP_URL_PORT) : '');
-        if ($host === '' || strcasecmp($originHost, $host) !== 0) {
-            api_fail(403, 'Yêu cầu không hợp lệ.');
-        }
     }
 }
 

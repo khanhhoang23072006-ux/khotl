@@ -1,0 +1,72 @@
+name: Đăng lên hosting (lofcreate.online)
+
+# Thay cho deploy.bat: mỗi lần push lên main (hoặc bấm Run workflow), tải các file web và API PHP lên hosting qua FTP,
+# rồi kiểm tra API OTP có chạy qua HTTPS không.
+# Cần đặt ở Settings → Secrets and variables → Actions: FTP_HOST, FTP_USER, FTP_PASS
+# (tuỳ chọn, ở tab Variables: FTP_DIR, mặc định /domains/lofcreate.online/public_html).
+# api/config.php (token GitHub, mã quản trị) KHÔNG upload từ đây, sửa trực tiếp trên hosting.
+on:
+  push:
+    branches: [main]
+    paths: [".htaccess", "index.html", "sw.js", "manifest.webmanifest", "api/**", "data/**", "icons/**", ".github/workflows/deploy-hosting.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tải file lên hosting qua FTP
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          FTP_DIR: ${{ vars.FTP_DIR || '/domains/lofcreate.online/public_html' }}
+        run: |
+          if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
+            echo "::error::Thiếu secret FTP_HOST, FTP_USER hoặc FTP_PASS (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          files=".htaccess index.html sw.js manifest.webmanifest
+            api/_security.php api/_mailer.php api/send_otp.php api/verify_otp.php api/voice_signal.php
+            api/data/.htaccess api/data/otps/.htaccess
+            data/hust-feed.json icons/icon.svg icons/icon-192.png icons/icon-512.png icons/og.png"
+          fail=0
+          for f in $files; do
+            [ -f "$f" ] || { echo "Bỏ qua $f (không có)"; continue; }
+            # --ssl: dùng FTP mã hoá nếu hosting hỗ trợ, không thì gửi thường như deploy.bat
+            if curl -sS --fail --ssl --ftp-create-dirs --retry 2 --connect-timeout 20 \
+                 --user "$FTP_USER:$FTP_PASS" -T "$f" "ftp://$FTP_HOST$FTP_DIR/$f"; then
+              echo "Đã tải $f"
+            else
+              echo "::error::Không tải được $f"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Kiểm tra API OTP trên hosting
+        if: always()
+        run: |
+          check() {
+            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 15 -X POST -H 'Content-Type: application/json' -d '{}' "$1" || true)
+            echo "::notice::$1 → HTTP $code: $(head -c 150 /tmp/body | tr -d '\r\n')"
+            # 400 = API chạy và từ chối email rỗng (đúng mong đợi)
+            [ "$code" = "400" ]
+          }
+          if check https://lofcreate.online/api/send_otp.php; then
+            echo "::notice::API OTP chạy qua HTTPS: trang GitHub Pages gửi được mã."
+          elif check http://lofcreate.online/api/send_otp.php; then
+            echo "::warning::API OTP chỉ chạy qua HTTP. Trang trên GitHub Pages (HTTPS) sẽ bị trình duyệt chặn: bật SSL cho lofcreate.online trong trang quản lý hosting."
+          else
+            echo "::error::Không gọi được API OTP trên lofcreate.online."
+            exit 1
+          fi
