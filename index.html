@@ -830,7 +830,7 @@ const ADMIN_EMAILS = ["khanhhoang23072006@gmail.com", "admin@hustdocu.id.vn", "a
 function isSystemAdminEmail(em){
   return ADMIN_EMAILS.some(a => a.toLowerCase() === (em || "").trim().toLowerCase());
 }
-// API gửi/kiểm mã OTP là PHP trên hosting hustdocu.id.vn. GitHub Pages không chạy được PHP,
+// API phụ trợ PHP trên hosting hustdocu.id.vn. GitHub Pages không chạy được PHP,
 // nên khi trang mở từ *.github.io thì gọi sang hosting (hosting cho phép tên miền này trong api/_security.php).
 const API_BASE=/\.github\.io$/i.test(location.hostname)?"http://hustdocu.id.vn":"";
 async function apiPost(file,payload){
@@ -1401,9 +1401,7 @@ function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="
   S.reports.filter(r=>r.doc===d.id&&r.status==="OPEN").forEach(r=>{r.status="RESOLVED";r.resolution=reason});notify(d.uploader,"DOCUMENT_REMOVED",d,{reason,link:"#/tai-lieu-cua-toi"});
   const back=crRevoke(d,u.email,reason);if(back)notify(d.uploader,"CREDITS_CHANGED",d,{amount:-back,reason,link:"#/luot-tai"});save()}
 
-/* ----- Xác thực tài khoản: Đăng nhập & Đăng ký (Xác thực OTP qua Gmail SMTP) ----- */
-let pendingReg=null;
-let pendingLoginOtp=null;
+/* ----- Tài khoản: Đăng nhập & Đăng ký bằng email và mật khẩu (không cần OTP) ----- */
 
 function jsSha256(ascii){
   function rightRotate(v,a){return (v>>>a)|(v<<(32-a))}
@@ -1478,21 +1476,20 @@ function authCardView(isLoginTab){
       <div class="art-panel auth-art">${mangaArt("girl-wave","Bạn nữ cười, giơ tay chào")}<div class="bubble" style="left:14px;top:14px;max-width:180px">${isLoginTab?"A, bạn<br>về rồi!":"Chào mừng<br>tân binh!"}</div></div>
       <h1 style="font-size:clamp(40px,5.6vw,60px);line-height:.95">${isLoginTab?"Đăng nhập":"Đăng ký"}</h1>
       <p style="margin:0;max-width:440px">${isLoginTab
-        ?"Đăng nhập bằng tài khoản và mật khẩu của bạn, hoặc dùng mã OTP gửi về email nếu quên mật khẩu."
-        :"Tạo tài khoản HUSTDOCU mới. Mã OTP 6 số sẽ được gửi về email của bạn để xác thực và kích hoạt ngay."}
+        ?"Đăng nhập bằng tài khoản email và mật khẩu của bạn."
+        :"Tạo tài khoản HUSTDOCU mới nhanh chóng để đọc và tải toàn bộ tài liệu học tập."}
       </p>
       <ul class="perks">
         <li>Đọc toàn bộ tài liệu học tập ngay trên trình duyệt.</li>
         <li>Tải file gốc chất lượng cao về máy.</li>
         <li>Đóng góp tài liệu và nhận điểm thưởng uy tín.</li>
         <li>Hỗ trợ email sinh viên Bách khoa và Gmail cá nhân.</li>
-        ${!isLoginTab?'<li><b>Bắt buộc xác thực OTP 6 số</b> gửi về email để bảo vệ tài khoản.</li>':''}
       </ul>
      </div>
      <div class="auth-card" data-auth-card>
       <nav class="auth-tabs" aria-label="Đăng nhập hoặc đăng ký">
         <a href="#/dang-nhap${nextQuery}"${isLoginTab?' aria-current="page"':""}>Đăng nhập</a>
-        <a href="#/dang-ky${nextQuery}"${!isLoginTab?' aria-current="page"':""}>Đăng ký (OTP)</a>
+        <a href="#/dang-ky${nextQuery}"${!isLoginTab?' aria-current="page"':""}>Đăng ký</a>
       </nav>
       <div style="padding:20px 22px 24px" class="stack" data-auth-body></div>
      </div>
@@ -1514,11 +1511,11 @@ function mountRegister(body,next,nextQuery){
       <form class="stack" data-f-reg novalidate style="gap:14px">
         <div class="field">
           <label for="reg-name">Họ và tên <span class="req">*</span></label>
-          <input class="input" id="reg-name" placeholder="Ví dụ: Nguyễn Văn Hoàng" value="${esc(pendingReg?.name||"")}"${loading?" disabled":""} required>
+          <input class="input" id="reg-name" placeholder="Ví dụ: Nguyễn Văn Hoàng"${loading?" disabled":""} required>
         </div>
         <div class="field">
-          <label for="reg-em">Email nhận mã OTP <span class="req">*</span></label>
-          <input class="input" id="reg-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingReg?.email||"")}"${loading?" disabled":""} required>
+          <label for="reg-em">Email tài khoản <span class="req">*</span></label>
+          <input class="input" id="reg-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail"${loading?" disabled":""} required>
           <span class="hint">Hỗ trợ email sinh viên (@sis.hust.edu.vn, @hust.edu.vn) và Gmail.</span>
         </div>
         <div class="field">
@@ -1541,7 +1538,7 @@ function mountRegister(body,next,nextQuery){
         </label>
         ${err?`<div class="err" role="alert">${err}</div>`:""}
         <button class="btn primary lg" type="submit"${loading?" disabled":""} style="margin-top:4px">
-          ${loading?"Đang gửi mã xác thực OTP...":"Tiếp tục: Nhận mã OTP qua Email →"}
+          ${loading?"Đang tạo tài khoản...":"Tạo tài khoản"}
         </button>
         <p class="small muted" style="text-align:center;margin:8px 0 0">
           Đã có tài khoản? <a href="#/dang-nhap${nextQuery}"><b>Đăng nhập ngay</b></a>
@@ -1565,156 +1562,55 @@ function mountRegister(body,next,nextQuery){
       if(pass!==pass2)return step1("Mật khẩu nhập lại không khớp.");
       if(!agree)return step1("Vui lòng đồng ý với điều khoản sử dụng.");
 
+      if(isSystemAdminEmail(email)){
+        return step1("Email này dành riêng cho quản trị viên hệ thống. Vui lòng chuyển sang tab Đăng nhập.");
+      }
       const exists=S.users.find(u=>u.email.toLowerCase()===email);
       if(exists){
         return step1(`Email "${email}" đã được đăng ký tài khoản. Vui lòng chuyển sang tab Đăng nhập.`);
       }
 
       step1("",true);
-      try{
-        const {res,data}=await apiPost("send_otp.php",{email});
-        if(data.success){
-          pendingReg={name,email,password:pass,t:Date.now()};
-          step2();
-          toast(data.message||"Mã xác thực 6 số đã được gửi tới email của bạn!");
-        }else{
-          step1(data.message||"Không thể gửi mã xác thực. Vui lòng thử lại.");
-        }
-      }catch(err){
-        console.error("send_otp error:",err);
-        step1("Không thể kết nối máy chủ gửi thư. Vui lòng kiểm tra lại mạng.");
-      }
+      const passHash=await hashPassword(pass);
+      const base=email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
+      const username=base.length<3?base+"user":base;
+      const uname=username+(S.users.some(x=>x.username===username)?Math.floor(100+Math.random()*900):"");
+      const newUser={
+        email,
+        name,
+        displayName:name,
+        username:uname,
+        passwordHash:passHash,
+        faculty:null,
+        cohort:null,
+        roles:[{key:"STUDENT"}],
+        reputation:10,
+        approved:0,
+        trust:1,
+        createdAt:Date.now()
+      };
+      S.users.push(newUser);
+      save();
+      signIn(email,next);
+      toast("Đăng ký tài khoản thành công!");
     });
 
     if(!loading)body.querySelector("#reg-name").focus();
   }
 
-  function step2(err="",loading=false){
-    body.innerHTML=`
-      <div class="mailbox" style="border:2px solid var(--line);background:var(--paper);margin-bottom:14px;padding:14px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-          <div style="width:38px;height:38px;border:2px solid var(--line);background:var(--wash);display:flex;align-items:center;justify-content:center;color:var(--ink)">${icon.mail}</div>
-          <div>
-            <b style="font-size:15px">Kiểm tra hộp thư email để kích hoạt</b>
-            <div class="small muted" style="font-size:12px">Mã 6 số đã gửi tới: <b style="color:var(--ink)">${esc(pendingReg.email)}</b></div>
-          </div>
-        </div>
-        <p class="small muted" style="margin:0;line-height:1.45;font-size:12px;border-top:1px solid var(--line);padding-top:8px">
-          Vui lòng kiểm tra hộp thư đến (Inbox) hoặc Thư rác / Spam trong Gmail. Mã OTP có hiệu lực trong <b>10 phút</b>.
-        </p>
-      </div>
-      <form class="stack" data-f-reg-otp novalidate style="gap:14px">
-        <div class="field">
-          <label for="reg-otp">Mã xác thực 6 số</label>
-          <input class="input otp" id="reg-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="reg-otph" placeholder="••••••" style="font-size:24px;letter-spacing:6px;text-align:center;font-weight:700"${loading?" disabled":""}>
-          ${err?`<span id="reg-otph" class="err" role="alert">${err}</span>`:'<span id="reg-otph" class="hint">Nhập đúng 6 chữ số vừa nhận được trong email.</span>'}
-        </div>
-        <button class="btn primary lg" type="submit"${loading?" disabled":""}>
-          ${loading?"Đang kích hoạt tài khoản...":"Xác thực & Hoàn tất tạo tài khoản"}
-        </button>
-        <div class="row" style="justify-content:space-between;font-size:13px">
-          <button type="button" class="btn ghost sm" data-back-reg>← Sửa thông tin</button>
-          <button type="button" class="btn ghost sm" data-resend-reg>Gửi lại mã OTP</button>
-        </div>
-      </form>
-    `;
-
-    const otp=body.querySelector("#reg-otp");
-    otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});
-    otpResendCountdown(body.querySelector("[data-resend-reg]"),pendingReg.t);
-    if(!loading)otp.focus();
-
-    body.querySelector("[data-back-reg]").addEventListener("click",()=>step1());
-    body.querySelector("[data-resend-reg]").addEventListener("click",async()=>{
-      toast("Đang gửi lại mã xác thực...");
-      try{
-        const {res,data}=await apiPost("send_otp.php",{email:pendingReg.email});
-        if(data.success){
-          pendingReg.t=Date.now();
-          step2();
-          toast(data.message||"Đã gửi lại mã mới về email!");
-        }else{
-          toast(data.message||"Không thể gửi lại mã.");
-        }
-      }catch(err){
-        toast("Lỗi kết nối khi gửi lại mã.");
-      }
-    });
-
-    body.querySelector("[data-f-reg-otp]").addEventListener("submit",async(e)=>{
-      e.preventDefault();
-      const code=otp.value.trim();
-      if(code.length!==6)return step2("Vui lòng nhập đủ 6 chữ số.");
-      step2("",true);
-      try{
-        const {res,data}=await apiPost("verify_otp.php",{email:pendingReg.email,otp:code});
-        if(data.success){
-          const passHash=await hashPassword(pendingReg.password);
-          const base=pendingReg.email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
-          const uname=base+(S.users.some(x=>x.username===base)?Math.floor(100+Math.random()*900):"");
-          const newUser={
-            email:pendingReg.email,
-            name:pendingReg.name,
-            displayName:pendingReg.name,
-            username:uname,
-            passwordHash:passHash,
-            faculty:null,
-            cohort:null,
-            roles:[{key:"STUDENT"}],
-            reputation:10,
-            approved:0,
-            trust:1,
-            createdAt:Date.now()
-          };
-          S.users.push(newUser);
-          save();
-          const confirmedEmail=pendingReg.email;
-          pendingReg=null;
-          signIn(confirmedEmail,next);
-          toast("Đăng ký và kích hoạt tài khoản thành công!");
-        }else{
-          step2(data.message||"Mã xác thực không chính xác hoặc đã hết hạn.");
-        }
-      }catch(err){
-        console.error("verify_otp error:",err);
-        step2("Không thể kết nối máy chủ xác thực. Vui lòng thử lại.");
-      }
-    });
-  }
-
-  if(pendingReg){
-    step2();
-  }else{
-    step1();
-  }
-}
-
-/** Nút "Gửi lại mã" chỉ bấm được sau 60 giây kể từ lần gửi trước (khớp giới hạn của máy chủ). */
-function otpResendCountdown(btn,sentAt){
-  if(!btn)return;
-  const label=btn.textContent;
-  const tick=()=>{
-    if(!btn.isConnected)return;
-    const left=Math.ceil((sentAt+60e3-Date.now())/1000);
-    if(left>0){btn.disabled=true;btn.textContent=`${label} (${left}s)`;setTimeout(tick,1000);}
-    else{btn.disabled=false;btn.textContent=label;}
-  };
-  tick();
+  step1();
 }
 
 function mountLogin(body,next,nextQuery){
-  function viewPassLogin(err="",loading=false){
+  function view(err="",loading=false,emailPrefill=""){
     body.innerHTML=`
       <form class="stack" data-f-login-pass novalidate style="gap:14px">
         <div class="field">
           <label for="login-em">Email tài khoản</label>
-          <input class="input" id="login-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingLoginOtp?.email||"")}"${loading?" disabled":""} required>
+          <input class="input" id="login-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(emailPrefill)}"${loading?" disabled":""} required>
         </div>
         <div class="field">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-            <label for="login-pass" style="margin:0">Mật khẩu</label>
-            <button type="button" class="btn ghost sm" data-switch-to-otp style="border:0;padding:0;font-size:12px;color:var(--pencil);background:none;cursor:pointer">Quên mật khẩu?</button>
-          </div>
+          <label for="login-pass">Mật khẩu</label>
           <div style="position:relative">
             <input class="input" id="login-pass" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu của bạn" style="padding-right:42px"${loading?" disabled":""} required>
             <button type="button" class="icon-btn" data-toggle-pass="login-pass" style="position:absolute;right:0;top:0;height:100%;width:42px;border:0;background:none;cursor:pointer;color:var(--pencil)" title="Ẩn/hiện mật khẩu" tabindex="-1">${icon.eye}</button>
@@ -1724,61 +1620,51 @@ function mountLogin(body,next,nextQuery){
         <button class="btn primary lg" type="submit"${loading?" disabled":""} style="margin-top:4px">
           ${loading?"Đang đăng nhập...":"Đăng nhập"}
         </button>
-        <button type="button" class="btn ghost sm" data-switch-to-otp style="width:100%;margin-top:6px">
-          ${icon.key}Đăng nhập nhanh bằng mã OTP qua Email
-        </button>
         <p class="small muted" style="text-align:center;margin:10px 0 0">
-          Chưa có tài khoản? <a href="#/dang-ky${nextQuery}"><b>Đăng ký ngay</b> (Xác thực OTP)</a>
+          Chưa có tài khoản? <a href="#/dang-ky${nextQuery}"><b>Đăng ký ngay</b></a>
         </p>
       </form>
     `;
 
     bindPassToggles(body);
-    body.querySelectorAll("[data-switch-to-otp]").forEach(btn=>{
-      btn.addEventListener("click",()=>viewOtpStep1());
-    });
     const form=body.querySelector("[data-f-login-pass]");
     form.addEventListener("submit",async(e)=>{
       e.preventDefault();
       const email=body.querySelector("#login-em").value.trim().toLowerCase();
       const pass=body.querySelector("#login-pass").value;
 
-      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return viewPassLogin("Vui lòng nhập địa chỉ email hợp lệ.");
-      if(!pass)return viewPassLogin("Vui lòng nhập mật khẩu.");
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return view("Vui lòng nhập địa chỉ email hợp lệ.",false,email);
+      if(!pass)return view("Vui lòng nhập mật khẩu.",false,email);
 
-      viewPassLogin("",true);
+      view("",true,email);
       const u=S.users.find(x=>x.email.toLowerCase()===email);
       const isAdm=isSystemAdminEmail(email);
 
       if(!u&&!isAdm){
-        return viewPassLogin(`Email "${email}" chưa được đăng ký tài khoản. Vui lòng chuyển sang tab Đăng ký.`);
+        return view(`Email "${email}" chưa được đăng ký tài khoản. Vui lòng chuyển sang tab Đăng ký.`,false,email);
       }
 
       let passOk=false;
       const passHash=await hashPassword(pass);
 
-      if(isAdm){
-        // Quản trị viên: mật khẩu tài khoản, hoặc mã quản trị riêng kiểm tra trên máy chủ (không nằm trong mã nguồn)
-        if(u&&u.passwordHash&&u.passwordHash===passHash)passOk=true;
-        else{
-          try{
-            const {res,data}=await apiPost("verify_otp.php",{email,otp:pass});
-            passOk=!!(data.success&&data.is_admin);
-            if(!passOk&&res.status===429)return viewPassLogin(data.message);
-          }catch{passOk=false}
-        }
-      }else if(u){
-        if(u.passwordHash){
-          passOk=(u.passwordHash===passHash);
-        }else{
-          u.passwordHash=passHash;
-          save();
-          passOk=true;
-        }
+      if(u&&u.passwordHash){
+        passOk=(u.passwordHash===passHash);
+      }
+      if(!passOk&&isAdm){
+        // Quản trị viên: kiểm tra Master Passcode trên máy chủ
+        try{
+          const {res,data}=await apiPost("verify_otp.php",{email,otp:pass});
+          passOk=!!(data.success&&data.is_admin);
+          if(!passOk&&res.status===429)return view(data.message,false,email);
+        }catch{passOk=false}
+      }else if(!passOk&&u&&!u.passwordHash){
+        u.passwordHash=passHash;
+        save();
+        passOk=true;
       }
 
       if(!passOk){
-        return viewPassLogin("Mật khẩu không chính xác. Bạn có thể bấm 'Đăng nhập nhanh bằng mã OTP' bên dưới.");
+        return view("Mật khẩu không chính xác. Vui lòng thử lại.",false,email);
       }
 
       signIn(email,next);
@@ -1787,130 +1673,7 @@ function mountLogin(body,next,nextQuery){
     if(!loading)body.querySelector("#login-em").focus();
   }
 
-  function viewOtpStep1(err="",loading=false){
-    body.innerHTML=`
-      <form class="stack" data-f-login-otp novalidate style="gap:14px">
-        <p class="small muted" style="margin:0">Nhập email của bạn để nhận mã OTP 6 số đăng nhập tức thì không cần mật khẩu.</p>
-        <div class="field">
-          <label for="otp-em">Email của bạn</label>
-          <input class="input" id="otp-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingLoginOtp?.email||"")}"${loading?" disabled":""} required>
-        </div>
-        ${err?`<div class="err" role="alert">${err}</div>`:""}
-        <button class="btn primary lg" type="submit"${loading?" disabled":""}>
-          ${loading?"Đang gửi mã đăng nhập...":"Gửi mã đăng nhập một lần"}
-        </button>
-        <button type="button" class="btn ghost sm" data-switch-to-pass style="width:100%">
-          ← Quay lại đăng nhập bằng mật khẩu
-        </button>
-      </form>
-    `;
-
-    body.querySelector("[data-switch-to-pass]").addEventListener("click",()=>viewPassLogin());
-    const form=body.querySelector("[data-f-login-otp]");
-    form.addEventListener("submit",async(e)=>{
-      e.preventDefault();
-      const email=body.querySelector("#otp-em").value.trim().toLowerCase();
-      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return viewOtpStep1("Vui lòng nhập địa chỉ email hợp lệ.");
-
-      const u=S.users.find(x=>x.email.toLowerCase()===email);
-      const isAdm=isSystemAdminEmail(email);
-      if(!u&&!isAdm){
-        return viewOtpStep1(`Email "${email}" chưa có tài khoản. Vui lòng chọn tab Đăng ký để tạo mới.`);
-      }
-
-      viewOtpStep1("",true);
-      try{
-        const {res,data}=await apiPost("send_otp.php",{email});
-        if(data.success){
-          pendingLoginOtp={email,t:Date.now()};
-          viewOtpStep2();
-          toast(data.message||"Mã xác thực 6 số đã được gửi tới email của bạn!");
-        }else{
-          viewOtpStep1(data.message||"Không thể gửi mã xác thực. Vui lòng thử lại.");
-        }
-      }catch(err){
-        console.error("send_otp error:",err);
-        viewOtpStep1("Không thể kết nối máy chủ gửi thư. Vui lòng kiểm tra lại mạng.");
-      }
-    });
-
-    if(!loading)body.querySelector("#otp-em").focus();
-  }
-
-  function viewOtpStep2(err="",loading=false){
-    body.innerHTML=`
-      <div class="mailbox" style="border:2px solid var(--line);background:var(--paper);margin-bottom:14px;padding:14px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-          <div style="width:38px;height:38px;border:2px solid var(--line);background:var(--wash);display:flex;align-items:center;justify-content:center;color:var(--ink)">${icon.mail}</div>
-          <div>
-            <b style="font-size:15px">Kiểm tra hộp thư email</b>
-            <div class="small muted" style="font-size:12px">Mã 6 số đã gửi tới: <b style="color:var(--ink)">${esc(pendingLoginOtp.email)}</b></div>
-          </div>
-        </div>
-        <p class="small muted" style="margin:0;line-height:1.45;font-size:12px;border-top:1px solid var(--line);padding-top:8px">
-          Vui lòng kiểm tra hộp thư đến (Inbox) hoặc Thư rác / Spam trong Gmail. Mã OTP có hiệu lực trong <b>10 phút</b>.
-        </p>
-      </div>
-      <form class="stack" data-f-login-otp2 novalidate style="gap:14px">
-        <div class="field">
-          <label for="login-otp">Mã xác thực 6 số</label>
-          <input class="input otp" id="login-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="login-otph" placeholder="••••••" style="font-size:24px;letter-spacing:6px;text-align:center;font-weight:700"${loading?" disabled":""}>
-          ${err?`<span id="login-otph" class="err" role="alert">${err}</span>`:'<span id="login-otph" class="hint">Nhập đúng 6 chữ số vừa nhận được trong email.</span>'}
-        </div>
-        <button class="btn primary lg" type="submit"${loading?" disabled":""}>
-          ${loading?"Đang xác thực...":"Đăng nhập"}
-        </button>
-        <div class="row" style="justify-content:space-between;font-size:13px">
-          <button type="button" class="btn ghost sm" data-back-login-otp>Đổi email</button>
-          <button type="button" class="btn ghost sm" data-resend-login-otp>Gửi lại mã</button>
-        </div>
-      </form>
-    `;
-
-    const otp=body.querySelector("#login-otp");
-    otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});
-    otpResendCountdown(body.querySelector("[data-resend-login-otp]"),pendingLoginOtp.t);
-    if(!loading)otp.focus();
-
-    body.querySelector("[data-back-login-otp]").addEventListener("click",()=>viewOtpStep1());
-    body.querySelector("[data-resend-login-otp]").addEventListener("click",async()=>{
-      toast("Đang gửi lại mã xác thực...");
-      try{
-        const {res,data}=await apiPost("send_otp.php",{email:pendingLoginOtp.email});
-        if(data.success){
-          pendingLoginOtp.t=Date.now();
-          viewOtpStep2();
-          toast(data.message||"Đã gửi lại mã mới về email!");
-        }else{
-          toast(data.message||"Không thể gửi lại mã.");
-        }
-      }catch(err){
-        toast("Lỗi kết nối khi gửi lại mã.");
-      }
-    });
-
-    body.querySelector("[data-f-login-otp2]").addEventListener("submit",async(e)=>{
-      e.preventDefault();
-      const code=otp.value.trim();
-      if(code.length!==6)return viewOtpStep2("Vui lòng nhập đủ 6 chữ số.");
-      viewOtpStep2("",true);
-      try{
-        const {res,data}=await apiPost("verify_otp.php",{email:pendingLoginOtp.email,otp:code});
-        if(data.success){
-          const em=pendingLoginOtp.email;
-          pendingLoginOtp=null;
-          signIn(em,next);
-        }else{
-          viewOtpStep2(data.message||"Mã xác thực không chính xác hoặc đã hết hạn.");
-        }
-      }catch(err){
-        console.error("verify_otp error:",err);
-        viewOtpStep2("Không thể kết nối máy chủ xác thực. Vui lòng thử lại.");
-      }
-    });
-  }
-
-  viewPassLogin();
+  view();
 }
 
 views["/dang-nhap"]=()=>authCardView(true);
@@ -6187,7 +5950,7 @@ views["/quan-tri/quang-cao"] = () => {
 
 /* ===================== Extension trình duyệt =====================
    File lưu trên hosting (api/extensions.php), không lưu trên trình duyệt như dữ liệu mẫu.
-   Đăng, xoá cần token quản trị do máy chủ cấp sau khi xác minh OTP hoặc mã quản trị (vai trò trên trình duyệt không đủ). */
+   Đăng, xoá cần token quản trị do máy chủ cấp sau khi xác minh mã quản trị (vai trò trên trình duyệt không đủ). */
 const ADMIN_TOKEN_KEY="hustdocu-admin-token";
 function adminToken(){try{return localStorage.getItem(ADMIN_TOKEN_KEY)||""}catch{return ""}}
 function setAdminToken(t){try{t?localStorage.setItem(ADMIN_TOKEN_KEY,t):localStorage.removeItem(ADMIN_TOKEN_KEY)}catch{}EXT.admin="";EXT.checked=!t}
@@ -6276,10 +6039,9 @@ views["/quan-tri/extension"]=()=>{
    `<p class="note" style="margin:0">${icon.key} Đã xác minh quyền quản trị trên máy chủ: <b>${esc(EXT.admin)}</b>. <button class="btn sm ghost" type="button" data-extlogout>Huỷ xác minh</button></p>`:
    `<form class="stack" data-form="extverify" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px">
      <h2 class="h2" style="margin:0">Xác minh quyền quản trị</h2>
-     <p class="small muted" style="margin:0">File extension lưu trên máy chủ, nên máy chủ cần tự kiểm tra bạn là quản trị viên. Gửi mã OTP tới <b>${esc(u.email)}</b> rồi nhập mã, hoặc nhập mã quản trị (đặt trong <code>api/config.php</code>). Xác minh có hiệu lực 7 ngày trên trình duyệt này.</p>
+     <p class="small muted" style="margin:0">File extension lưu trên máy chủ, vui lòng nhập mật mã quản trị viên (Master Passcode) để xác minh quyền thao tác. Xác minh có hiệu lực 7 ngày trên trình duyệt này.</p>
      <div class="row" style="gap:8px;align-items:flex-end">
-      <button class="btn" type="button" data-extotp>${icon.mail} Gửi mã OTP</button>
-      <div class="field" style="flex:1;min-width:180px;margin:0"><label for="ext-code">Mã OTP hoặc mã quản trị</label><input class="input" id="ext-code" autocomplete="one-time-code" maxlength="200"></div>
+      <div class="field" style="flex:1;min-width:200px;margin:0"><label for="ext-code">Mật mã quản trị viên</label><input class="input" id="ext-code" type="password" placeholder="Nhập mật mã quản trị viên" autocomplete="current-password" maxlength="200"></div>
       <button class="btn primary" type="submit">Xác minh</button>
      </div>
      <p class="err" data-verr role="alert" hidden></p>
@@ -6309,21 +6071,15 @@ views["/quan-tri/extension"]=()=>{
     const vf=root.querySelector('[data-form="extverify"]');
     if(vf){
       const verr=vf.querySelector("[data-verr]");const vfail=(m)=>{verr.textContent=m;verr.hidden=false};
-      vf.querySelector("[data-extotp]").addEventListener("click",async(e)=>{
-        e.target.disabled=true;
-        try{const {data}=await apiPost("send_otp.php",{email:u.email});if(data.success){toast("Đã gửi mã OTP tới email của bạn.");verr.hidden=true}else vfail(data.message||"Không gửi được mã.")}
-        catch{vfail("Không kết nối được máy chủ gửi thư.")}
-        finally{e.target.disabled=false}
-      });
       vf.addEventListener("submit",async(e)=>{
         e.preventDefault();
         const code=vf.querySelector("#ext-code").value.trim();
-        if(!code)return vfail("Nhập mã OTP hoặc mã quản trị.");
+        if(!code)return vfail("Vui lòng nhập mật mã quản trị viên.");
         try{
           const {data}=await apiPost("verify_otp.php",{email:u.email,otp:code});
           if(data.success&&data.is_admin&&data.token){EXT.admin=data.email;EXT.checked=true;toast("Đã xác minh quyền quản trị.");render()}
           else if(data.success)vfail(`Máy chủ không ghi nhận ${u.email} là quản trị viên (danh sách ở api/_security.php).`);
-          else vfail(data.message||"Mã không đúng.");
+          else vfail(data.message||"Mật mã quản trị không chính xác.");
         }catch{vfail("Không kết nối được máy chủ xác thực.")}
       });
     }
