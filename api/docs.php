@@ -8,8 +8,11 @@
  *   GET  ?action=download&id=…         Tải file về máy (+ tăng lượt tải)
  *   POST ?action=save                  Lưu / cập nhật thông tin tài liệu
  *   POST ?action=bulk_status           Cập nhật trạng thái duyệt hàng loạt (duyệt, từ chối, yêu cầu sửa, gỡ)
+ *   POST ?action=sync_all              Đồng bộ 2 chiều toàn bộ tài liệu giữa máy khách và máy chủ
  *   POST ?action=upload_file           Tải file đính kèm và lưu metadata tài liệu
  *   POST ?action=delete                Xoá tài liệu
+ *   GET  ?action=courses_list          Lấy danh sách học phần dùng chung
+ *   POST ?action=courses_save          Lưu danh sách học phần cập nhật từ Admin
  */
 require_once __DIR__ . '/_security.php';
 api_headers(['GET', 'POST', 'OPTIONS']);
@@ -310,6 +313,7 @@ if ($action === 'bulk_status' && $method === 'POST') {
     $reason = (string)($input['reason'] ?? '');
     $note = (string)($input['note'] ?? '');
     $by = (string)($input['by'] ?? 'admin');
+    $incomingDocs = (array)($input['docs'] ?? []);
 
     if (empty($ids) || $decision === '') {
         api_fail(400, 'Thiếu danh sách ID hoặc quyết định kiểm duyệt.');
@@ -323,10 +327,13 @@ if ($action === 'bulk_status' && $method === 'POST') {
     ];
     $newStatus = $statusMap[$decision] ?? $decision;
 
-    $updatedCount = docs_update(function (array &$docs) use ($ids, $newStatus, $decision, $reason, $note, $by) {
+    $updatedCount = docs_update(function (array &$docs) use ($ids, $newStatus, $decision, $reason, $note, $by, $incomingDocs) {
         $count = 0;
         $now = round(microtime(true) * 1000);
-        foreach ($docs as &$d) {
+        $existingMap = [];
+
+        foreach ($docs as $idx => &$d) {
+            $existingMap[$d['id']] = $idx;
             if (in_array($d['id'], $ids, true)) {
                 $d['status'] = $newStatus;
                 $d['reviewNote'] = ($newStatus === 'APPROVED') ? null : ($reason ?: $d['reviewNote'] ?? null);
@@ -347,10 +354,72 @@ if ($action === 'bulk_status' && $method === 'POST') {
                 $count++;
             }
         }
+        unset($d);
+
+        // Nếu tài liệu được duyệt/thao tác chưa có trên máy chủ, chèn trực tiếp vào máy chủ!
+        foreach ($incomingDocs as $item) {
+            if (is_array($item) && !empty($item['id'])) {
+                $itemId = safe_doc_id($item['id']);
+                if (!isset($existingMap[$itemId])) {
+                    $item['id'] = $itemId;
+                    $item['status'] = $newStatus;
+                    $item['updatedAt'] = $now;
+                    if ($newStatus === 'APPROVED' && empty($item['publishedAt'])) {
+                        $item['publishedAt'] = $now;
+                    }
+                    $docs[] = $item;
+                    $existingMap[$itemId] = count($docs) - 1;
+                    $count++;
+                }
+            }
+        }
+
         return $count;
     });
 
     echo json_encode(['success' => true, 'updated' => $updatedCount], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+// -------------------------------------------------------------
+// POST ?action=sync_all : Đồng bộ 2 chiều toàn bộ tài liệu
+// -------------------------------------------------------------
+if ($action === 'sync_all' && $method === 'POST') {
+    $clientDocs = (array)($input['docs'] ?? []);
+    $now = round(microtime(true) * 1000);
+
+    $merged = docs_update(function (array &$docs) use ($clientDocs, $now) {
+        $serverMap = [];
+        foreach ($docs as $i => $d) {
+            $serverMap[$d['id']] = $i;
+        }
+
+        foreach ($clientDocs as $cd) {
+            if (!is_array($cd) || empty($cd['id'])) continue;
+            $id = safe_doc_id($cd['id']);
+            $cd['id'] = $id;
+
+            if (isset($serverMap[$id])) {
+                $idx = $serverMap[$id];
+                $serverDoc = $docs[$idx];
+                // Lấy bản mới hơn theo updatedAt
+                $serverUp = $serverDoc['updatedAt'] ?? 0;
+                $clientUp = $cd['updatedAt'] ?? 0;
+                if ($clientUp > $serverUp) {
+                    $docs[$idx] = array_merge($serverDoc, $cd);
+                }
+            } else {
+                // Thêm tài liệu mới từ client lên server
+                if (empty($cd['updatedAt'])) $cd['updatedAt'] = $now;
+                $docs[] = $cd;
+                $serverMap[$id] = count($docs) - 1;
+            }
+        }
+
+        return $docs;
+    });
+
+    echo json_encode(['success' => true, 'docs' => $merged, 'serverTime' => $now], JSON_UNESCAPED_UNICODE);
     exit;
 }
 

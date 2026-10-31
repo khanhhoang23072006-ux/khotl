@@ -892,44 +892,29 @@ async function syncDocsFromServer(forceRender=false){
   if(isSyncingDocs)return;
   isSyncingDocs=true;
   try{
-    const res=await fetch(API_BASE+"/api/docs.php?action=list");
+    const res=await fetch(API_BASE+"/api/docs.php?action=sync_all",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({docs:S.docs||[]})
+    });
     if(!res.ok)return;
     const data=await res.json();
     if(!data||!data.success||!Array.isArray(data.docs))return;
-    let changed=false;
     const serverDocs=data.docs;
-    const serverMap=new Map(serverDocs.map(d=>[d.id,d]));
-    // 1. Đồng bộ tài liệu từ máy chủ về máy khách
-    for(const sd of serverDocs){
-      const idx=S.docs.findIndex(x=>x.id===sd.id);
-      if(idx>=0){
-        if(JSON.stringify(S.docs[idx])!==JSON.stringify(sd)){
-          S.docs[idx]={...S.docs[idx],...sd};
-          changed=true;
-        }
-      }else{
-        S.docs.unshift(sd);
-        changed=true;
-      }
-    }
-    // 2. Nếu máy khách có tài liệu đã tải lên mà máy chủ chưa có, đồng bộ lên máy chủ
-    for(const ld of S.docs){
-      if(ld.uploaded&&!serverMap.has(ld.id)){
-        apiPost("docs.php?action=save",{doc:ld}).catch(()=>{});
-      }
-    }
-    if(changed){
+    const beforeStr=JSON.stringify(S.docs);
+    S.docs=serverDocs;
+    if(JSON.stringify(S.docs)!==beforeStr||forceRender){
       save();
       const p=currentPath();
-      if(forceRender||(!p.startsWith("/chat")&&!p.startsWith("/tai-len")))render();
+      if(!p.startsWith("/chat")&&!p.startsWith("/tai-len"))render();
     }
   }catch(e){}finally{
     isSyncingDocs=false;
   }
 }
-syncDocsFromServer();
-window.addEventListener("focus",()=>syncDocsFromServer());
-setInterval(()=>syncDocsFromServer(),30000);
+syncDocsFromServer(true);
+window.addEventListener("focus",()=>syncDocsFromServer(true));
+setInterval(()=>syncDocsFromServer(),5000);
 
 /* File tải lên lưu trong IndexedDB của trình duyệt (để xem lại sau khi tải lại trang) */
 const fileDB={db:null,
@@ -1146,7 +1131,7 @@ function renderHeaderInner(){
     ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
     <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
      <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
-      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/cong-dong">Cộng đồng, nhiệm vụ</a><a href="#/hoi-dap">Hỏi đáp</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${typeof isCtv==="function"&&isCtv(u)?'<a href="#/ctv">Hàng chờ cộng tác viên</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="logout">Đăng xuất</button></div></details>`
+      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/cong-dong">Cộng đồng, nhiệm vụ</a><a href="#/hoi-dap">Hỏi đáp</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${typeof isCtv==="function"&&isCtv(u)?'<a href="#/ctv">Hàng chờ cộng tác viên</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="sync">Đồng bộ máy chủ</button><button type="button" data-action="logout">Đăng xuất</button></div></details>`
     :`<a class="btn ghost sm" href="#/dang-nhap">Đăng nhập</a><a class="btn primary sm" href="#/dang-ky" style="margin-left:6px">Đăng ký</a>`}
    </div></div>`;
   document.getElementById("bottomnav").innerHTML=`<a href="#/"${cur("/",true)}>${icon.home}Trang chủ</a><a href="#/tim-kiem"${cur("/tim-kiem")}>${icon.search}Tìm kiếm</a><a class="up" href="#/tai-len">${icon.plus}Tải lên</a><a href="#/chat"${cur("/chat")} style="position:relative">${CHAT_ICON}Chat${u&&totalUnread(u)?'<span class="dot" style="top:8px;right:calc(50% - 18px)"></span>':""}</a><a href="${u?"#/tai-lieu-cua-toi":"#/dang-nhap"}"${cur(u?"/tai-lieu-cua-toi":"/dang-nhap")}>${icon.user}${u?"Cá nhân":"Tài khoản"}</a>`;
@@ -1444,7 +1429,8 @@ function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="
   if(was==="APPROVED"){const up=userBy(d.uploader);if(up){up.approved=Math.max(0,up.approved-1);up.reputation-=20;up.violations=(up.violations||0)+1;up.trust=trustFrom(up.approved,up.violations)}}
   S.reports.filter(r=>r.doc===d.id&&r.status==="OPEN").forEach(r=>{r.status="RESOLVED";r.resolution=reason});notify(d.uploader,"DOCUMENT_REMOVED",d,{reason,link:"#/tai-lieu-cua-toi"});
   const back=crRevoke(d,u.email,reason);if(back)notify(d.uploader,"CREDITS_CHANGED",d,{amount:-back,reason,link:"#/luot-tai"});save();
-  apiPost("docs.php?action=bulk_status",{ids:[d.id],decision:"REMOVE",reason,by:u?u.email:"admin"}).catch(()=>{});}
+  apiPost("docs.php?action=bulk_status",{ids:[d.id],decision:"REMOVE",reason,by:u?u.email:"admin",docs:[d]}).catch(()=>{});
+  syncDocsFromServer(true);}
 
 /* ----- Tài khoản: Đăng nhập & Đăng ký bằng email và mật khẩu (không cần OTP) ----- */
 
@@ -1906,7 +1892,11 @@ function decide(ids,decision,reason,note){const u=me();let n=0;
    let credits=0;if(decision==="APPROVE"){credits=crReward(d,u.email);cmApproved(d);d.publishedAt=Date.now();const up=userBy(d.uploader);if(up){up.approved++;up.reputation+=10;up.trust=trustFrom(up.approved,up.violations||0);checkBadges(up)}
     for(const [email,list] of Object.entries(S.follows))if(list.includes(d.course)&&email!==d.uploader)S.notifications.unshift({id:uid(),to:email,type:"NEW_DOCUMENT_IN_FOLLOWED_COURSE",title:d.title,link:`#/tai-lieu/${d.slug}`,t:Date.now(),read:false})}
    notify(d.uploader,decision==="APPROVE"?"DOCUMENT_APPROVED":decision==="REJECT"?"DOCUMENT_REJECTED":"DOCUMENT_CHANGES_REQUESTED",d,{reason,credits,link:decision==="APPROVE"?`#/tai-lieu/${d.slug}`:decision==="REQUEST_CHANGES"?`#/tai-lieu-cua-toi/${d.id}/sua`:"#/tai-lieu-cua-toi"})}
-  save();apiPost("docs.php?action=bulk_status",{ids,decision,reason,note,by:u?u.email:"mod"}).catch(()=>{});return n}
+  save();
+  const updatedDocs=ids.map(id=>S.docs.find(x=>x.id===id)).filter(Boolean);
+  apiPost("docs.php?action=bulk_status",{ids,decision,reason,note,by:u?u.email:"mod",docs:updatedDocs}).catch(()=>{});
+  syncDocsFromServer(true);
+  return n}
 function decisionPanel(compact){return `<div class="stack" data-decision>${compact?"":`<div class="field"><label for="inote">Ghi chú nội bộ (chỉ kiểm duyệt viên thấy)</label><textarea class="textarea" id="inote" style="min-height:64px" placeholder="Không bắt buộc"></textarea></div>`}
   <div class="tb" style="grid-template-columns:repeat(3,1fr)" data-buttons><button type="button" class="btn primary" style="border:0" data-dec="APPROVE">Duyệt</button><button type="button" class="btn" style="border:0" data-dec="REQUEST_CHANGES">Yêu cầu sửa</button><button type="button" class="btn" style="border:0" data-dec="REJECT">Từ chối</button></div>
   <div class="stack" data-reason hidden style="border:2px solid var(--line);background:var(--paper);padding:12px"><div class="field"><label for="tpl">Lý do mẫu</label><select class="select" id="tpl"><option value="">Chọn lý do mẫu</option>${REVIEW_TEMPLATES.map(t=>`<option>${t}</option>`).join("")}</select></div><div class="field"><label for="rsn">Lý do gửi người đăng <span class="req">*</span></label><textarea class="textarea" id="rsn"></textarea></div><div class="row"><button type="button" class="btn ink" data-confirm>Xác nhận</button><button type="button" class="btn ghost" data-cancel>Thôi</button></div></div></div>`}
@@ -2219,7 +2209,10 @@ function applyLang(){document.documentElement.lang=getLang();if(getLang()==="en"
 /* PWA: đăng ký service worker để mở được khi mất mạng; nút cài đặt khi trình duyệt cho phép */
 let installPrompt=null;
 window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();installPrompt=e;renderHeader()});
-if("serviceWorker" in navigator&&location.protocol!=="file:")window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  navigator.serviceWorker.addEventListener("controllerchange",()=>window.location.reload());
+  window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").then(reg=>{reg.update()}).catch(()=>{}));
+}
 function offlineBanner(){let b=document.getElementById("offline");if(!navigator.onLine){if(!b){b=document.createElement("div");b.id="offline";b.className="note red";b.setAttribute("role","status");b.style.cssText="margin:0;border-radius:0;text-align:center";document.body.insertBefore(b,document.getElementById("header"))}b.textContent=tr("Đang ngoại tuyến: vẫn xem được dữ liệu đã có trên máy.")}else b?.remove()}
 window.addEventListener("online",offlineBanner);window.addEventListener("offline",offlineBanner);
 /* Phím tắt */
@@ -7274,6 +7267,11 @@ document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-ac
   else if(a==="theme"){try{localStorage.setItem("khotl-theme",isDark()?"light":"dark")}catch{}applyTheme();renderHeader()}
   else if(a==="reset"){localStorage.removeItem(KEY);await fileDB.clear();load();toast("Đã đặt lại dữ liệu demo.");go("#/");render()}
   else if(a==="nocredit"){crDialog()}
+  else if(a==="sync"){
+    e.preventDefault();
+    toast("Đang đồng bộ với máy chủ...");
+    syncDocsFromServer(true).then(()=>{toast("Đã đồng bộ xong dữ liệu từ máy chủ!")});
+  }
   else if(a==="download"){const d=S.docs.find(x=>x.id===el.dataset.id);const u=me();if(!u){go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);return}
    const charge=crCharge(u,d);if(charge==="DENIED"){crDialog();render();return}if(charge==="RATE"){toast("Bạn tải quá nhiều trong một giờ, thử lại sau.");return}
    let blob=d.uploaded?await fileDB.get(d.id):null;let name=d.fileName||`${d.course}-${d.slug}.txt`;
