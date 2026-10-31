@@ -35,6 +35,21 @@ jobs:
           [ -n "${{ secrets.FTP_HOST }}" ] && echo "::notice::FTP_HOST → $(dig +short A '${{ secrets.FTP_HOST }}' | tr '\n' ' ' || true)"
           true
 
+      - name: Chẩn đoán hosting (thư mục FTP, trang chủ)
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          for p in / /domains/ /public_html/ /domains/hustdocu.id.vn/ /domains/hustdocu.id.vn/public_html/; do
+            echo "::notice::FTP $p → $(curl -s --connect-timeout 20 --max-time 40 --user "$FTP_USER:$FTP_PASS" --list-only "ftp://$FTP_HOST$p" 2>&1 | head -40 | tr '\n' ' ' | head -c 600)"
+          done
+          for u in http://hustdocu.id.vn/ http://hustdocu.id.vn/index.html http://hustdocu.id.vn/sw.js; do
+            curl -s -D /tmp/h -o /tmp/b --max-time 15 "$u" || true
+            echo "::notice::$u → $(head -1 /tmp/h | tr -d '\r') | $(grep -i '^server:' /tmp/h | tr -d '\r') | title: $(grep -o '<title>[^<]*' /tmp/b | head -1 | sed 's/<title>//') | $(wc -c </tmp/b) byte | $(grep -c HUSTDOCU /tmp/b) HUSTDOCU"
+          done
+          true
+
       - name: Tải file lên hosting qua FTP
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
