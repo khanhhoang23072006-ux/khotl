@@ -767,6 +767,7 @@ footer.site .wrap>p.small{line-height:1.6}
 
 <script>
 "use strict";
+window.isAppReady = false;
 const DATA = {"faculties":[{"code":"SOICT","name":"Trường Công nghệ Thông tin và Truyền thông","nameEn":"School of Information and Communications Technology","shortName":"Trường CNTT&TT","slug":"soict","order":0},{"code":"SEEE","name":"Trường Điện - Điện tử","nameEn":"School of Electrical and Electronic Engineering","shortName":"Trường Điện - Điện tử","slug":"seee","order":1},{"code":"SME","name":"Trường Cơ khí","nameEn":"School of Mechanical Engineering","shortName":"Trường Cơ khí","slug":"sme","order":2},{"code":"SCLS","name":"Trường Hóa và Khoa học sự sống","nameEn":"School of Chemistry and Life Sciences","shortName":"Trường Hóa và KHSS","slug":"scls","order":3},{"code":"SMSE","name":"Trường Vật liệu","nameEn":"School of Materials Science and Engineering","shortName":"Trường Vật liệu","slug":"smse","order":4},{"code":"SEM","name":"Trường Kinh tế","nameEn":"School of Economics and Management","shortName":"Trường Kinh tế","slug":"sem","order":5},{"code":"FAMI","name":"Khoa Toán - Tin","nameEn":"Faculty of Mathematics and Informatics","shortName":"Khoa Toán - Tin","slug":"fami","order":6},{"code":"FEP","name":"Khoa Vật lý Kỹ thuật","nameEn":"Faculty of Engineering Physics","shortName":"Khoa Vật lý KT","slug":"fep","order":7},{"code":"SOFL","name":"Khoa Ngoại ngữ","nameEn":"School of Foreign Languages","shortName":"Khoa Ngoại ngữ","slug":"sofl","order":8},{"code":"FPS","name":"Khoa Lý luận Chính trị","nameEn":"Faculty of Political Science","shortName":"Khoa LLCT","slug":"fps","order":9}],"courses":[{"code":"MI1111","name":"Giải tích I","nameEn":"Calculus I","credits":4,"faculty":"FAMI","keywords":["gioi han","dao ham","dinh ly Lagrange","tich phan suy rong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1121","name":"Giải tích II","nameEn":"Calculus II","credits":3,"faculty":"FAMI","keywords":["tich phan boi","tich phan duong","chuoi so"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1131","name":"Giải tích III","nameEn":"Calculus III","credits":3,"faculty":"FAMI","keywords":["phuong trinh vi phan","chuoi Fourier","bien doi Laplace"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI1141","name":"Đại số","nameEn":"Linear Algebra","credits":4,"faculty":"FAMI","keywords":["ma tran","dinh thuc","khong gian vector","tri rieng"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MI2020","name":"Xác suất thống kê","nameEn":"Probability and Statistics","credits":3,"faculty":"FAMI","keywords":["bien ngau nhien","phan phoi chuan","kiem dinh gia thuyet"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1110","name":"Vật lý đại cương I","nameEn":"General Physics I","credits":3,"faculty":"FEP","keywords":["dong luc hoc","dinh luat Newton","nhiet dong luc hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1120","name":"Vật lý đại cương II","nameEn":"General Physics II","credits":3,"faculty":"FEP","keywords":["dien truong","tu truong","dinh luat Faraday"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"PH1130","name":"Vật lý đại cương III","nameEn":"General Physics III","credits":3,"faculty":"FEP","keywords":["giao thoa","nhieu xa","luong tu anh sang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT1110","name":"Tin học đại cương","nameEn":"Introduction to Computing","credits":4,"faculty":"SOICT","keywords":["ngon ngu C","con tro","mang mot chieu"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3011","name":"Cấu trúc dữ liệu và giải thuật","nameEn":"Data Structures and Algorithms","credits":3,"faculty":"SOICT","keywords":["cay nhi phan","do thi","sap xep nhanh","bang bam"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3020","name":"Toán rời rạc","nameEn":"Discrete Mathematics","credits":3,"faculty":"SOICT","keywords":["to hop","quan he truy hoi","do thi Euler"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3030","name":"Kiến trúc máy tính","nameEn":"Computer Architecture","credits":3,"faculty":"SOICT","keywords":["tap lenh MIPS","bo nho dem","pipeline"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3040","name":"Kỹ thuật lập trình","nameEn":"Programming Techniques","credits":2,"faculty":"SOICT","keywords":["de quy","quy hoach dong","kiem thu"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3070","name":"Nguyên lý hệ điều hành","nameEn":"Operating Systems","credits":3,"faculty":"SOICT","keywords":["tien trinh","dong bo hoa","bo nho ao"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3080","name":"Mạng máy tính","nameEn":"Computer Networks","credits":3,"faculty":"SOICT","keywords":["mo hinh OSI","TCP/IP","dinh tuyen"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3090","name":"Cơ sở dữ liệu","nameEn":"Databases","credits":3,"faculty":"SOICT","keywords":["SQL","chuan hoa","phu thuoc ham"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT3100","name":"Lập trình hướng đối tượng","nameEn":"Object-Oriented Programming","credits":2,"faculty":"SOICT","keywords":["ke thua","da hinh","Java"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"IT3160","name":"Nhập môn Trí tuệ nhân tạo","nameEn":"Introduction to Artificial Intelligence","credits":3,"faculty":"SOICT","keywords":["tim kiem A sao","hoc may","logic menh de"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"IT4409","name":"Công nghệ Web và dịch vụ trực tuyến","nameEn":"Web Technologies","credits":3,"faculty":"SOICT","keywords":["HTTP","REST","JavaScript"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ET2000","name":"Nhập môn kỹ thuật điện tử viễn thông","nameEn":"Introduction to Electronics and Telecommunications","credits":2,"faculty":"SEEE","keywords":["tin hieu","dieu che"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EE2000","name":"Tín hiệu và hệ thống","nameEn":"Signals and Systems","credits":3,"faculty":"SEEE","keywords":["bien doi Fourier","tich chap","he thong LTI"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE2020","name":"Lý thuyết mạch điện I","nameEn":"Circuit Theory I","credits":4,"faculty":"SEEE","keywords":["dinh luat Kirchhoff","mach RLC","so phuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EE3110","name":"Kỹ thuật đo lường","nameEn":"Measurement Engineering","credits":3,"faculty":"SEEE","keywords":["sai so","cam bien"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2015","name":"Đồ họa kỹ thuật cơ bản","nameEn":"Engineering Graphics","credits":3,"faculty":"SME","keywords":["hinh chieu","khung ten","mat cat"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME2011","name":"Cơ học kỹ thuật I","nameEn":"Engineering Mechanics I","credits":3,"faculty":"SME","keywords":["tinh hoc","ngau luc","can bang"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"ME3090","name":"Sức bền vật liệu","nameEn":"Strength of Materials","credits":3,"faculty":"SME","keywords":["ung suat","bien dang","uon"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH1012","name":"Hóa học đại cương","nameEn":"General Chemistry","credits":3,"faculty":"SCLS","keywords":["cau tao nguyen tu","lien ket hoa hoc","can bang hoa hoc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"CH3001","name":"Hóa hữu cơ","nameEn":"Organic Chemistry","credits":3,"faculty":"SCLS","keywords":["hidrocacbon","co che phan ung"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"MSE2010","name":"Khoa học vật liệu đại cương","nameEn":"Introduction to Materials Science","credits":3,"faculty":"SMSE","keywords":["mang tinh the","gian do pha"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"EM1010","name":"Quản trị học đại cương","nameEn":"Principles of Management","credits":2,"faculty":"SEM","keywords":["hoach dinh","to chuc","kiem soat"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM1180","name":"Văn hóa kinh doanh và tinh thần khởi nghiệp","nameEn":"Business Culture and Entrepreneurship","credits":2,"faculty":"SEM","keywords":["khoi nghiep","mo hinh kinh doanh"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"EM3100","name":"Kinh tế học vi mô","nameEn":"Microeconomics","credits":3,"faculty":"SEM","keywords":["cung cau","do co gian","thi truong"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1100","name":"Tiếng Anh I","nameEn":"English I","credits":3,"faculty":"SOFL","keywords":["reading","listening","grammar"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"FL1101","name":"Tiếng Anh II","nameEn":"English II","credits":3,"faculty":"SOFL","keywords":["writing","speaking"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1111","name":"Triết học Mác - Lênin","nameEn":"Marxist-Leninist Philosophy","credits":3,"faculty":"FPS","keywords":["phep bien chung","vat chat va y thuc"],"grading":[{"label":"Quá trình","weight":0.4},{"label":"Cuối kỳ","weight":0.6}]},{"code":"SSH1121","name":"Kinh tế chính trị Mác - Lênin","nameEn":"Marxist-Leninist Political Economy","credits":2,"faculty":"FPS","keywords":["gia tri thang du","hang hoa"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1131","name":"Chủ nghĩa xã hội khoa học","nameEn":"Scientific Socialism","credits":2,"faculty":"FPS","keywords":["giai cap cong nhan"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1141","name":"Lịch sử Đảng Cộng sản Việt Nam","nameEn":"History of the Communist Party of Vietnam","credits":2,"faculty":"FPS","keywords":["cach mang thang Tam"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1151","name":"Tư tưởng Hồ Chí Minh","nameEn":"Ho Chi Minh Ideology","credits":2,"faculty":"FPS","keywords":["doc lap dan toc"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]},{"code":"SSH1170","name":"Pháp luật đại cương","nameEn":"Introduction to Law","credits":2,"faculty":"FPS","keywords":["quy pham phap luat","hop dong"],"grading":[{"label":"Quá trình","weight":0.3},{"label":"Cuối kỳ","weight":0.7}]}],"documents":[],"bannedWords":["cá độ","lô đề","cờ bạc online","vay nóng"],"hustFeed":{"source":"https://ctt.hust.edu.vn","fetchedAt":"2026-10-25T01:11:51.716Z","errors":[],"items":[{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51642","title":"[CTSV] THÔNG BÁO VỀ VIỆC KHEN THƯỞNG SINH VIÊN XUẤT SẮC NĂM HỌC 2025-2026","date":"2026-10-15","source":"Thông báo đại học","tags":["hocbong"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51641","title":"[CTSV] Thông báo bổ sung thông tin tài khoản ngân hàng để nhận quà tặng nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội","date":"2026-10-15","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30245","title":"[ĐTĐH] THÔNG BÁO VỀ HỌC PHÍ KỲ I NĂM HỌC 2026-2027 – ĐỢT 1 12.10.2026","date":"2026-10-12","source":"Trang chủ","tags":["hocphi"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51639","title":"[ĐTĐH] Quyết định mức học phí các chương trình đào tạo đại học chính quy, KSCS, ĐT thường xuyên và Sau đại học năm học 2026-2027","date":"2026-10-06","source":"Quy định đại học","tags":["ctdt","hocphi"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51640","title":"[CTSV] Thông báo về việc cập nhật thông tin tài khoản ngân hàng để nhận quà nhân dịp kỷ niệm 70 năm thành lập Đại học Bách khoa Hà Nội","date":"2026-10-06","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51638","title":"[ĐTĐH] Thông báo về học phí kỳ 1 năm học 2026-2027 (đợt 1 - 20261)","date":"2026-10-05","source":"Thông báo đại học","tags":["hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30244","title":"[DTDH] ĐĂNG KÝ KẾ HOẠCH HỌC TẬP CHO HỌC KỲ 2 NĂM HỌC 2026-2027 (20262) 01.10.2026","date":"2026-10-01","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51637","title":"[ĐTĐH] Đăng ký kế hoạch học tập cho học kỳ 2 năm học 2026-2027 (20262)","date":"2026-10-01","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30243","title":"[ĐTĐH] THÔNG BÁO MỞ ĐĂNG KÝ TỐT NGHIỆP ĐỢT 20253 25/09/2026","date":"2026-09-25","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51636","title":"[CTSV] Về việc xét, cấp học bổng Trần Đại Nghĩa học kỳ I năm học 2026-2027","date":"2026-09-09","source":"Thông báo đại học","tags":["hocbong"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51634","title":"[ĐTĐH] Quy định về ngoại ngữ đối với sinh viên đại học hình thức chính quy năm 2026 (K71)","date":"2026-09-07","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51635","title":"[CTSV] Thông báo về việc mua Bảo hiểm y tế (BHYT) năm 2027 cho sinh viên khóa cũ","date":"2026-09-07","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51633","title":"[CTSV] Chương trình tham quan Công ty DECATHLON Việt Nam","date":"2026-09-04","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51632","title":"[ĐTĐH] Thông báo mở đăng ký lớp bổ sung các lớp K71","date":"2026-09-03","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51631","title":"[ĐTĐH] Thông báo Danh sách sinh viên trúng tuyển các chương trình đào tạo tài năng K71","date":"2026-09-03","source":"Thông báo đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51630","title":"[CTSV] LỄ TỐT NGHIỆP ĐỢT THÁNG 9/2026","date":"2026-08-28","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51629","title":"[ĐTĐH] Thông báo về tốt nghiệp đợt 20252","date":"2026-08-27","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51628","title":"[ĐTĐH] Thông báo danh sách sinh viên đủ điều kiện tham gia dự vòng phỏng vấn tuyển chọn vào các CTĐT tài năng khóa K71","date":"2026-08-25","source":"Thông báo đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51627","title":"[ĐTĐH] Thông báo về việc xét tuyển sinh viên vào CT Tài năng tích hợp Cử nhân - Thạc sĩ K71","date":"2026-08-16","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51626","title":"[ĐTĐH] Thông báo về học phí kỳ hè năm học 2025-2026","date":"2026-08-06","source":"Thông báo đại học","tags":["hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51625","title":"[ĐTĐH] Thông báo về việc đưa vào giảng dạy học phần Pickleball (khối giáo dục thể chất tự chọn)","date":"2026-08-03","source":"Thông báo đại học","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51624","title":"[ĐTĐH] Thông báo mở đăng ký tốt nghiệp đợt 2025.2","date":"2026-08-03","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51623","title":"[ĐTĐH] Thông báo về sự cố hệ thống đăng ký học tập","date":"2026-07-26","source":"Thông báo đại học","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44574","title":"[ĐTĐH] Quy định về ngoại ngữ từ khóa K70","date":"2025-09-29","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44562","title":"[ĐTĐH] Quy định mức học phí các chương trình đào tạo đại học CQ, KSCS, VLVH, SĐH năm học 2025-2026","date":"2025-09-12","source":"Quy định đại học","tags":["ctdt","hocphi","quyche"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44547","title":"[ĐTĐH] ACADEMIC REGULATIONS 2025","date":"2025-07-23","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44533","title":"[ĐTĐH] Quy chế đào tạo năm 2025 (Academic Regulations)","date":"2025-05-28","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=44490","title":"[ĐTĐH] Hướng dẫn công nhận học phần vào Chương trình đào tạo KSCS","date":"2025-01-23","source":"Quy định đại học","tags":["ctdt","quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43474","title":"[ĐTĐH] QĐ công nhận trúng tuyển vào học CTĐT KSCS đợt học kỳ 1 năm học 2024-2025 (20241)","date":"2024-11-01","source":"Quy định đại học","tags":["ctdt"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43466","title":"[ĐTĐH] Thông báo về mức học phí đối với các chương trình đào tạo năm học 2024-2025","date":"2024-09-19","source":"Quy định đại học","tags":["ctdt","hocphi"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=43448","title":"[ĐTĐH] Quy định về đào tạo Kỹ sư chuyên sâu 180 TC","date":"2024-08-12","source":"Quy định đại học","tags":["quyche"],"firstSeen":"2026-10-24T14:40:00.000Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38097","title":"[VĐTLT] BIỂU ĐỒ KẾ HOẠCH HỌC TẬP NĂM HỌC 2022-2023","date":"2022-09-17","source":"Trang chủ","tags":["dangky"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39136","title":"[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Mai Văn Chung","date":"2021-12-20","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39134","title":"[ĐTSĐH] Bảo vệ luận án Tiến sĩ cấp Trường cho nghiên cứu sinh Trần Thị Ngọc Hoa","date":"2021-12-16","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=39133","title":"[ĐTSĐH] Luận án tiến sĩ: Ứng dụng điều khiển thích nghi hệ thiếu cơ cấu chấp hành cho xe tự hành ba bánh - NCS Phạm Thị Hương Sen","date":"2021-12-16","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38096","title":"[VĐTLT] Quy chế đào tạo vừa làm vừa học trình độ đại học","date":"2021-10-05","source":"Trang chủ","tags":["quyche"],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=38051","title":"[VĐTLT] TUYỂN SINH KHÓA HỌC BỒI DƯỠNG TIẾNG ANH","date":"2021-08-06","source":"Trang chủ","tags":[],"firstSeen":"2026-10-25T01:11:51.716Z"},{"url":"https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=25096","title":"[DTDH] Thông báo kiểm tra tiếng anh đầu vào K65 (dành cho sinh viên Chương trình tiên tiến và quốc tế) 07/10/2020","date":"2020-10-07","source":"Trang chủ","tags":["lichthi"],"firstSeen":"2026-10-25T01:11:51.716Z"}]},"generatedAt":"2026-10-25T03:50:18.933Z"};
 
 /* ===================== Tiện ích ===================== */
@@ -832,7 +833,7 @@ function isSystemAdminEmail(em){
 }
 // API phụ trợ PHP trên hosting hustdocu.id.vn. GitHub Pages không chạy được PHP,
 // nên khi trang mở từ *.github.io thì gọi sang hosting (hosting cho phép tên miền này trong api/_security.php).
-const API_BASE=/\.github\.io$/i.test(location.hostname)?"http://hustdocu.id.vn":"";
+const API_BASE=/\.github\.io$/i.test(location.hostname)?"https://hustdocu.id.vn":"";
 async function apiPost(file,payload){
   const res=await fetch(API_BASE+"/api/"+file,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
   let data;
@@ -851,11 +852,20 @@ function load(){
   }
   if(!S.docs) S.docs=[];
   S.docs=S.docs.filter(d=>d.uploaded===true||(!d.id.startsWith("d")&&!d.id.startsWith("h")&&!d.id.startsWith("p-")&&!d.id.startsWith("p")));
+  if(!S.courses) S.courses=DATA.courses.map(c=>({...c}));
   if(!S.messages) S.messages=[];
   S.messages=S.messages.filter(m=>m.id&&!/^m\d+$/.test(m.id));
   if(!S.comments) S.comments=[];
   if(!S.rooms) seedChat(S);
   if(!S.credits) seedCredits(S);
+  if(!S.ratings) S.ratings={};
+  if(!S.saved) S.saved={};
+  if(!S.follows) S.follows={};
+  if(!S.reviews) S.reviews=[];
+  if(!S.reports) S.reports=[];
+  if(!S.audit) S.audit=[];
+  if(!S.groups) S.groups=[];
+  if(!S.notifications) S.notifications=[];
   // Đảm bảo các tài khoản Quản trị viên luôn sẵn sàng và có đầy đủ quyền
   ADMIN_EMAILS.forEach(em => {
     let u = S.users.find(x => x.email.toLowerCase() === em.toLowerCase());
@@ -884,7 +894,23 @@ function load(){
   });
   try{const ss=sessionStorage.getItem(KEY+"-session");if(ss!==null)S.session=ss||null}catch{}
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify({...S,session:null,typing:null}));sessionStorage.setItem(KEY+"-session",S.session||"")}catch{}}
+let syncServerTimer=null;
+function triggerServerSync(delay=300){
+  if(syncServerTimer)clearTimeout(syncServerTimer);
+  syncServerTimer=setTimeout(()=>{
+    syncAllWithServer(false);
+  },delay);
+}
+
+function save(pushToServer=true){
+  try{
+    localStorage.setItem(KEY,JSON.stringify({...S,session:null,typing:null}));
+    sessionStorage.setItem(KEY+"-session",S.session||"");
+  }catch(e){}
+  if(pushToServer){
+    triggerServerSync(300);
+  }
+}
 load();
 
 let isSyncingDocs=false;
@@ -904,17 +930,160 @@ async function syncDocsFromServer(forceRender=false){
     const beforeStr=JSON.stringify(S.docs);
     S.docs=serverDocs;
     if(JSON.stringify(S.docs)!==beforeStr||forceRender){
-      save();
-      const p=currentPath();
-      if(!p.startsWith("/chat")&&!p.startsWith("/tai-len"))render();
+      save(false);
+      safeRender();
     }
   }catch(e){}finally{
     isSyncingDocs=false;
   }
 }
-syncDocsFromServer(true);
-window.addEventListener("focus",()=>syncDocsFromServer(true));
-setInterval(()=>syncDocsFromServer(),5000);
+
+function safeRender(){
+  if(window.isAppReady&&typeof render==="function"){
+    try{
+      const activeTag=(document.activeElement&&document.activeElement.tagName)||"";
+      const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA";
+      const p=typeof currentPath==="function"?currentPath():"";
+      if(!isTyping&&!p.startsWith("/tai-len"))render();
+    }catch(err){}
+  }
+}
+
+let isSyncingState=false;
+async function syncStateWithServer(forceRender=false){
+  if(isSyncingState)return;
+  isSyncingState=true;
+  try{
+    const payload={
+      courses:S.courses||[],
+      users:S.users||[],
+      credits:S.credits||{},
+      mod:(typeof MD==="function"?MD():S.mod)||{},
+      cm:(typeof CM==="function"?CM():S.cm)||{},
+      comments:S.comments||[],
+      ratings:S.ratings||{},
+      reviews:S.reviews||[],
+      reports:S.reports||[],
+      audit:S.audit||[],
+      messages:S.messages||[],
+      rooms:S.rooms||[],
+      groups:S.groups||[],
+      notifications:S.notifications||[],
+      study:(typeof ST==="function"?ST():S.study)||{},
+      saved:S.saved||{},
+      follows:S.follows||{}
+    };
+
+    const res=await fetch(API_BASE+"/api/sync.php?action=sync",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({state:payload})
+    });
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data||!data.success||!data.state)return;
+    const st=data.state;
+
+    const beforeStr=JSON.stringify({
+      courses:S.courses,
+      users:S.users,
+      credits:S.credits,
+      mod:S.mod,
+      cm:S.cm,
+      comments:S.comments,
+      ratings:S.ratings,
+      reviews:S.reviews,
+      reports:S.reports,
+      audit:S.audit,
+      messages:S.messages,
+      rooms:S.rooms,
+      groups:S.groups,
+      notifications:S.notifications,
+      study:S.study,
+      saved:S.saved,
+      follows:S.follows
+    });
+
+    if(Array.isArray(st.courses)&&st.courses.length>0)S.courses=st.courses;
+    if(Array.isArray(st.users)&&st.users.length>0){
+      S.users=st.users;
+      ADMIN_EMAILS.forEach(em=>{
+        let u=S.users.find(x=>x.email.toLowerCase()===em.toLowerCase());
+        if(!u){
+          u={
+            email:em,
+            name:em==="khanhhoang23072006@gmail.com"?"Khánh Hoàng":"Quản trị viên",
+            displayName:em==="khanhhoang23072006@gmail.com"?"Khánh Hoàng (Admin)":"Admin HUSTDOCU",
+            username:em==="khanhhoang23072006@gmail.com"?"khanhhoang":"admin",
+            faculty:"SOICT",
+            cohort:68,
+            roles:[{key:"STUDENT"},{key:"MODERATOR",faculty:null},{key:"ADMIN",faculty:null}],
+            reputation:99999,
+            approved:999,
+            trust:3,
+            createdAt:Date.now()
+          };
+          S.users.push(u);
+        }else{
+          if(!u.roles.some(r=>r.key==="ADMIN"))u.roles.push({key:"ADMIN",faculty:null});
+          if(!u.roles.some(r=>r.key==="MODERATOR"))u.roles.push({key:"MODERATOR",faculty:null});
+          u.trust=3;
+          if(!u.faculty)u.faculty="SOICT";
+          if(!u.cohort)u.cohort=68;
+        }
+      });
+    }
+    if(st.credits)S.credits=st.credits;
+    if(st.mod)S.mod=st.mod;
+    if(st.cm)S.cm={...(typeof CM==="function"?CM():(S.cm||{})),...st.cm,adSeen:{...((typeof CM==="function"?CM().adSeen:S.cm?.adSeen)||{}),...(st.cm.adSeen||{})},adHidden:{...((typeof CM==="function"?CM().adHidden:S.cm?.adHidden)||{}),...(st.cm.adHidden||{})}};
+    if(Array.isArray(st.comments))S.comments=st.comments;
+    if(st.ratings&&typeof st.ratings==="object")S.ratings=st.ratings;
+    if(Array.isArray(st.reviews))S.reviews=st.reviews;
+    if(Array.isArray(st.reports))S.reports=st.reports;
+    if(Array.isArray(st.audit))S.audit=st.audit;
+    if(Array.isArray(st.messages))S.messages=st.messages;
+    if(Array.isArray(st.rooms))S.rooms=st.rooms;
+    if(Array.isArray(st.groups))S.groups=st.groups;
+    if(Array.isArray(st.notifications))S.notifications=st.notifications;
+    if(st.study)S.study=st.study;
+    if(st.saved&&typeof st.saved==="object")S.saved=st.saved;
+    if(st.follows&&typeof st.follows==="object")S.follows=st.follows;
+
+    const afterStr=JSON.stringify({
+      courses:S.courses,
+      users:S.users,
+      credits:S.credits,
+      mod:S.mod,
+      cm:S.cm,
+      comments:S.comments,
+      ratings:S.ratings,
+      reviews:S.reviews,
+      reports:S.reports,
+      audit:S.audit,
+      messages:S.messages,
+      rooms:S.rooms,
+      groups:S.groups,
+      notifications:S.notifications,
+      study:S.study,
+      saved:S.saved,
+      follows:S.follows
+    });
+
+    if(beforeStr!==afterStr||forceRender){
+      save(false);
+      safeRender();
+    }
+  }catch(e){}finally{
+    isSyncingState=false;
+  }
+}
+
+async function syncAllWithServer(forceRender=false){
+  return await Promise.allSettled([
+    syncDocsFromServer(forceRender),
+    syncStateWithServer(forceRender)
+  ]);
+}
 
 /* File tải lên lưu trong IndexedDB của trình duyệt (để xem lại sau khi tải lại trang) */
 const fileDB={db:null,
@@ -1161,7 +1330,7 @@ function empty(t,sub=""){return `<div class="empty"><div class="art">${mangaArt(
 function needLogin(next){go(`#/dang-nhap?next=${encodeURIComponent(next)}`);return {html:""}}
 
 /* ===================== Các trang ===================== */
-const views={};
+var views={};
 
 views["/"]=()=>{
   const u=me();const docs=publicDocs();
@@ -1430,7 +1599,7 @@ function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="
   S.reports.filter(r=>r.doc===d.id&&r.status==="OPEN").forEach(r=>{r.status="RESOLVED";r.resolution=reason});notify(d.uploader,"DOCUMENT_REMOVED",d,{reason,link:"#/tai-lieu-cua-toi"});
   const back=crRevoke(d,u.email,reason);if(back)notify(d.uploader,"CREDITS_CHANGED",d,{amount:-back,reason,link:"#/luot-tai"});save();
   apiPost("docs.php?action=bulk_status",{ids:[d.id],decision:"REMOVE",reason,by:u?u.email:"admin",docs:[d]}).catch(()=>{});
-  syncDocsFromServer(true);}
+  syncAllWithServer(true);}
 
 /* ----- Tài khoản: Đăng nhập & Đăng ký bằng email và mật khẩu (không cần OTP) ----- */
 
@@ -1895,7 +2064,7 @@ function decide(ids,decision,reason,note){const u=me();let n=0;
   save();
   const updatedDocs=ids.map(id=>S.docs.find(x=>x.id===id)).filter(Boolean);
   apiPost("docs.php?action=bulk_status",{ids,decision,reason,note,by:u?u.email:"mod",docs:updatedDocs}).catch(()=>{});
-  syncDocsFromServer(true);
+  syncAllWithServer(true);
   return n}
 function decisionPanel(compact){return `<div class="stack" data-decision>${compact?"":`<div class="field"><label for="inote">Ghi chú nội bộ (chỉ kiểm duyệt viên thấy)</label><textarea class="textarea" id="inote" style="min-height:64px" placeholder="Không bắt buộc"></textarea></div>`}
   <div class="tb" style="grid-template-columns:repeat(3,1fr)" data-buttons><button type="button" class="btn primary" style="border:0" data-dec="APPROVE">Duyệt</button><button type="button" class="btn" style="border:0" data-dec="REQUEST_CHANGES">Yêu cầu sửa</button><button type="button" class="btn" style="border:0" data-dec="REJECT">Từ chối</button></div>
@@ -5900,6 +6069,8 @@ function adSlot(placement) {
   const cm = CM();
   const today = vnDate(Date.now());
   const who = u?.email || "guest";
+  if (!cm.adHidden) cm.adHidden = {};
+  if (!cm.adSeen) cm.adSeen = {};
   const hidden = cm.adHidden[who] || [];
   const seen = (cm.adSeen[`${who}|${today}`] = cm.adSeen[`${who}|${today}`] || {});
   const list = cm.ads.filter((a) => a.active && a.from <= today && a.to >= today && a.placements.includes(placement) && (!a.faculties.length || (u && a.faculties.includes(u.faculty))) && !hidden.includes(a.id) && (seen[a.id] || 0) < a.cap);
@@ -5965,7 +6136,14 @@ views["/quan-tri/quang-cao"] = () => {
       <p class="err" data-err role="alert" hidden></p><div class="row" style="gap:6px"><button class="btn primary" type="submit">${ed.id ? "Lưu" : "Tạo chiến dịch"}</button>${ed.id ? '<a class="btn ghost" href="#/quan-tri/quang-cao">Thôi</a>' : ""}</div></form></div>`,
     mount(root) {
       root.querySelectorAll("[data-toggle]").forEach((b) => b.addEventListener("click", () => ((cm.ads.find((a) => a.id === b.dataset.toggle).active ^= true), save(), render())));
-      root.querySelectorAll("[data-delad]").forEach((b) => b.addEventListener("click", () => ((cm.ads = cm.ads.filter((a) => a.id !== b.dataset.delad)), save(), render())));
+      root.querySelectorAll("[data-delad]").forEach((b) => b.addEventListener("click", () => {
+        const ad = cm.ads.find((a) => a.id === b.dataset.delad);
+        if (ad) ad.deleted = true;
+        save();
+        cm.ads = cm.ads.filter((a) => a.id !== b.dataset.delad);
+        save(false);
+        render();
+      }));
       root.querySelector('[data-form="ad"]').addEventListener("submit", (e) => {
         e.preventDefault();
         const v = (sel) => root.querySelector(sel).value.trim();
@@ -7269,8 +7447,8 @@ document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-ac
   else if(a==="nocredit"){crDialog()}
   else if(a==="sync"){
     e.preventDefault();
-    toast("Đang đồng bộ với máy chủ...");
-    syncDocsFromServer(true).then(()=>{toast("Đã đồng bộ xong dữ liệu từ máy chủ!")});
+    toast("Đang đồng bộ toàn bộ dữ liệu với máy chủ...");
+    syncAllWithServer(true).then(()=>{toast("Đã đồng bộ xong toàn bộ hệ thống từ máy chủ!")});
   }
   else if(a==="download"){const d=S.docs.find(x=>x.id===el.dataset.id);const u=me();if(!u){go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);return}
    const charge=crCharge(u,d);if(charge==="DENIED"){crDialog();render();return}if(charge==="RATE"){toast("Bạn tải quá nhiều trong một giờ, thử lại sau.");return}
@@ -7286,6 +7464,10 @@ document.addEventListener("click",(e)=>{const m=document.querySelector("details.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{applyTheme();renderHeader()});
 window.addEventListener("hashchange",render);
 render();
+window.isAppReady = true;
+syncAllWithServer(true);
+window.addEventListener("focus",()=>syncAllWithServer(true));
+setInterval(()=>syncAllWithServer(false),5000);
 </script>
 </body>
 </html>

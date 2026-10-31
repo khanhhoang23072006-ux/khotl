@@ -1,5 +1,5 @@
 // Service worker HUSTDOCU: trang chính luôn lấy mạng trực tiếp, mất mạng thì dùng bản đã lưu.
-const CACHE = "hustdocu-v4";
+const CACHE = "hustdocu-v5";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

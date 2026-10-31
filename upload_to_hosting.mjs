@@ -20,6 +20,7 @@ const filesToUpload = [
   'api/voice_signal.php',
   'api/extensions.php',
   'api/docs.php',
+  'api/sync.php',
   'api/config.php',
   'api/data/.htaccess',
   'api/data/otps/.htaccess',
