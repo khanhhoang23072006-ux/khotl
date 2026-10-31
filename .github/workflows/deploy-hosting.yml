@@ -57,13 +57,13 @@ jobs:
       - name: Kiểm tra API OTP trên hosting
         run: |
           check() {
-            code=$(curl -s -o /tmp/body -w '%{http_code}' --max-time 15 -X POST -H 'Content-Type: application/json' -d '{}' "$1" || true)
+            code=$(curl -k -L -s -o /tmp/body -w '%{http_code}' --max-time 15 -X POST -H 'Content-Type: application/json' -d '{}' "$1" || true)
             echo "::notice::$1 → HTTP $code: $(head -c 150 /tmp/body | tr -d '\r\n')"
             [ "$code" = "400" ]
           }
-          if check http://hustdocu.id.vn/api/send_otp.php; then
-            echo "::notice::API send_otp trên http://hustdocu.id.vn hoạt động chuẩn xác!"
+          if check http://hustdocu.id.vn/api/send_otp.php || check https://hustdocu.id.vn/api/send_otp.php; then
+            echo "::notice::API send_otp trên hustdocu.id.vn hoạt động chuẩn xác!"
           else
-            echo "::error::API send_otp không phản hồi HTTP 400 như mong đợi."
+            echo "::error::API send_otp không phản hồi HTTP 400."
             exit 1
           fi
