@@ -3,7 +3,7 @@ rem Thong tin FTP cua hosting. deploy.bat tu sao chep file nay thanh deploy.loca
 rem deploy.local.bat da nam trong .gitignore: KHONG bao gio dua len GitHub.
 rem Neu mat khau co dau %%, viet thanh %%%% (gap doi).
 set "FTP_HOST=103.97.126.29"
-set "FTP_DIR=/domains/lofcreate.online/public_html"
+set "FTP_DIR=/domains/hustdocu.id.vn/public_html"
 set "FTP_USER="
 set "FTP_PASS="
-set "SITE_URL=http://lofcreate.online"
+set "SITE_URL=http://hustdocu.id.vn"

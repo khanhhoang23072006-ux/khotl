@@ -123,6 +123,7 @@ function wait_text(int $sec): string
  * Máy chủ chỉ lưu bản băm SHA-256 của token. */
 const API_ADMIN_EMAILS = [
     'khanhhoang23072006@gmail.com',
+    'admin@hustdocu.id.vn',
     'admin@lofcreate.online',
     'admin@hust.edu.vn',
     'admin.demo@hust.edu.vn',

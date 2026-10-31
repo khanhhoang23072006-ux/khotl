@@ -1,4 +1,4 @@
-# Bảo mật cho hosting Apache (lofcreate.online). deploy.bat tải file này lên thư mục gốc web.
+# Bảo mật cho hosting Apache (hustdocu.id.vn). deploy.bat tải file này lên thư mục gốc web.
 
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"

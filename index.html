@@ -826,13 +826,13 @@ function seedState(){
 function seedCommunity(st){
   st.comments=[];st.ratings={};st.saved={};st.follows={};st.reviews=[];st.v=2;
 }
-const ADMIN_EMAILS = ["khanhhoang23072006@gmail.com", "admin@lofcreate.online", "admin@hust.edu.vn", "admin.demo@hust.edu.vn"];
+const ADMIN_EMAILS = ["khanhhoang23072006@gmail.com", "admin@hustdocu.id.vn", "admin@lofcreate.online", "admin@hust.edu.vn", "admin.demo@hust.edu.vn"];
 function isSystemAdminEmail(em){
   return ADMIN_EMAILS.some(a => a.toLowerCase() === (em || "").trim().toLowerCase());
 }
-// API gửi/kiểm mã OTP là PHP trên hosting lofcreate.online. GitHub Pages không chạy được PHP,
+// API gửi/kiểm mã OTP là PHP trên hosting hustdocu.id.vn. GitHub Pages không chạy được PHP,
 // nên khi trang mở từ *.github.io thì gọi sang hosting (hosting cho phép tên miền này trong api/_security.php).
-const API_BASE=/\.github\.io$/i.test(location.hostname)?"https://lofcreate.online":"";
+const API_BASE=/\.github\.io$/i.test(location.hostname)?"https://hustdocu.id.vn":"";
 async function apiPost(file,payload){
   const res=await fetch(API_BASE+"/api/"+file,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
   let data;

@@ -1,6 +1,6 @@
 # Rà soát bảo mật HUSTDOCU (29/10/2026)
 
-Phạm vi: bản đang chạy ở lofcreate.online (`index.html` + `api/*.php` trên hosting Apache), workflow GitHub Actions, và app Next.js trong `apps/`, `packages/` (chưa triển khai). Đối chiếu OWASP Top 10 (2021).
+Phạm vi: bản đang chạy ở hustdocu.id.vn (`index.html` + `api/*.php` trên hosting Apache), workflow GitHub Actions, và app Next.js trong `apps/`, `packages/` (chưa triển khai). Đối chiếu OWASP Top 10 (2021).
 
 ## Đã sửa
 

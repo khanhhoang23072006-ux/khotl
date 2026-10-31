@@ -96,7 +96,7 @@ if ($sentVia === '' && !empty($GITHUB_TOKEN)) {
 
 // 3. Dự phòng cuối: hàm mail() của hosting (hay bị xếp vào Spam)
 if ($sentVia === '') {
-    $from = !empty($MAIL_FROM) ? $MAIL_FROM : 'no-reply@' . preg_replace('/^www\./', '', preg_replace('/[^A-Za-z0-9.\-]/', '', $_SERVER['SERVER_NAME'] ?? 'lofcreate.online'));
+    $from = !empty($MAIL_FROM) ? $MAIL_FROM : 'no-reply@' . preg_replace('/^www\./', '', preg_replace('/[^A-Za-z0-9.\-]/', '', $_SERVER['SERVER_NAME'] ?? 'hustdocu.id.vn'));
     $boundaryMail = mail_build($from, 'HUSTDOCU', $email, $subject, $text, $html);
     // mail() tự thêm To và Subject: tách phần header còn lại ra khỏi thư đã dựng
     [$head, $bodyMail] = explode("\r\n\r\n", $boundaryMail, 2);

@@ -1,9 +1,10 @@
-name: Đăng lên hosting (lofcreate.online)
+name: Đăng lên hosting (hustdocu.id.vn)
 
 # Thay cho deploy.bat: mỗi lần push lên main (hoặc bấm Run workflow), tải các file web và API PHP lên hosting qua FTP,
 # rồi kiểm tra API OTP có chạy qua HTTPS không.
 # Cần đặt ở Settings → Secrets and variables → Actions: FTP_HOST, FTP_USER, FTP_PASS
-# (tuỳ chọn, ở tab Variables: FTP_DIR, mặc định /domains/lofcreate.online/public_html).
+# (tuỳ chọn, ở tab Variables: FTP_DIR, mặc định /domains/hustdocu.id.vn/public_html).
+# Trong lúc chuyển tên miền, cũng tải lên thư mục cũ lofcreate.online để tên miền cũ vẫn chạy (lỗi ở đây chỉ cảnh báo).
 # api/config.php (token GitHub, mã quản trị) KHÔNG upload từ đây, sửa trực tiếp trên hosting.
 on:
   push:
@@ -31,7 +32,8 @@ jobs:
           FTP_HOST: ${{ secrets.FTP_HOST }}
           FTP_USER: ${{ secrets.FTP_USER }}
           FTP_PASS: ${{ secrets.FTP_PASS }}
-          FTP_DIR: ${{ vars.FTP_DIR || '/domains/lofcreate.online/public_html' }}
+          FTP_DIR: ${{ vars.FTP_DIR || '/domains/hustdocu.id.vn/public_html' }}
+          OLD_DIR: /domains/lofcreate.online/public_html
         run: |
           if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
             echo "::error::Thiếu secret FTP_HOST, FTP_USER hoặc FTP_PASS (Settings → Secrets and variables → Actions)."
@@ -60,15 +62,21 @@ jobs:
             fi
           fi
           fail=0
-          for f in $files; do
-            [ -f "$f" ] || { echo "Bỏ qua $f (không có)"; continue; }
-            if curl -sS --fail $tls "${resolve[@]}" --ftp-create-dirs --retry 2 --connect-timeout 20 --max-time 120 \
-                 --user "$FTP_USER:$FTP_PASS" -T "$f" "ftp://$host$FTP_DIR/$f"; then
-              echo "Đã tải $f"
-            else
-              echo "::error::Không tải được $f"
-              fail=1
-            fi
+          dirs="$FTP_DIR"; [ "$OLD_DIR" != "$FTP_DIR" ] && dirs="$dirs $OLD_DIR"
+          for dir in $dirs; do
+            [ "$dir" = "$FTP_DIR" ] && main=1 || main=0
+            for f in $files; do
+              [ -f "$f" ] || { echo "Bỏ qua $f (không có)"; continue; }
+              if curl -sS --fail $tls "${resolve[@]}" --ftp-create-dirs --retry 2 --connect-timeout 20 --max-time 120 \
+                   --user "$FTP_USER:$FTP_PASS" -T "$f" "ftp://$host$dir/$f"; then
+                echo "Đã tải $dir/$f"
+              elif [ $main = 1 ]; then
+                echo "::error::Không tải được $dir/$f"
+                fail=1
+              else
+                echo "::warning::Không tải được $dir/$f (thư mục tên miền cũ)"
+              fi
+            done
           done
           exit $fail
 
@@ -81,15 +89,18 @@ jobs:
             # 400 = API chạy và từ chối email rỗng (đúng mong đợi)
             [ "$code" = "400" ]
           }
-          # Chẩn đoán: trang tĩnh và API có cùng lỗi không (502 ở cả trang tĩnh = máy chủ hosting lỗi, không phải code PHP)
-          for u in http://lofcreate.online/ http://lofcreate.online/sw.js http://lofcreate.online/api/extensions.php?action=list; do
-            echo "::notice::$u → HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$u" || true)"
+          ok=0
+          for d in hustdocu.id.vn lofcreate.online; do
+            # Chẩn đoán: trang tĩnh và API có cùng lỗi không (502 ở cả trang tĩnh = máy chủ hosting lỗi, không phải code PHP)
+            for u in http://$d/ https://$d/ http://$d/api/extensions.php?action=list; do
+              echo "::notice::$u → HTTP $(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$u" || true)"
+            done
+            if check https://$d/api/send_otp.php; then
+              echo "::notice::$d: API chạy qua HTTPS."; ok=1
+            elif check http://$d/api/send_otp.php; then
+              echo "::warning::$d: API chỉ chạy qua HTTP. Bật SSL (Let's Encrypt) cho $d trong trang quản lý hosting."
+            else
+              echo "::warning::$d: không gọi được API (tên miền chưa trỏ về hosting hoặc chưa thêm vào hosting)."
+            fi
           done
-          if check https://lofcreate.online/api/send_otp.php; then
-            echo "::notice::API OTP chạy qua HTTPS: trang GitHub Pages gửi được mã."
-          elif check http://lofcreate.online/api/send_otp.php; then
-            echo "::warning::API OTP chỉ chạy qua HTTP. Trang trên GitHub Pages (HTTPS) sẽ bị trình duyệt chặn: bật SSL cho lofcreate.online trong trang quản lý hosting."
-          else
-            echo "::error::Không gọi được API OTP trên lofcreate.online."
-            exit 1
-          fi
+          [ $ok = 1 ] || { echo "::error::Không tên miền nào gọi được API qua HTTPS."; exit 1; }

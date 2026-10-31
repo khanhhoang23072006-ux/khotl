@@ -21,8 +21,8 @@ call "deploy.local.bat"
 if "%FTP_HOST%"=="" goto :missing
 if "%FTP_USER%"=="" goto :missing
 if "%FTP_PASS%"=="" goto :missing
-if "%FTP_DIR%"=="" set "FTP_DIR=/domains/lofcreate.online/public_html"
-if "%SITE_URL%"=="" set "SITE_URL=http://lofcreate.online"
+if "%FTP_DIR%"=="" set "FTP_DIR=/domains/hustdocu.id.vn/public_html"
+if "%SITE_URL%"=="" set "SITE_URL=http://hustdocu.id.vn"
 
 set "FTP=ftp://%FTP_HOST%%FTP_DIR%"
 set "FAIL=0"
