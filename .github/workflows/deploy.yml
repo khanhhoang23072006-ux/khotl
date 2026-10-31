@@ -1,0 +1,53 @@
+name: Tự động đồng bộ lên Website Hosting (hustdocu.id.vn)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - "sw.js"
+      - "manifest.webmanifest"
+      - "api/**"
+      - "data/**"
+      - "icons/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hosting-legacy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload lên hosting qua FTP
+        env:
+          FTP_SERVER: ftp://free02.123host.vn/domains/hustdocu.id.vn/public_html
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          echo "Bắt đầu đồng bộ lên hustdocu.id.vn..."
+          AUTH="--user $FTP_USER:$FTP_PASS"
+          
+          curl -s -T "index.html" "$FTP_SERVER/index.html" $AUTH
+          curl -s -T "sw.js" "$FTP_SERVER/sw.js" $AUTH
+          curl -s -T "manifest.webmanifest" "$FTP_SERVER/manifest.webmanifest" $AUTH
+          
+          curl -s -T "api/send_otp.php" --ftp-create-dirs "$FTP_SERVER/api/send_otp.php" $AUTH
+          curl -s -T "api/verify_otp.php" --ftp-create-dirs "$FTP_SERVER/api/verify_otp.php" $AUTH
+          curl -s -T "api/voice_signal.php" --ftp-create-dirs "$FTP_SERVER/api/voice_signal.php" $AUTH
+          curl -s -T "api/extensions.php" --ftp-create-dirs "$FTP_SERVER/api/extensions.php" $AUTH
+          curl -s -T "api/_security.php" --ftp-create-dirs "$FTP_SERVER/api/_security.php" $AUTH
+          curl -s -T "api/_mailer.php" --ftp-create-dirs "$FTP_SERVER/api/_mailer.php" $AUTH
+          curl -s -T "api/data/otps/.htaccess" --ftp-create-dirs "$FTP_SERVER/api/data/otps/.htaccess" $AUTH
+          
+          curl -s -T "data/hust-feed.json" --ftp-create-dirs "$FTP_SERVER/data/hust-feed.json" $AUTH
+          
+          curl -s -T "icons/icon.svg" --ftp-create-dirs "$FTP_SERVER/icons/icon.svg" $AUTH
+          curl -s -T "icons/icon-192.png" --ftp-create-dirs "$FTP_SERVER/icons/icon-192.png" $AUTH
+          curl -s -T "icons/icon-512.png" --ftp-create-dirs "$FTP_SERVER/icons/icon-512.png" $AUTH
+          curl -s -T "icons/og.png" --ftp-create-dirs "$FTP_SERVER/icons/og.png" $AUTH
+          
+          echo "Đã đồng bộ thành công toàn bộ lên http://hustdocu.id.vn!"

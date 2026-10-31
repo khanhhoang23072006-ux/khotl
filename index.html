@@ -832,7 +832,7 @@ function isSystemAdminEmail(em){
 }
 // API gửi/kiểm mã OTP là PHP trên hosting hustdocu.id.vn. GitHub Pages không chạy được PHP,
 // nên khi trang mở từ *.github.io thì gọi sang hosting (hosting cho phép tên miền này trong api/_security.php).
-const API_BASE=/\.github\.io$/i.test(location.hostname)?"https://hustdocu.id.vn":"";
+const API_BASE=/\.github\.io$/i.test(location.hostname)?"http://hustdocu.id.vn":"";
 async function apiPost(file,payload){
   const res=await fetch(API_BASE+"/api/"+file,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
   let data;
@@ -1098,7 +1098,7 @@ function renderHeaderInner(){
     ${installPrompt?'<button class="btn sm" type="button" data-action="install" style="margin-right:6px">Cài ứng dụng</button>':""}
     <button class="icon-btn head" type="button" data-action="lang" aria-label="${getLang()==="en"?"Chuyển sang tiếng Việt":"Switch to English"}" style="font-size:13px">${getLang()==="en"?"VI":"EN"}</button>
     <button class="icon-btn" type="button" data-action="theme" aria-label="${isDark()?"Chuyển sang nền sáng":"Chuyển sang nền tối"}">${isDark()?icon.sun:icon.moon}</button>
-    ${crMeter(u||guestUser())}
+    ${u?crMeter(u):""}
     ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
     <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
      <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
@@ -1331,7 +1331,8 @@ views["/tai-lieu/:slug"]=({slug})=>{
   const related=publicDocs().filter(x=>x.course===d.course&&x.id!==d.id).sort((a,b)=>b.downloads-a.downloads).slice(0,4);
   const uploaded=!!d.uploaded;
   const viewer=uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`
-   :`<div class="viewer"><div class="bar"><span class="head" data-page-ind>Trang 1 / ${d.pages}</span><span style="padding:0"><button type="button" data-zoom="-1" aria-label="Thu nhỏ">−</button><button type="button" data-zoom="0" aria-label="Vừa chiều ngang" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button><button type="button" data-zoom="1" aria-label="Phóng to">+</button></span></div><div class="pages" data-pages><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,d.pages)}</div></div></div>`;
+   :u?`<div class="viewer"><div class="bar"><span class="head" data-page-ind>Trang 1 / ${d.pages}</span><span style="padding:0"><button type="button" data-zoom="-1" aria-label="Thu nhỏ">−</button><button type="button" data-zoom="0" aria-label="Vừa chiều ngang" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button><button type="button" data-zoom="1" aria-label="Phóng to">+</button></span></div><div class="pages" data-pages><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,d.pages)}</div></div></div>`
+   :`<div class="stack">${renderPages(d,Math.min(GUEST_PAGES,d.pages))}<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;align-items:flex-start"><p class="head" style="margin:0">Khách xem được ${Math.min(GUEST_PAGES,d.pages)} trang đầu. Đăng nhập bằng email trường để đọc hết và tải về.</p><a class="btn ink" href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập để đọc toàn bộ</a></div></div>`;
   return {html:`<div class="wrap" style="padding-block:20px">
    <nav class="small muted row" style="gap:8px;margin-bottom:12px" aria-label="Vị trí tài liệu"><a href="#/vien/${f.slug}">${esc(f.shortName)}</a><span aria-hidden="true">/</span><a href="#/hoc-phan/${c.code}">${c.code} ${esc(c.name)}</a></nav>
    ${access!=="public"?`<div class="note${d.status==="CHANGES_REQUESTED"||d.status==="REJECTED"?" red":""}" style="margin-bottom:16px"><span class="badge ${d.status}">${STATUS[d.status]}</span> ${{PROCESSING:"Đang chạy kiểm tra tự động.",PENDING_REVIEW:"Đã qua kiểm tra tự động, đang chờ kiểm duyệt viên. Chỉ bạn và kiểm duyệt viên thấy trang này.",CHANGES_REQUESTED:"Kiểm duyệt viên đề nghị bạn chỉnh sửa rồi gửi lại.",REJECTED:"Tài liệu không được duyệt.",REMOVED:"Tài liệu đã bị gỡ khỏi kho."}[d.status]||""}${d.reviewNote?`<div><b class="head">Ghi chú của kiểm duyệt viên:</b> ${esc(d.reviewNote)}</div>`:""}${mod&&d.status==="PENDING_REVIEW"?`<div><a href="#/kiem-duyet/${d.id}"><b>Mở trong hàng chờ kiểm duyệt</b></a></div>`:""}${access==="owner"&&d.status==="CHANGES_REQUESTED"?`<div><a href="#/tai-lieu-cua-toi/${d.id}/sua"><b>Sửa và gửi lại</b></a></div>`:""}</div>`:""}
@@ -1346,7 +1347,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
       <div class="cell"><span class="l">Lượt xem</span><span class="v">${fmtCount(d.views)}</span></div><div class="cell"><span class="l">Lượt tải</span><span class="v">${fmtCount(d.downloads)}</span></div>
       <div style="grid-column:span 2;display:flex;gap:12px;align-items:center;padding:8px 12px"><span class="avatar" style="width:36px;height:36px">${showUp?esc(initials(displayName(up))):"?"}</span><span style="display:flex;flex-direction:column;min-width:0"><b style="font-weight:600">${showUp?esc(displayName(up)):"Người đăng ẩn danh"}${showUp&&d.anonymous?' <span class="tiny muted">(ẩn danh với người xem)</span>':""}</b>${showUp?`<span class="tiny muted">Đã đóng góp ${up?.approved||0} tài liệu được duyệt</span>`:""}</span></div>
      </div>
-     ${crButton(u||guestUser(),d)}
+     ${u?crButton(u,d):`<button class="btn primary lg block" type="button" data-action="download" data-id="${d.id}">${icon.down}Đăng nhập để tải xuống</button>`}
      ${d.status==="APPROVED"?`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:8px 12px"><span class="tiny muted" style="display:block">${u&&u.email!==d.uploader?(myRating(u,d)?"Điểm bạn chấm":"Chấm điểm tài liệu"):"Điểm trung bình"}</span>${u&&u.email!==d.uploader?`<div class="stars" role="radiogroup" aria-label="Chấm điểm">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="${myRating(u,d)===n}" aria-label="${n} sao" data-rate="${n}" class="${myRating(u,d)>=n?"on":""}">★</button>`).join("")}</div>`:`<b class="code" style="font-size:24px">${rating(d)}</b>`}</div><button type="button" class="btn${isSaved(u,d)?" ink":""}" style="border:0;height:auto" data-save aria-pressed="${isSaved(u,d)}">${isSaved(u,d)?"Đã lưu":"Lưu"}</button></div>`:""}
      ${d.description?`<section style="border:2px solid var(--line);background:var(--sheet);padding:8px 12px"><h2 class="tiny muted" style="font-weight:400">Mô tả</h2><p style="margin:0;white-space:pre-line;font-size:14px">${esc(d.description)}</p></section>`:""}${typeof adSlot==="function"?adSlot("doc"):""}
      ${d.tags?.length?`<ul class="chips" aria-label="Thẻ">${d.tags.map(t=>`<li><a href="#/tim-kiem?q=${encodeURIComponent(t)}">${esc(t)}</a></li>`).join("")}</ul>`:""}
@@ -1400,7 +1401,9 @@ function removeDoc(d,reason,reportId){const u=me();const was=d.status;d.status="
   S.reports.filter(r=>r.doc===d.id&&r.status==="OPEN").forEach(r=>{r.status="RESOLVED";r.resolution=reason});notify(d.uploader,"DOCUMENT_REMOVED",d,{reason,link:"#/tai-lieu-cua-toi"});
   const back=crRevoke(d,u.email,reason);if(back)notify(d.uploader,"CREDITS_CHANGED",d,{amount:-back,reason,link:"#/luot-tai"});save()}
 
-/* ----- Tài khoản: Đăng nhập & Đăng ký bằng email và mật khẩu (không cần OTP) ----- */
+/* ----- Xác thực tài khoản: Đăng nhập & Đăng ký (Xác thực OTP qua Gmail SMTP) ----- */
+let pendingReg=null;
+let pendingLoginOtp=null;
 
 function jsSha256(ascii){
   function rightRotate(v,a){return (v>>>a)|(v<<(32-a))}
@@ -1475,20 +1478,21 @@ function authCardView(isLoginTab){
       <div class="art-panel auth-art">${mangaArt("girl-wave","Bạn nữ cười, giơ tay chào")}<div class="bubble" style="left:14px;top:14px;max-width:180px">${isLoginTab?"A, bạn<br>về rồi!":"Chào mừng<br>tân binh!"}</div></div>
       <h1 style="font-size:clamp(40px,5.6vw,60px);line-height:.95">${isLoginTab?"Đăng nhập":"Đăng ký"}</h1>
       <p style="margin:0;max-width:440px">${isLoginTab
-        ?"Đăng nhập bằng email và mật khẩu. Không đăng nhập vẫn dùng được, nhưng chỉ tải ${crSet().guestDailyFree} lượt mỗi ngày."
-        :"Tạo tài khoản HUSTDOCU chỉ với email và mật khẩu, dùng được ngay, không cần mã xác thực."}
+        ?"Đăng nhập bằng tài khoản và mật khẩu của bạn, hoặc dùng mã OTP gửi về email nếu quên mật khẩu."
+        :"Tạo tài khoản HUSTDOCU mới. Mã OTP 6 số sẽ được gửi về email của bạn để xác thực và kích hoạt ngay."}
       </p>
       <ul class="perks">
         <li>Đọc toàn bộ tài liệu học tập ngay trên trình duyệt.</li>
-        <li>Tải ${crSet().dailyFree} lượt mỗi ngày thay vì ${crSet().guestDailyFree} lượt khi chưa đăng nhập.</li>
+        <li>Tải file gốc chất lượng cao về máy.</li>
         <li>Đóng góp tài liệu và nhận điểm thưởng uy tín.</li>
         <li>Hỗ trợ email sinh viên Bách khoa và Gmail cá nhân.</li>
+        ${!isLoginTab?'<li><b>Bắt buộc xác thực OTP 6 số</b> gửi về email để bảo vệ tài khoản.</li>':''}
       </ul>
      </div>
      <div class="auth-card" data-auth-card>
       <nav class="auth-tabs" aria-label="Đăng nhập hoặc đăng ký">
         <a href="#/dang-nhap${nextQuery}"${isLoginTab?' aria-current="page"':""}>Đăng nhập</a>
-        <a href="#/dang-ky${nextQuery}"${!isLoginTab?' aria-current="page"':""}>Đăng ký</a>
+        <a href="#/dang-ky${nextQuery}"${!isLoginTab?' aria-current="page"':""}>Đăng ký (OTP)</a>
       </nav>
       <div style="padding:20px 22px 24px" class="stack" data-auth-body></div>
      </div>
@@ -1510,11 +1514,11 @@ function mountRegister(body,next,nextQuery){
       <form class="stack" data-f-reg novalidate style="gap:14px">
         <div class="field">
           <label for="reg-name">Họ và tên <span class="req">*</span></label>
-          <input class="input" id="reg-name" placeholder="Ví dụ: Nguyễn Văn Hoàng" ${loading?" disabled":""} required>
+          <input class="input" id="reg-name" placeholder="Ví dụ: Nguyễn Văn Hoàng" value="${esc(pendingReg?.name||"")}"${loading?" disabled":""} required>
         </div>
         <div class="field">
-          <label for="reg-em">Email <span class="req">*</span></label>
-          <input class="input" id="reg-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" ${loading?" disabled":""} required>
+          <label for="reg-em">Email nhận mã OTP <span class="req">*</span></label>
+          <input class="input" id="reg-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingReg?.email||"")}"${loading?" disabled":""} required>
           <span class="hint">Hỗ trợ email sinh viên (@sis.hust.edu.vn, @hust.edu.vn) và Gmail.</span>
         </div>
         <div class="field">
@@ -1537,7 +1541,7 @@ function mountRegister(body,next,nextQuery){
         </label>
         ${err?`<div class="err" role="alert">${err}</div>`:""}
         <button class="btn primary lg" type="submit"${loading?" disabled":""} style="margin-top:4px">
-          ${loading?"Đang tạo tài khoản...":"Tạo tài khoản"}
+          ${loading?"Đang gửi mã xác thực OTP...":"Tiếp tục: Nhận mã OTP qua Email →"}
         </button>
         <p class="small muted" style="text-align:center;margin:8px 0 0">
           Đã có tài khoản? <a href="#/dang-nhap${nextQuery}"><b>Đăng nhập ngay</b></a>
@@ -1554,70 +1558,359 @@ function mountRegister(body,next,nextQuery){
       const pass=body.querySelector("#reg-pass").value;
       const pass2=body.querySelector("#reg-pass2").value;
       const agree=body.querySelector("#reg-agree").checked;
+
       if(!name||name.length<2)return step1("Vui lòng nhập họ và tên của bạn (tối thiểu 2 ký tự).");
       if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return step1("Vui lòng nhập địa chỉ email hợp lệ.");
       if(pass.length<6)return step1("Mật khẩu phải có ít nhất 6 ký tự.");
       if(pass!==pass2)return step1("Mật khẩu nhập lại không khớp.");
       if(!agree)return step1("Vui lòng đồng ý với điều khoản sử dụng.");
-      if(isSystemAdminEmail(email))return step1("Email này dành cho quản trị viên, không đăng ký được. Vui lòng dùng email khác.");
-      if(S.users.find(u=>u.email.toLowerCase()===email))return step1(`Email "${email}" đã có tài khoản. Vui lòng chuyển sang tab Đăng nhập.`);
+
+      const exists=S.users.find(u=>u.email.toLowerCase()===email);
+      if(exists){
+        return step1(`Email "${email}" đã được đăng ký tài khoản. Vui lòng chuyển sang tab Đăng nhập.`);
+      }
+
       step1("",true);
-      const passwordHash=await hashPassword(pass);
-      const base=email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
-      const username=base.length<3?base+"user":base;
-      const uname=username+(S.users.some(x=>x.username===username)?Math.floor(100+Math.random()*900):"");
-      S.users.push({email,name,displayName:name,username:uname,passwordHash,faculty:null,cohort:null,roles:[{key:"STUDENT"}],reputation:10,approved:0,trust:1,createdAt:Date.now()});
-      save();
-      signIn(email,next);
+      try{
+        const {res,data}=await apiPost("send_otp.php",{email});
+        if(data.success){
+          pendingReg={name,email,password:pass,t:Date.now()};
+          step2();
+          toast(data.message||"Mã xác thực 6 số đã được gửi tới email của bạn!");
+        }else{
+          step1(data.message||"Không thể gửi mã xác thực. Vui lòng thử lại.");
+        }
+      }catch(err){
+        console.error("send_otp error:",err);
+        step1("Không thể kết nối máy chủ gửi thư. Vui lòng kiểm tra lại mạng.");
+      }
     });
+
     if(!loading)body.querySelector("#reg-name").focus();
   }
-  step1();
+
+  function step2(err="",loading=false){
+    body.innerHTML=`
+      <div class="mailbox" style="border:2px solid var(--line);background:var(--paper);margin-bottom:14px;padding:14px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <div style="width:38px;height:38px;border:2px solid var(--line);background:var(--wash);display:flex;align-items:center;justify-content:center;color:var(--ink)">${icon.mail}</div>
+          <div>
+            <b style="font-size:15px">Kiểm tra hộp thư email để kích hoạt</b>
+            <div class="small muted" style="font-size:12px">Mã 6 số đã gửi tới: <b style="color:var(--ink)">${esc(pendingReg.email)}</b></div>
+          </div>
+        </div>
+        <p class="small muted" style="margin:0;line-height:1.45;font-size:12px;border-top:1px solid var(--line);padding-top:8px">
+          Vui lòng kiểm tra hộp thư đến (Inbox) hoặc Thư rác / Spam trong Gmail. Mã OTP có hiệu lực trong <b>10 phút</b>.
+        </p>
+      </div>
+      <form class="stack" data-f-reg-otp novalidate style="gap:14px">
+        <div class="field">
+          <label for="reg-otp">Mã xác thực 6 số</label>
+          <input class="input otp" id="reg-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="reg-otph" placeholder="••••••" style="font-size:24px;letter-spacing:6px;text-align:center;font-weight:700"${loading?" disabled":""}>
+          ${err?`<span id="reg-otph" class="err" role="alert">${err}</span>`:'<span id="reg-otph" class="hint">Nhập đúng 6 chữ số vừa nhận được trong email.</span>'}
+        </div>
+        <button class="btn primary lg" type="submit"${loading?" disabled":""}>
+          ${loading?"Đang kích hoạt tài khoản...":"Xác thực & Hoàn tất tạo tài khoản"}
+        </button>
+        <div class="row" style="justify-content:space-between;font-size:13px">
+          <button type="button" class="btn ghost sm" data-back-reg>← Sửa thông tin</button>
+          <button type="button" class="btn ghost sm" data-resend-reg>Gửi lại mã OTP</button>
+        </div>
+      </form>
+    `;
+
+    const otp=body.querySelector("#reg-otp");
+    otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});
+    otpResendCountdown(body.querySelector("[data-resend-reg]"),pendingReg.t);
+    if(!loading)otp.focus();
+
+    body.querySelector("[data-back-reg]").addEventListener("click",()=>step1());
+    body.querySelector("[data-resend-reg]").addEventListener("click",async()=>{
+      toast("Đang gửi lại mã xác thực...");
+      try{
+        const {res,data}=await apiPost("send_otp.php",{email:pendingReg.email});
+        if(data.success){
+          pendingReg.t=Date.now();
+          step2();
+          toast(data.message||"Đã gửi lại mã mới về email!");
+        }else{
+          toast(data.message||"Không thể gửi lại mã.");
+        }
+      }catch(err){
+        toast("Lỗi kết nối khi gửi lại mã.");
+      }
+    });
+
+    body.querySelector("[data-f-reg-otp]").addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const code=otp.value.trim();
+      if(code.length!==6)return step2("Vui lòng nhập đủ 6 chữ số.");
+      step2("",true);
+      try{
+        const {res,data}=await apiPost("verify_otp.php",{email:pendingReg.email,otp:code});
+        if(data.success){
+          const passHash=await hashPassword(pendingReg.password);
+          const base=pendingReg.email.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
+          const uname=base+(S.users.some(x=>x.username===base)?Math.floor(100+Math.random()*900):"");
+          const newUser={
+            email:pendingReg.email,
+            name:pendingReg.name,
+            displayName:pendingReg.name,
+            username:uname,
+            passwordHash:passHash,
+            faculty:null,
+            cohort:null,
+            roles:[{key:"STUDENT"}],
+            reputation:10,
+            approved:0,
+            trust:1,
+            createdAt:Date.now()
+          };
+          S.users.push(newUser);
+          save();
+          const confirmedEmail=pendingReg.email;
+          pendingReg=null;
+          signIn(confirmedEmail,next);
+          toast("Đăng ký và kích hoạt tài khoản thành công!");
+        }else{
+          step2(data.message||"Mã xác thực không chính xác hoặc đã hết hạn.");
+        }
+      }catch(err){
+        console.error("verify_otp error:",err);
+        step2("Không thể kết nối máy chủ xác thực. Vui lòng thử lại.");
+      }
+    });
+  }
+
+  if(pendingReg){
+    step2();
+  }else{
+    step1();
+  }
+}
+
+/** Nút "Gửi lại mã" chỉ bấm được sau 60 giây kể từ lần gửi trước (khớp giới hạn của máy chủ). */
+function otpResendCountdown(btn,sentAt){
+  if(!btn)return;
+  const label=btn.textContent;
+  const tick=()=>{
+    if(!btn.isConnected)return;
+    const left=Math.ceil((sentAt+60e3-Date.now())/1000);
+    if(left>0){btn.disabled=true;btn.textContent=`${label} (${left}s)`;setTimeout(tick,1000);}
+    else{btn.disabled=false;btn.textContent=label;}
+  };
+  tick();
 }
 
 function mountLogin(body,next,nextQuery){
-  function view(err="",loading=false,email=""){
+  function viewPassLogin(err="",loading=false){
     body.innerHTML=`
       <form class="stack" data-f-login-pass novalidate style="gap:14px">
         <div class="field">
           <label for="login-em">Email tài khoản</label>
-          <input class="input" id="login-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(email)}"${loading?" disabled":""} required>
+          <input class="input" id="login-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingLoginOtp?.email||"")}"${loading?" disabled":""} required>
         </div>
         <div class="field">
-          <label for="login-pass">Mật khẩu</label>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+            <label for="login-pass" style="margin:0">Mật khẩu</label>
+            <button type="button" class="btn ghost sm" data-switch-to-otp style="border:0;padding:0;font-size:12px;color:var(--pencil);background:none;cursor:pointer">Quên mật khẩu?</button>
+          </div>
           <div style="position:relative">
             <input class="input" id="login-pass" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu của bạn" style="padding-right:42px"${loading?" disabled":""} required>
             <button type="button" class="icon-btn" data-toggle-pass="login-pass" style="position:absolute;right:0;top:0;height:100%;width:42px;border:0;background:none;cursor:pointer;color:var(--pencil)" title="Ẩn/hiện mật khẩu" tabindex="-1">${icon.eye}</button>
           </div>
         </div>
         ${err?`<div class="err" role="alert">${err}</div>`:""}
-        <button class="btn primary lg" type="submit"${loading?" disabled":""} style="margin-top:4px">${loading?"Đang đăng nhập...":"Đăng nhập"}</button>
-        <p class="small muted" style="text-align:center;margin:10px 0 0">Chưa có tài khoản? <a href="#/dang-ky${nextQuery}"><b>Đăng ký ngay</b></a></p>
-      </form>`;
+        <button class="btn primary lg" type="submit"${loading?" disabled":""} style="margin-top:4px">
+          ${loading?"Đang đăng nhập...":"Đăng nhập"}
+        </button>
+        <button type="button" class="btn ghost sm" data-switch-to-otp style="width:100%;margin-top:6px">
+          ${icon.key}Đăng nhập nhanh bằng mã OTP qua Email
+        </button>
+        <p class="small muted" style="text-align:center;margin:10px 0 0">
+          Chưa có tài khoản? <a href="#/dang-ky${nextQuery}"><b>Đăng ký ngay</b> (Xác thực OTP)</a>
+        </p>
+      </form>
+    `;
+
     bindPassToggles(body);
-    body.querySelector("[data-f-login-pass]").addEventListener("submit",async(e)=>{
+    body.querySelectorAll("[data-switch-to-otp]").forEach(btn=>{
+      btn.addEventListener("click",()=>viewOtpStep1());
+    });
+    const form=body.querySelector("[data-f-login-pass]");
+    form.addEventListener("submit",async(e)=>{
       e.preventDefault();
       const email=body.querySelector("#login-em").value.trim().toLowerCase();
       const pass=body.querySelector("#login-pass").value;
-      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return view("Vui lòng nhập địa chỉ email hợp lệ.",false,email);
-      if(!pass)return view("Vui lòng nhập mật khẩu.",false,email);
-      view("",true,email);
+
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return viewPassLogin("Vui lòng nhập địa chỉ email hợp lệ.");
+      if(!pass)return viewPassLogin("Vui lòng nhập mật khẩu.");
+
+      viewPassLogin("",true);
       const u=S.users.find(x=>x.email.toLowerCase()===email);
       const isAdm=isSystemAdminEmail(email);
-      if(!u&&!isAdm)return view(`Email "${email}" chưa có tài khoản. Vui lòng chuyển sang tab Đăng ký.`,false,email);
-      const passHash=await hashPassword(pass);
+
+      if(!u&&!isAdm){
+        return viewPassLogin(`Email "${email}" chưa được đăng ký tài khoản. Vui lòng chuyển sang tab Đăng ký.`);
+      }
+
       let passOk=false;
-      if(u&&u.passwordHash)passOk=u.passwordHash===passHash;
-      if(!passOk&&isAdm){
-        // Quản trị viên: mã quản trị riêng kiểm tra trên máy chủ (không nằm trong mã nguồn)
-        try{const {res,data}=await apiPost("verify_otp.php",{email,otp:pass});passOk=!!(data.success&&data.is_admin);if(!passOk&&res.status===429)return view(data.message,false,email)}catch{passOk=false}
-      }else if(!passOk&&u&&!u.passwordHash){u.passwordHash=passHash;save();passOk=true}
-      if(!passOk)return view("Mật khẩu không chính xác.",false,email);
+      const passHash=await hashPassword(pass);
+
+      if(isAdm){
+        // Quản trị viên: mật khẩu tài khoản, hoặc mã quản trị riêng kiểm tra trên máy chủ (không nằm trong mã nguồn)
+        if(u&&u.passwordHash&&u.passwordHash===passHash)passOk=true;
+        else{
+          try{
+            const {res,data}=await apiPost("verify_otp.php",{email,otp:pass});
+            passOk=!!(data.success&&data.is_admin);
+            if(!passOk&&res.status===429)return viewPassLogin(data.message);
+          }catch{passOk=false}
+        }
+      }else if(u){
+        if(u.passwordHash){
+          passOk=(u.passwordHash===passHash);
+        }else{
+          u.passwordHash=passHash;
+          save();
+          passOk=true;
+        }
+      }
+
+      if(!passOk){
+        return viewPassLogin("Mật khẩu không chính xác. Bạn có thể bấm 'Đăng nhập nhanh bằng mã OTP' bên dưới.");
+      }
+
       signIn(email,next);
     });
-    if(!loading)body.querySelector(email?"#login-pass":"#login-em").focus();
+
+    if(!loading)body.querySelector("#login-em").focus();
   }
-  view();
+
+  function viewOtpStep1(err="",loading=false){
+    body.innerHTML=`
+      <form class="stack" data-f-login-otp novalidate style="gap:14px">
+        <p class="small muted" style="margin:0">Nhập email của bạn để nhận mã OTP 6 số đăng nhập tức thì không cần mật khẩu.</p>
+        <div class="field">
+          <label for="otp-em">Email của bạn</label>
+          <input class="input" id="otp-em" type="email" inputmode="email" autocomplete="email" placeholder="ten.mssv@sis.hust.edu.vn hoặc Gmail" value="${esc(pendingLoginOtp?.email||"")}"${loading?" disabled":""} required>
+        </div>
+        ${err?`<div class="err" role="alert">${err}</div>`:""}
+        <button class="btn primary lg" type="submit"${loading?" disabled":""}>
+          ${loading?"Đang gửi mã đăng nhập...":"Gửi mã đăng nhập một lần"}
+        </button>
+        <button type="button" class="btn ghost sm" data-switch-to-pass style="width:100%">
+          ← Quay lại đăng nhập bằng mật khẩu
+        </button>
+      </form>
+    `;
+
+    body.querySelector("[data-switch-to-pass]").addEventListener("click",()=>viewPassLogin());
+    const form=body.querySelector("[data-f-login-otp]");
+    form.addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const email=body.querySelector("#otp-em").value.trim().toLowerCase();
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))return viewOtpStep1("Vui lòng nhập địa chỉ email hợp lệ.");
+
+      const u=S.users.find(x=>x.email.toLowerCase()===email);
+      const isAdm=isSystemAdminEmail(email);
+      if(!u&&!isAdm){
+        return viewOtpStep1(`Email "${email}" chưa có tài khoản. Vui lòng chọn tab Đăng ký để tạo mới.`);
+      }
+
+      viewOtpStep1("",true);
+      try{
+        const {res,data}=await apiPost("send_otp.php",{email});
+        if(data.success){
+          pendingLoginOtp={email,t:Date.now()};
+          viewOtpStep2();
+          toast(data.message||"Mã xác thực 6 số đã được gửi tới email của bạn!");
+        }else{
+          viewOtpStep1(data.message||"Không thể gửi mã xác thực. Vui lòng thử lại.");
+        }
+      }catch(err){
+        console.error("send_otp error:",err);
+        viewOtpStep1("Không thể kết nối máy chủ gửi thư. Vui lòng kiểm tra lại mạng.");
+      }
+    });
+
+    if(!loading)body.querySelector("#otp-em").focus();
+  }
+
+  function viewOtpStep2(err="",loading=false){
+    body.innerHTML=`
+      <div class="mailbox" style="border:2px solid var(--line);background:var(--paper);margin-bottom:14px;padding:14px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <div style="width:38px;height:38px;border:2px solid var(--line);background:var(--wash);display:flex;align-items:center;justify-content:center;color:var(--ink)">${icon.mail}</div>
+          <div>
+            <b style="font-size:15px">Kiểm tra hộp thư email</b>
+            <div class="small muted" style="font-size:12px">Mã 6 số đã gửi tới: <b style="color:var(--ink)">${esc(pendingLoginOtp.email)}</b></div>
+          </div>
+        </div>
+        <p class="small muted" style="margin:0;line-height:1.45;font-size:12px;border-top:1px solid var(--line);padding-top:8px">
+          Vui lòng kiểm tra hộp thư đến (Inbox) hoặc Thư rác / Spam trong Gmail. Mã OTP có hiệu lực trong <b>10 phút</b>.
+        </p>
+      </div>
+      <form class="stack" data-f-login-otp2 novalidate style="gap:14px">
+        <div class="field">
+          <label for="login-otp">Mã xác thực 6 số</label>
+          <input class="input otp" id="login-otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" aria-describedby="login-otph" placeholder="••••••" style="font-size:24px;letter-spacing:6px;text-align:center;font-weight:700"${loading?" disabled":""}>
+          ${err?`<span id="login-otph" class="err" role="alert">${err}</span>`:'<span id="login-otph" class="hint">Nhập đúng 6 chữ số vừa nhận được trong email.</span>'}
+        </div>
+        <button class="btn primary lg" type="submit"${loading?" disabled":""}>
+          ${loading?"Đang xác thực...":"Đăng nhập"}
+        </button>
+        <div class="row" style="justify-content:space-between;font-size:13px">
+          <button type="button" class="btn ghost sm" data-back-login-otp>Đổi email</button>
+          <button type="button" class="btn ghost sm" data-resend-login-otp>Gửi lại mã</button>
+        </div>
+      </form>
+    `;
+
+    const otp=body.querySelector("#login-otp");
+    otp.addEventListener("input",()=>{otp.value=otp.value.replace(/\D/g,"")});
+    otpResendCountdown(body.querySelector("[data-resend-login-otp]"),pendingLoginOtp.t);
+    if(!loading)otp.focus();
+
+    body.querySelector("[data-back-login-otp]").addEventListener("click",()=>viewOtpStep1());
+    body.querySelector("[data-resend-login-otp]").addEventListener("click",async()=>{
+      toast("Đang gửi lại mã xác thực...");
+      try{
+        const {res,data}=await apiPost("send_otp.php",{email:pendingLoginOtp.email});
+        if(data.success){
+          pendingLoginOtp.t=Date.now();
+          viewOtpStep2();
+          toast(data.message||"Đã gửi lại mã mới về email!");
+        }else{
+          toast(data.message||"Không thể gửi lại mã.");
+        }
+      }catch(err){
+        toast("Lỗi kết nối khi gửi lại mã.");
+      }
+    });
+
+    body.querySelector("[data-f-login-otp2]").addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const code=otp.value.trim();
+      if(code.length!==6)return viewOtpStep2("Vui lòng nhập đủ 6 chữ số.");
+      viewOtpStep2("",true);
+      try{
+        const {res,data}=await apiPost("verify_otp.php",{email:pendingLoginOtp.email,otp:code});
+        if(data.success){
+          const em=pendingLoginOtp.email;
+          pendingLoginOtp=null;
+          signIn(em,next);
+        }else{
+          viewOtpStep2(data.message||"Mã xác thực không chính xác hoặc đã hết hạn.");
+        }
+      }catch(err){
+        console.error("verify_otp error:",err);
+        viewOtpStep2("Không thể kết nối máy chủ xác thực. Vui lòng thử lại.");
+      }
+    });
+  }
+
+  viewPassLogin();
 }
 
 views["/dang-nhap"]=()=>authCardView(true);
@@ -2136,8 +2429,8 @@ function deleteAccount(u){S.comments.forEach(c=>{if(c.by===u.email){c.status="DE
   S.docs.forEach(d=>{if(d.uploader===u.email){d.anonymous=true;if(d.status!=="APPROVED")d.status="REMOVED"}});Object.assign(u,{name:"Người dùng đã xóa",displayName:null,studentCode:null,deleted:true,roles:[]});S.session=null;save()}
 
 /* ===================== Hạn mức tải xuống và lượt thưởng ===================== */
-const CR_DEFAULT={guestDailyFree:5,dailyFree:10,uploadReward:5,milestoneEvery:20,milestoneReward:1,scarceCourseThreshold:5,scarceCourseBonus:3,helpfulCommentLikes:5,helpfulCommentReward:1,dailyEarnCap:30,creditTtlDays:90,redownloadWindowHours:24,rateLimitPerHourUser:60,linkTtlSeconds:60,multiAccountThreshold:3,violationLockThreshold:3};
-const CR_LABEL={guestDailyFree:"Lượt mỗi ngày khi chưa đăng nhập",dailyFree:"Lượt miễn phí mỗi ngày khi đã đăng nhập",uploadReward:"Thưởng khi tài liệu được duyệt",milestoneEvery:"Mốc lượt tải (mỗi bao nhiêu lượt)",milestoneReward:"Thưởng mỗi mốc lượt tải",scarceCourseThreshold:"Học phần thiếu: dưới bao nhiêu tài liệu",scarceCourseBonus:"Thưởng thêm cho học phần thiếu",helpfulCommentLikes:"Bình luận hữu ích: số lượt thích",helpfulCommentReward:"Thưởng bình luận hữu ích",dailyEarnCap:"Trần lượt thưởng kiếm được mỗi ngày",creditTtlDays:"Lượt thưởng hết hạn sau (ngày)",redownloadWindowHours:"Tải lại không trừ trong (giờ)",rateLimitPerHourUser:"Giới hạn gọi tải mỗi giờ (tài khoản)",linkTtlSeconds:"Link tải hết hạn sau (giây)",multiAccountThreshold:"Khóa thưởng khi một thiết bị có từ bao nhiêu tài khoản",violationLockThreshold:"Khóa thưởng sau bao nhiêu lần bị gỡ vì vi phạm"};
+const CR_DEFAULT={dailyFree:10,uploadReward:5,milestoneEvery:20,milestoneReward:1,scarceCourseThreshold:5,scarceCourseBonus:3,helpfulCommentLikes:5,helpfulCommentReward:1,dailyEarnCap:30,creditTtlDays:90,redownloadWindowHours:24,rateLimitPerHourUser:60,linkTtlSeconds:60,multiAccountThreshold:3,violationLockThreshold:3};
+const CR_LABEL={dailyFree:"Lượt miễn phí mỗi ngày",uploadReward:"Thưởng khi tài liệu được duyệt",milestoneEvery:"Mốc lượt tải (mỗi bao nhiêu lượt)",milestoneReward:"Thưởng mỗi mốc lượt tải",scarceCourseThreshold:"Học phần thiếu: dưới bao nhiêu tài liệu",scarceCourseBonus:"Thưởng thêm cho học phần thiếu",helpfulCommentLikes:"Bình luận hữu ích: số lượt thích",helpfulCommentReward:"Thưởng bình luận hữu ích",dailyEarnCap:"Trần lượt thưởng kiếm được mỗi ngày",creditTtlDays:"Lượt thưởng hết hạn sau (ngày)",redownloadWindowHours:"Tải lại không trừ trong (giờ)",rateLimitPerHourUser:"Giới hạn gọi tải mỗi giờ (tài khoản)",linkTtlSeconds:"Link tải hết hạn sau (giây)",multiAccountThreshold:"Khóa thưởng khi một thiết bị có từ bao nhiêu tài khoản",violationLockThreshold:"Khóa thưởng sau bao nhiêu lần bị gỡ vì vi phạm"};
 const CR_TYPE={DAILY:"Dùng lượt miễn phí",SPEND:"Dùng lượt thưởng",UPLOAD_REWARD:"Thưởng tài liệu được duyệt",BONUS:"Thưởng thêm",QUEST:"Thưởng nhiệm vụ",REVOKE:"Thu hồi",ADJUSTMENT:"Quản trị viên điều chỉnh"};
 const DAY=86400e3;
 /** Giờ Việt Nam là UTC+7, không đổi giờ theo mùa. Thời gian demo có thể "tua" để thử reset qua ngày. */
@@ -2145,9 +2438,6 @@ function crNow(){return Date.now()+(S.credits?.shift||0)}
 function crDay(t){return new Date(t+7*3600e3).toISOString().slice(0,10)}
 function vnNextMidnight(t){return (Math.floor((t+7*3600e3)/DAY)+1)*DAY-7*3600e3}
 function crSet(){return {...CR_DEFAULT,...(S.credits?.settings||{})}}
-/** Khách chưa đăng nhập: mỗi trình duyệt là một khách, có hạn mức riêng (guestDailyFree) và không có lượt thưởng. */
-function guestUser(){return {email:"guest:"+crDevice(),guest:true,name:"Khách",roles:[]}}
-const isGuestKey=(email)=>String(email).startsWith("guest:");
 function seedCredits(st){
   st.credits={settings:{},ledger:[],quota:{},debt:{},locked:{},dl:[],devices:{},rate:{},shift:0,seq:1};
   const sv="sv.demo@sis.hust.edu.vn",now=Date.now(),DAY=86400e3;
@@ -2157,7 +2447,7 @@ function seedCredits(st){
   st.credits.ledger.push({id:st.credits.seq++,user:sv,type:"BONUS",amount:1,remaining:1,doc:mine[1]?.id||null,expiresAt:now+85*DAY,note:"Tài liệu đạt 20 lượt tải",t:now-5*DAY});
 }
 function crLots(email,t){return S.credits.ledger.filter(e=>e.user===email&&e.remaining>0&&(!e.expiresAt||e.expiresAt>t)).sort((a,b)=>(a.expiresAt||Infinity)-(b.expiresAt||Infinity))}
-function crStatus(email){const t=crNow(),s0=crSet(),s={...s0,dailyFree:isGuestKey(email)?s0.guestDailyFree:s0.dailyFree},used=S.credits.quota[email+"|"+crDay(t)]||0,lots=crLots(email,t),debt=S.credits.debt[email]||0;
+function crStatus(email){const t=crNow(),s=crSet(),used=S.credits.quota[email+"|"+crDay(t)]||0,lots=crLots(email,t),debt=S.credits.debt[email]||0;
   const soon=lots.find(l=>l.expiresAt&&l.expiresAt-t<14*DAY);
   return {daily:s.dailyFree,used,free:Math.max(0,s.dailyFree-used),bonus:Math.max(0,lots.reduce((a,l)=>a+l.remaining,0)-debt),debt,reset:vnNextMidnight(t),soon:soon?{amount:soon.remaining,at:soon.expiresAt}:null,locked:S.credits.locked[email]||null}}
 function crEntry(e){S.credits.ledger.push({id:S.credits.seq++,remaining:0,t:crNow(),...e})}
@@ -2182,9 +2472,9 @@ function crDecide(u,d){const t=crNow(),s=crSet();
 function crCharge(u,d){const t=crNow(),s=crSet();
   const hour=Math.floor(t/3600e3),rk=u.email+"|"+hour;if(!isMod(u)){S.credits.rate[rk]=(S.credits.rate[rk]||0)+1;if(S.credits.rate[rk]>s.rateLimitPerHourUser)return "RATE"}
   const dec=crDecide(u,d);if(dec==="DENIED")return dec;
-  if(dec==="FREE"){const k=u.email+"|"+crDay(t);S.credits.quota[k]=(S.credits.quota[k]||0)+1;if(!u.guest)crEntry({user:u.email,type:"DAILY",amount:-1,doc:d.id,note:`Lượt miễn phí ${S.credits.quota[k]}/${s.dailyFree} hôm nay`})}
+  if(dec==="FREE"){const k=u.email+"|"+crDay(t);S.credits.quota[k]=(S.credits.quota[k]||0)+1;crEntry({user:u.email,type:"DAILY",amount:-1,doc:d.id,note:`Lượt miễn phí ${S.credits.quota[k]}/${s.dailyFree} hôm nay`})}
   if(dec==="BONUS"){crTake(u.email,1);crEntry({user:u.email,type:"SPEND",amount:-1,doc:d.id,note:"Dùng 1 lượt thưởng"})}
-  S.credits.dl.push({user:u.email,doc:d.id,t,charge:dec});if(!u.guest)logAct(u,d,"download");
+  S.credits.dl.push({user:u.email,doc:d.id,t,charge:dec});logAct(u,d,"download");
   if(dec==="FREE"||dec==="BONUS"){d.downloads++;
     if(d.downloads%s.milestoneEvery===0){const g=crGrant(d.uploader,"BONUS",s.milestoneReward,{dedupe:`milestone:${d.id}:${d.downloads}`,doc:d.id,note:`Tài liệu đạt ${d.downloads} lượt tải`});if(g)notify(d.uploader,"CREDITS_CHANGED",d,{amount:g,link:"#/luot-tai"})}}
   save();return dec}
@@ -2202,14 +2492,14 @@ function crSeeDevice(u){if(!u||isMod(u)||isAdmin(u))return;const dev=crDevice(),
   if(list.length>=crSet().multiAccountThreshold)list.forEach(e=>crLock(e,`Một thiết bị dùng ${list.length} tài khoản trong 30 ngày`));save()}
 function crCommentLiked(c,d){const s=crSet();if(c.likes.length>=s.helpfulCommentLikes){const g=crGrant(c.by,"BONUS",s.helpfulCommentReward,{dedupe:`comment:${c.id}`,doc:d.id,note:`Bình luận hữu ích đạt ${s.helpfulCommentLikes} lượt thích`});if(g)notify(c.by,"CREDITS_CHANGED",d,{amount:g,link:"#/luot-tai"})}}
 
-function crMeter(u){if(u.guest){const s=crStatus(u.email);return `<a class="meter${s.free?"":" out"}" href="#/dang-nhap" title="Đăng nhập để có ${crSet().dailyFree} lượt mỗi ngày" aria-label="Lượt tải khi chưa đăng nhập: hôm nay còn ${s.free} trên ${s.daily} lượt. Đăng nhập để có ${crSet().dailyFree} lượt mỗi ngày"><span class="code" aria-hidden="true">${s.free}/${s.daily}</span><span class="long" aria-hidden="true">Khách: còn ${s.free}/${s.daily} lượt</span></a>`}if(isMod(u))return `<a class="meter" href="#/luot-tai" aria-label="Lượt tải: không giới hạn (kiểm duyệt viên, quản trị viên)"><span class="code" aria-hidden="true" style="font-size:20px">∞</span><span class="long" aria-hidden="true">Tải không giới hạn</span></a>`;const s=crStatus(u.email),emptyAll=!s.free&&!s.bonus;
+function crMeter(u){if(isMod(u))return `<a class="meter" href="#/luot-tai" aria-label="Lượt tải: không giới hạn (kiểm duyệt viên, quản trị viên)"><span class="code" aria-hidden="true" style="font-size:20px">∞</span><span class="long" aria-hidden="true">Tải không giới hạn</span></a>`;const s=crStatus(u.email),emptyAll=!s.free&&!s.bonus;
   return `<a class="meter${emptyAll?" out":""}" href="#/luot-tai" aria-label="Lượt tải: hôm nay còn ${s.free} trên ${s.daily} lượt miễn phí và ${s.bonus} lượt thưởng"><span class="code" aria-hidden="true">${s.free}/${s.daily}${s.bonus?` <b>+${s.bonus}</b>`:""}</span><span class="long" aria-hidden="true">Hôm nay còn ${s.free}/${s.daily} lượt${s.bonus?` <b>+ ${s.bonus} lượt thưởng</b>`:""}</span></a>`}
 function crButton(u,d){const dec=crDecide(u,d),s=crStatus(u.email),set=crSet();
-  const note=dec==="STAFF"?"Kiểm duyệt viên và quản trị viên tải không giới hạn, không trừ lượt.":dec==="EXEMPT"?"Tải tài liệu này không tính lượt.":dec==="REPEAT"?`Bạn đã tải tài liệu này trong ${set.redownloadWindowHours} giờ qua, tải lại không bị trừ lượt.`:dec==="FREE"?(u.guest?`Bạn chưa đăng nhập: hôm nay còn ${s.free}/${s.daily} lượt. <a href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập</a> để có ${set.dailyFree} lượt mỗi ngày.`:`Tải lần này dùng 1 lượt miễn phí (hôm nay còn ${s.free}/${s.daily}).`):dec==="BONUS"?`Hết lượt miễn phí hôm nay, lần này dùng 1 lượt thưởng (còn ${s.bonus}).`:u.guest?`Bạn đã dùng hết ${s.daily} lượt tải hôm nay. <a href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập</a> để có ${set.dailyFree} lượt mỗi ngày.`:"Bạn đã dùng hết lượt tải hôm nay.";
+  const note=dec==="STAFF"?"Kiểm duyệt viên và quản trị viên tải không giới hạn, không trừ lượt.":dec==="EXEMPT"?"Tải tài liệu này không tính lượt.":dec==="REPEAT"?`Bạn đã tải tài liệu này trong ${set.redownloadWindowHours} giờ qua, tải lại không bị trừ lượt.`:dec==="FREE"?`Tải lần này dùng 1 lượt miễn phí (hôm nay còn ${s.free}/${s.daily}).`:dec==="BONUS"?`Hết lượt miễn phí hôm nay, lần này dùng 1 lượt thưởng (còn ${s.bonus}).`:"Bạn đã dùng hết lượt tải hôm nay.";
   return `<button class="btn primary lg block" type="button" data-action="${dec==="DENIED"?"nocredit":"download"}" data-id="${d.id}">${icon.down}Tải xuống, ${fmtSize(d.sizeKb)}</button><p class="tiny muted" style="margin:-6px 0 0">${note}</p>`}
-function crOutBody(){const g=!me(),s=crStatus((me()||guestUser()).email),set=crSet();if(g)return `Khi chưa đăng nhập, mỗi ngày bạn tải được ${s.daily} lượt, làm mới lúc 00:00 giờ Việt Nam (${fmtTime(s.reset)}). Đăng ký hoặc đăng nhập để có ${set.dailyFree} lượt mỗi ngày, không cần mã xác thực.`;return `Mỗi ngày bạn có ${s.daily} lượt tải miễn phí, làm mới lúc 00:00 giờ Việt Nam (${fmtTime(s.reset)}). Muốn tải ngay thì đóng góp tài liệu: mỗi tài liệu được duyệt cộng ${set.uploadReward} lượt thưởng.`}
+function crOutBody(){const s=crStatus(me().email),set=crSet();return `Mỗi ngày bạn có ${s.daily} lượt tải miễn phí, làm mới lúc 00:00 giờ Việt Nam (${fmtTime(s.reset)}). Muốn tải ngay thì đóng góp tài liệu: mỗi tài liệu được duyệt cộng ${set.uploadReward} lượt thưởng.`}
 function crDialog(){let dlg=document.getElementById("nocredit");if(dlg)dlg.remove();dlg=document.createElement("dialog");dlg.id="nocredit";dlg.className="crdlg";dlg.setAttribute("aria-labelledby","nocredit-title");
-  dlg.innerHTML=`<div class="stack" style="padding:20px"><h2 id="nocredit-title" class="code" style="font-size:32px;line-height:1;margin:0">Bạn đã dùng hết lượt tải hôm nay</h2><p style="margin:0;font-size:14px">${crOutBody()}</p><p class="small muted" style="margin:0">Xem trực tuyến vẫn thoải mái, xem không tính lượt.</p><div class="row">${me()?`<a class="btn primary" href="#/tai-len" data-close>Tải tài liệu lên</a><a class="btn" href="#/luot-tai" data-close>Lịch sử lượt tải</a>`:`<a class="btn primary" href="#/dang-nhap?next=${encodeURIComponent(location.hash.slice(1)||"/")}" data-close>Đăng nhập</a><a class="btn" href="#/dang-ky?next=${encodeURIComponent(location.hash.slice(1)||"/")}" data-close>Đăng ký</a>`}<button class="btn ghost" type="button" data-close>Để sau</button></div></div>`;
+  dlg.innerHTML=`<div class="stack" style="padding:20px"><h2 id="nocredit-title" class="code" style="font-size:32px;line-height:1;margin:0">Bạn đã dùng hết lượt tải hôm nay</h2><p style="margin:0;font-size:14px">${crOutBody()}</p><p class="small muted" style="margin:0">Xem trực tuyến vẫn thoải mái, xem không tính lượt.</p><div class="row"><a class="btn primary" href="#/tai-len" data-close>Tải tài liệu lên</a><a class="btn" href="#/luot-tai" data-close>Lịch sử lượt tải</a><button class="btn ghost" type="button" data-close>Để sau</button></div></div>`;
   document.body.appendChild(dlg);translateTree(dlg);dlg.addEventListener("click",(e)=>{if(e.target===dlg||e.target.closest("[data-close]"))dlg.close()});dlg.addEventListener("close",()=>dlg.remove());window.addEventListener("hashchange",()=>{if(dlg.open)dlg.close()},{once:true});dlg.showModal()}
 function crRules(){const s=crSet();return `<div class="two" style="gap:16px"><section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:12px 16px;gap:8px"><h2 class="h2" style="margin:0">Cách kiếm lượt thưởng</h2><ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.6"><li>Tài liệu bạn đăng được kiểm duyệt viên duyệt: +${s.uploadReward} lượt. Không cộng lúc mới tải lên.</li><li>Tài liệu của bạn đạt mỗi ${s.milestoneEvery} lượt tải: +${s.milestoneReward} lượt.</li><li>Đăng cho học phần đang có dưới ${s.scarceCourseThreshold} tài liệu: thêm +${s.scarceCourseBonus} lượt.</li><li>Bình luận được ${s.helpfulCommentLikes} lượt thích: +${s.helpfulCommentReward} lượt.</li><li>Hoàn thành <a href="#/cong-dong">nhiệm vụ</a> hằng ngày, hằng tuần và sự kiện mùa thi: +1 đến +5 lượt mỗi nhiệm vụ.</li></ul><p class="small muted" style="margin:0">Tối đa ${s.dailyEarnCap} lượt thưởng mỗi ngày. Lượt thưởng cộng dồn và hết hạn sau ${s.creditTtlDays} ngày. Tài liệu bị gỡ vì vi phạm thì lượt đã nhận bị thu hồi.</p></section>
   <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:12px 16px;gap:8px"><h2 class="h2" style="margin:0">Cách tính lượt</h2><p style="margin:0;font-size:14px">Tải lại cùng tài liệu trong ${s.redownloadWindowHours} giờ không bị trừ. Xem trực tuyến không tính lượt. Tài liệu nhiều file (ZIP) tính 1 lượt. Dùng lượt miễn phí trước, hết mới dùng lượt thưởng.</p><p class="small muted" style="margin:0">Chống gian lận: chặn file trùng và nội dung gần giống, từ chối tài liệu trống, khóa thưởng khi một thiết bị dùng nhiều tài khoản hoặc vi phạm nhiều lần, giới hạn số lần tải mỗi giờ, link tải dùng một lần.</p></section></div>`}
@@ -7181,7 +7471,7 @@ document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-ac
   else if(a==="theme"){try{localStorage.setItem("khotl-theme",isDark()?"light":"dark")}catch{}applyTheme();renderHeader()}
   else if(a==="reset"){localStorage.removeItem(KEY);await fileDB.clear();load();toast("Đã đặt lại dữ liệu demo.");go("#/");render()}
   else if(a==="nocredit"){crDialog()}
-  else if(a==="download"){const d=S.docs.find(x=>x.id===el.dataset.id);const u=me()||guestUser();
+  else if(a==="download"){const d=S.docs.find(x=>x.id===el.dataset.id);const u=me();if(!u){go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);return}
    const charge=crCharge(u,d);if(charge==="DENIED"){crDialog();render();return}if(charge==="RATE"){toast("Bạn tải quá nhiều trong một giờ, thử lại sau.");return}
    let blob=d.uploaded?await fileDB.get(d.id):null;let name=d.fileName||`${d.course}-${d.slug}.txt`;
    if(!blob){blob=new Blob([`${d.title}\n${d.course} ${course(d.course).name}\n\n${docContent(d).map((p,i)=>`Trang ${i+1}\n${p.join("\n")}`).join("\n\n")}\n\nTài liệu sinh viên HUSTDOCU.`],{type:"text/plain;charset=utf-8"})}
