@@ -40,8 +40,8 @@ jobs:
             exit 1
           fi
           files=".htaccess index.html sw.js manifest.webmanifest
-            api/_security.php api/_mailer.php api/send_otp.php api/verify_otp.php api/voice_signal.php api/extensions.php
-            api/data/.htaccess api/data/otps/.htaccess
+            api/_security.php api/_mailer.php api/send_otp.php api/verify_otp.php api/voice_signal.php api/extensions.php api/docs.php
+            api/data/.htaccess api/data/otps/.htaccess api/data/docs/.htaccess
             data/hust-feed.json icons/icon.svg icons/icon-192.png icons/icon-512.png icons/og.png"
           
           for f in $files; do
