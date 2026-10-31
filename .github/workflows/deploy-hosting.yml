@@ -27,6 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Chẩn đoán tên miền (DNS)
+        run: |
+          for d in hustdocu.id.vn www.hustdocu.id.vn lofcreate.online; do
+            echo "::notice::$d → A: $(dig +short A $d | tr '\n' ' ') | NS: $(dig +short NS ${d#www.} | tr '\n' ' ')"
+          done
+          [ -n "${{ secrets.FTP_HOST }}" ] && echo "::notice::FTP_HOST → $(dig +short A '${{ secrets.FTP_HOST }}' | tr '\n' ' ' || true)"
+          true
+
       - name: Tải file lên hosting qua FTP
         env:
           FTP_HOST: ${{ secrets.FTP_HOST }}
@@ -59,6 +67,10 @@ jobs:
             if ! probe; then
               echo "::warning::Hosting không có FTP mã hoá hợp lệ ($(head -c 200 /tmp/ftp-err)). Gửi bằng FTP thường như deploy.bat."
               host="$FTP_HOST"; tls=""; resolve=()
+              if ! curl -sS --connect-timeout 20 --max-time 60 --user "$FTP_USER:$FTP_PASS" --list-only "ftp://$host/" -o /dev/null 2>/tmp/ftp-err; then
+                echo "::error::Không kết nối được FTP của hosting ($(head -c 200 /tmp/ftp-err)). Kiểm tra hosting còn hoạt động và secret FTP_HOST (nên là IP máy chủ hosting)."
+                exit 1
+              fi
             fi
           fi
           fail=0
