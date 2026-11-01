@@ -984,9 +984,13 @@ async function syncDocsFromServer(forceRender=false){
 function safeRender(){
   if(window.isAppReady&&typeof render==="function"){
     try{
+      const p=typeof currentPath==="function"?currentPath():"";
+      if(p.startsWith("/chat")){
+        if(typeof renderChatOnly==="function")renderChatOnly();
+        return;
+      }
       const activeTag=(document.activeElement&&document.activeElement.tagName)||"";
       const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA"||activeTag==="SELECT";
-      const p=typeof currentPath==="function"?currentPath():"";
       if(!isTyping&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so")&&!p.startsWith("/tai-lieu/"))render();
     }catch(err){}
   }
@@ -1101,12 +1105,86 @@ async function syncStateWithServer(forceRender=false){
     if(st.credits)S.credits=st.credits;
     if(st.mod)S.mod=st.mod;
     if(st.cm)S.cm={...(typeof CM==="function"?CM():(S.cm||{})),...st.cm,adSeen:{...((typeof CM==="function"?CM().adSeen:S.cm?.adSeen)||{}),...(st.cm.adSeen||{})},adHidden:{...((typeof CM==="function"?CM().adHidden:S.cm?.adHidden)||{}),...(st.cm.adHidden||{})}};
-    if(Array.isArray(st.comments))S.comments=st.comments;
+    if(Array.isArray(st.comments)){
+      const localMap=new Map((S.comments||[]).map(c=>[c.id,c]));
+      const seen=new Set();
+      const merged=[];
+      for(const sCmt of st.comments){
+        if(!sCmt||!sCmt.id)continue;
+        seen.add(sCmt.id);
+        const lCmt=localMap.get(sCmt.id);
+        if(!lCmt){
+          merged.push(sCmt);
+        } else {
+          const combined={...lCmt,...sCmt};
+          const lSt=lCmt.status||"VISIBLE";
+          const sSt=sCmt.status||"VISIBLE";
+          if(lSt==="DELETED"||sSt==="DELETED"){
+            combined.status="DELETED";
+          } else if(lSt==="HIDDEN"||sSt==="HIDDEN"){
+            combined.status="HIDDEN";
+          } else {
+            combined.status="VISIBLE";
+          }
+          const sLikes=sCmt.likes||[];
+          const lLikes=lCmt.likes||[];
+          combined.likes=Array.from(new Set([...sLikes,...lLikes]));
+          merged.push(combined);
+        }
+      }
+      for(const [id,lCmt] of localMap.entries()){
+        if(!seen.has(id))merged.push(lCmt);
+      }
+      merged.sort((a,b)=>(a.t||0)-(b.t||0));
+      S.comments=merged;
+    }
     if(st.ratings&&typeof st.ratings==="object")S.ratings=st.ratings;
     if(Array.isArray(st.reviews))S.reviews=st.reviews;
     if(Array.isArray(st.reports))S.reports=st.reports;
     if(Array.isArray(st.audit))S.audit=st.audit;
-    if(Array.isArray(st.messages))S.messages=st.messages;
+    if(Array.isArray(st.messages)){
+      const localMap=new Map((S.messages||[]).map(m=>[m.id,m]));
+      const seen=new Set();
+      const merged=[];
+      for(const sMsg of st.messages){
+        if(!sMsg||!sMsg.id)continue;
+        seen.add(sMsg.id);
+        const lMsg=localMap.get(sMsg.id);
+        if(!lMsg){
+          merged.push(sMsg);
+        } else {
+          const combined={...lMsg,...sMsg};
+          const lSt=lMsg.status||"VISIBLE";
+          const sSt=sMsg.status||"VISIBLE";
+          if(lSt==="DELETED_BY_MOD"||sSt==="DELETED_BY_MOD"){
+            combined.status="DELETED_BY_MOD";
+            combined.deletedAt=sMsg.deletedAt||lMsg.deletedAt||Date.now();
+            combined.deletedBy=sMsg.deletedBy||lMsg.deletedBy;
+          } else if(lSt==="DELETED"||sSt==="DELETED"){
+            combined.status="DELETED";
+            combined.deletedAt=sMsg.deletedAt||lMsg.deletedAt||Date.now();
+            combined.deletedBy=sMsg.deletedBy||lMsg.deletedBy;
+          } else {
+            combined.status="VISIBLE";
+          }
+          const sRx=sMsg.reactions||{};
+          const lRx=lMsg.reactions||{};
+          const allRxKeys=Array.from(new Set([...Object.keys(sRx),...Object.keys(lRx)]));
+          const rxMerged={};
+          for(const k of allRxKeys){
+            const users=Array.from(new Set([...(sRx[k]||[]),...(lRx[k]||[])]));
+            if(users.length)rxMerged[k]=users;
+          }
+          combined.reactions=rxMerged;
+          merged.push(combined);
+        }
+      }
+      for(const [id,lMsg] of localMap.entries()){
+        if(!seen.has(id))merged.push(lMsg);
+      }
+      merged.sort((a,b)=>(a.t||0)-(b.t||0));
+      S.messages=merged.slice(-1000);
+    }
     if(Array.isArray(st.rooms))S.rooms=st.rooms;
     if(Array.isArray(st.groups))S.groups=st.groups;
     if(Array.isArray(st.notifications))S.notifications=st.notifications;
@@ -2553,12 +2631,13 @@ function simulateReply(u,room,text){ return; }
 function linkify(text){return esc(text).replace(/@([a-z0-9_.]{3,30})/g,(m,n)=>S.users.some(x=>x.username===n)?`<a href="#/u/${n}" style="font-weight:700">${m}</a>`:m).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener nofollow">$1</a>')}
 function msgHtml(m,u,room,prev){const by=userBy(m.by);const mod=isMod(u);const same=prev&&prev.by===m.by&&m.t-prev.t<5*60e3&&!m.replyTo;const rep=m.replyTo&&S.messages.find(x=>x.id===m.replyTo);
   const rx=Object.entries(m.reactions||{}).filter(([,l])=>l.length);
+  const isDel=m.status==="DELETED"||m.status==="DELETED_BY_MOD";
   return `<div class="msg${same?" same":""}${m.by===u.email?" me":""}" id="msg-${m.id}">${same?'<span></span>':`<span class="avatar av-sm">${esc(initials(displayName(by)))}</span>`}<div style="min-width:0">
    ${same?"":`<div class="meta">${userLink(by)}${hasRole(by,"MODERATOR")||hasRole(by,"ADMIN")?' <span class="badge" style="height:18px;font-size:10px;padding:0 4px">kiểm duyệt</span>':""} <span>${fmtTime(m.t)}</span></div>`}
-   ${rep?`<div class="quote">↳ ${esc(displayName(userBy(rep.by)))}: ${esc(rep.status==="VISIBLE"?rep.text.slice(0,90):"tin nhắn đã bị xóa")}</div>`:""}
-   ${m.status==="VISIBLE"?`<div class="text">${linkify(m.text)}</div>`:`<div class="text muted"><i>Tin nhắn đã bị ${m.status==="DELETED_BY_MOD"?"kiểm duyệt viên ":""}xóa.</i></div>`}
-   ${rx.length?`<div class="rx">${rx.map(([e,l])=>`<button type="button" data-react="${m.id}" data-e="${e}" class="${l.includes(u.email)?"on":""}" aria-label="${e} ${l.length}">${e} ${l.length}</button>`).join("")}</div>`:""}
-   ${m.status==="VISIBLE"?`<div class="tools">${REACTIONS.map(e=>`<button type="button" data-react="${m.id}" data-e="${e}" aria-label="Thả ${e}">${e}</button>`).join("")}<button type="button" data-replyto="${m.id}">Trả lời</button>${m.by===u.email?`<button type="button" data-delmsg="${m.id}">Xóa</button>`:`<button type="button" data-repmsg="${m.id}">Báo cáo</button>${room.type!=="DM"?`<button type="button" data-dm="${m.by}">Nhắn riêng</button>`:""}`}${mod&&m.by!==u.email&&room.type!=="DM"?`<button type="button" data-moddel="${m.id}">Xóa (KDV)</button><button type="button" data-mute="${m.by}" data-room="${room.id}">Cấm chat 1 giờ</button>`:""}</div>`:""}
+   ${rep?`<div class="quote">↳ ${esc(displayName(userBy(rep.by)))}: ${esc((rep.status==="DELETED"||rep.status==="DELETED_BY_MOD")?"tin nhắn đã bị gỡ":rep.text.slice(0,90))}</div>`:""}
+   ${!isDel?`<div class="text">${linkify(m.text)}</div>`:`<div class="text muted" style="font-style:italic">Tin nhắn đã bị ${m.status==="DELETED_BY_MOD"?"kiểm duyệt viên ":"người gửi "}gỡ.</div>`}
+   ${!isDel&&rx.length?`<div class="rx">${rx.map(([e,l])=>`<button type="button" data-react="${m.id}" data-e="${e}" class="${l.includes(u.email)?"on":""}" aria-label="${e} ${l.length}">${e} ${l.length}</button>`).join("")}</div>`:""}
+   ${!isDel?`<div class="tools">${REACTIONS.map(e=>`<button type="button" data-react="${m.id}" data-e="${e}" aria-label="Thả ${e}">${e}</button>`).join("")}<button type="button" data-replyto="${m.id}">Trả lời</button>${m.by===u.email?`<button type="button" data-delmsg="${m.id}">Gỡ</button>`:`<button type="button" data-repmsg="${m.id}">Báo cáo</button>${room.type!=="DM"?`<button type="button" data-dm="${m.by}">Nhắn riêng</button>`:""}`}${mod&&m.by!==u.email&&room.type!=="DM"?`<button type="button" data-moddel="${m.id}">Gỡ (KDV)</button><button type="button" data-mute="${m.by}" data-room="${room.id}">Cấm chat 1 giờ</button>`:""}</div>`:""}
   </div></div>`}
 let chatDraft={};let chatReply=null;
 function chatView(roomId){
@@ -2567,13 +2646,13 @@ function chatView(roomId){
   if(room&&room.type==="COURSE"&&!canJoin(u,room))return views.notfound();
   if(room&&!canJoin(u,room))return {html:`<div class="wrap" style="padding-block:40px">${empty("Bạn không ở trong phòng này.",'<a href="#/chat"><b>Về danh sách phòng</b></a>')}</div>`};
   if(room&&room.type==="COURSE"){S.chatJoined=S.chatJoined||{};const l=S.chatJoined[u.email]=S.chatJoined[u.email]||[];if(!l.includes(room.course)&&!(S.follows[u.email]||[]).includes(room.course)){l.push(room.course);save()}}
-  const item=(r)=>{const lm=lastMsg(r.id);const n=unread(u,r.id);return `<a href="#/chat/${encodeURIComponent(r.id)}" class="room${room?.id===r.id?" on":""}"${room?.id===r.id?' aria-current="page"':""}><span class="rn">${r.type==="COURSE"?`<b class="code" style="font-size:17px">${r.course}</b>`:r.type==="DM"?`<span class="avatar av-sm" style="width:22px;height:22px;font-size:10px">${esc(initials(r.name))}</span> ${esc(r.name)}`:esc(r.name)}${n?`<span class="cnt">${n}</span>`:""}</span>${lm?`<span class="tiny muted rl">${esc(displayName(userBy(lm.by)))}: ${esc(lm.status==="VISIBLE"?lm.text:"(đã xóa)")}</span>`:'<span class="tiny muted rl">Chưa có tin nhắn</span>'}</a>`};
+  const item=(r)=>{const lm=lastMsg(r.id);const n=unread(u,r.id);return `<a href="#/chat/${encodeURIComponent(r.id)}" class="room${room?.id===r.id?" on":""}"${room?.id===r.id?' aria-current="page"':""}><span class="rn">${r.type==="COURSE"?`<b class="code" style="font-size:17px">${r.course}</b>`:r.type==="DM"?`<span class="avatar av-sm" style="width:22px;height:22px;font-size:10px">${esc(initials(r.name))}</span> ${esc(r.name)}`:esc(r.name)}${n?`<span class="cnt">${n}</span>`:""}</span>${lm?`<span class="tiny muted rl">${esc(displayName(userBy(lm.by)))}: ${esc((lm.status==="DELETED"||lm.status==="DELETED_BY_MOD")?"(tin nhắn đã bị gỡ)":lm.text)}</span>`:'<span class="tiny muted rl">Chưa có tin nhắn</span>'}</a>`};
   const groupOf=(t)=>main.filter(r=>r.type===t);
   const list=`<aside class="rooms${room?" hide-m":""}" aria-label="Danh sách phòng chat"><div class="rooms-head"><b class="head">Chat</b><button class="btn sm" type="button" data-newgroup>Nhóm mới</button></div>
    <form data-joincode class="row" style="padding:8px;border-bottom:1px solid var(--line);flex-wrap:nowrap"><label for="jc" class="sr">Mã tham gia nhóm</label><input class="input" id="jc" style="height:36px" placeholder="Mã nhóm, ví dụ CTDL68"><button class="btn sm" type="submit">Vào</button></form>
    ${[["Chung",[...groupOf("GLOBAL"),...groupOf("FACULTY")]],["Học phần",groupOf("COURSE")],["Nhóm học tập",groupOf("GROUP")],["Tin nhắn riêng",dms]].map(([t,l])=>`<div class="rg">${t}</div>${l.map(item).join("")||`<p class="tiny muted" style="padding:4px 12px;margin:0">${t==="Học phần"?"Theo dõi học phần hoặc mở nút “Phòng chat” ở trang học phần.":t==="Tin nhắn riêng"?"Bấm “Nhắn riêng” ở một tin nhắn để bắt đầu.":"Chưa có."}</p>`}`).join("")}</aside>`;
   let pane=`<section class="pane hide-m-empty"><div class="empty" style="margin:24px">Chọn một phòng để bắt đầu trò chuyện.<div class="small muted" style="margin-top:8px">Mẹo: mở trang này ở 2 tab, vào bằng 2 tài khoản khác nhau để nhắn qua lại.</div></div></section>`;
-  if(room){const msgs=S.messages.filter(m=>m.room===room.id&&m.status!=="DELETED").sort((a,b)=>a.t-b.t).slice(-200);const grp=room.type==="GROUP"&&S.groups.find(g=>g.id===room.group);const mute=activeMute(u,room.id);
+  if(room){const msgs=S.messages.filter(m=>m.room===room.id).sort((a,b)=>a.t-b.t).slice(-200);const grp=room.type==="GROUP"&&S.groups.find(g=>g.id===room.group);const mute=activeMute(u,room.id);
    const sub=room.type==="COURSE"?`<a href="#/hoc-phan/${room.course}" class="small">Trang học phần</a>`:grp?`<span class="small muted">${grp.members.length} thành viên, mã mời <b class="head">${grp.code}</b></span>`:room.type==="DM"?`<a href="#/u/${esc(userBy(room.other)?.username||"")}" class="small">Trang cá nhân</a>`:room.type==="FACULTY"?'<span class="small muted">Sinh viên cùng Viện</span>':'<span class="small muted">Mọi sinh viên</span>';
    const typing=S.typing&&S.typing.room===room.id&&S.typing.until>Date.now()?`${esc(displayName(userBy(S.typing.by)))} đang soạn tin…`:"";
    pane=`<section class="pane"><header class="pane-head"><a href="#/chat" class="btn ghost sm back" aria-label="Về danh sách phòng">←</a><div style="min-width:0;flex:1"><h1 class="head" style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(room.name)}</h1>${sub}</div>${room.type==="DM"?`<button class="btn sm" type="button" data-block="${room.other}">${(S.blocks[u.email]||[]).includes(room.other)?"Bỏ chặn":"Chặn"}</button>`:""}${grp&&grp.owner!==u.email?'<button class="btn sm" type="button" data-leave>Rời nhóm</button>':""}</header>
@@ -2582,7 +2661,37 @@ function chatView(roomId){
     ${mute?`<p class="note red" style="margin:8px">Bạn đang bị cấm chat đến ${fmtTime(mute.until)}. Lý do: ${esc(mute.reason)}</p>`:`<form class="composer" data-send>${chatReply?`<div class="quote" style="grid-column:1/-1">↳ Trả lời ${esc(displayName(userBy(S.messages.find(x=>x.id===chatReply)?.by)))} <button type="button" class="btn ghost sm" data-cancelreply>Bỏ</button></div>`:""}<label for="ct" class="sr">Tin nhắn</label><textarea id="ct" class="textarea" rows="1" maxlength="1000" placeholder="Nhắn tin, gõ @tên để nhắc ai đó">${esc(chatDraft[room.id]||"")}</textarea><button class="btn primary" type="submit">Gửi</button></form>`}</section>`}
   return {html:`<div class="chat">${list}${pane}</div>`,mount(root){mountChat(root,u,room)}};
 }
-function renderChatOnly(){const app=document.getElementById("app");const ta=app.querySelector("#ct");const had=document.activeElement===ta;const room=currentPath().split("/chat/")[1];if(ta&&room)chatDraft[decodeURIComponent(room)]=ta.value;render();if(had)app.querySelector("#ct")?.focus()}
+function renderChatOnly(){
+  const app=document.getElementById("app");
+  if(!app)return;
+  const ta=app.querySelector("#ct");
+  const had=document.activeElement===ta;
+  const selStart=ta?ta.selectionStart:0;
+  const selEnd=ta?ta.selectionEnd:0;
+  const p=typeof currentPath==="function"?currentPath():"";
+  const room=p.split("/chat/")[1];
+  if(ta&&room)chatDraft[decodeURIComponent(room)]=ta.value;
+  const box=app.querySelector("[data-msgs]");
+  let wasNearBottom=true;
+  let prevScrollTop=0;
+  if(box){
+    wasNearBottom=(box.scrollHeight-box.scrollTop-box.clientHeight)<80;
+    prevScrollTop=box.scrollTop;
+  }
+  render();
+  const newBox=document.querySelector("[data-msgs]");
+  if(newBox){
+    if(wasNearBottom)newBox.scrollTop=newBox.scrollHeight;
+    else newBox.scrollTop=prevScrollTop;
+  }
+  if(had){
+    const newTa=document.getElementById("ct");
+    if(newTa){
+      newTa.focus();
+      try{newTa.setSelectionRange(selStart,selEnd);}catch(e){}
+    }
+  }
+}
 /** Khung chat vừa khít phần màn hình còn lại (thanh demo cao thấp khác nhau, thanh điều hướng dưới trên điện thoại). */
 function fitChat(){const c=document.querySelector(".chat");if(!c)return;const nav=document.getElementById("bottomnav");const navH=getComputedStyle(nav).display==="none"?0:nav.offsetHeight;c.style.height=Math.max(320,window.innerHeight-c.getBoundingClientRect().top-window.scrollY-navH)+"px"}
 window.addEventListener("resize",fitChat);
@@ -2602,19 +2711,42 @@ function mountChat(root,u,room){fitChat();
   root.querySelector("[data-block]")?.addEventListener("click",(e)=>{const o=e.target.dataset.block;const l=S.blocks[u.email]=S.blocks[u.email]||[];const i=l.indexOf(o);i>=0?l.splice(i,1):l.push(o);save();toast(i>=0?"Đã bỏ chặn.":"Đã chặn: người này không nhắn được cho bạn nữa.");render()});
   root.querySelector("[data-leave]")?.addEventListener("click",()=>{const g=S.groups.find(x=>x.id===room.group);g.members=g.members.filter(x=>x!==u.email);save();toast("Đã rời nhóm.");go("#/chat")});
   box?.addEventListener("click",(e)=>{const b=e.target.closest("button");if(!b)return;
-   if(b.dataset.react){const m=S.messages.find(x=>x.id===b.dataset.react);const l=m.reactions[b.dataset.e]=m.reactions[b.dataset.e]||[];const i=l.indexOf(u.email);i>=0?l.splice(i,1):l.push(u.email);save();renderChatOnly()}
+   if(b.dataset.react){const m=S.messages.find(x=>x.id===b.dataset.react);if(m){const l=m.reactions[b.dataset.e]=m.reactions[b.dataset.e]||[];const i=l.indexOf(u.email);i>=0?l.splice(i,1):l.push(u.email);save(true);renderChatOnly()}}
    else if(b.dataset.replyto){chatReply=b.dataset.replyto;renderChatOnly()}
-   else if(b.dataset.delmsg){S.messages.find(x=>x.id===b.dataset.delmsg).status="DELETED";save();renderChatOnly()}
-   else if(b.dataset.repmsg){const m=S.messages.find(x=>x.id===b.dataset.repmsg);if(S.reports.some(r=>r.message===m.id&&r.by===u.email))return toast("Bạn đã báo cáo tin nhắn này.");S.reports.push({id:uid(),message:m.id,room:room.id,by:u.email,reason:"INAPPROPRIATE",details:m.text,status:"OPEN",t:Date.now(),evidence:{text:m.text,by:m.by,t:m.t}});save();toast("Đã báo cáo tin nhắn cho kiểm duyệt viên.")}
+   else if(b.dataset.delmsg){
+     const m=S.messages.find(x=>x.id===b.dataset.delmsg);
+     if(m){
+       m.status="DELETED";
+       m.deletedAt=Date.now();
+       m.deletedBy=u.email;
+       save(true);
+       triggerServerSync(0);
+       toast("Đã gỡ tin nhắn.");
+       renderChatOnly();
+     }
+   }
+   else if(b.dataset.repmsg){const m=S.messages.find(x=>x.id===b.dataset.repmsg);if(m){if(S.reports.some(r=>r.message===m.id&&r.by===u.email))return toast("Bạn đã báo cáo tin nhắn này.");S.reports.push({id:uid(),message:m.id,room:room.id,by:u.email,reason:"INAPPROPRIATE",details:m.text,status:"OPEN",t:Date.now(),evidence:{text:m.text,by:m.by,t:m.t}});save(true);toast("Đã báo cáo tin nhắn cho kiểm duyệt viên.")}}
    else if(b.dataset.dm){go(`#/chat/${encodeURIComponent(dmId(u.email,b.dataset.dm))}`)}
-   else if(b.dataset.moddel){const m=S.messages.find(x=>x.id===b.dataset.moddel);m.status="DELETED_BY_MOD";S.audit.unshift({t:Date.now(),by:u.email,action:"chat.delete",detail:`${room.name}: ${m.text.slice(0,60)}`});save();toast("Đã xóa tin nhắn.");renderChatOnly()}
-   else if(b.dataset.mute){S.mutes.push({email:b.dataset.mute,room:b.dataset.room,until:Date.now()+3600e3,reason:"Vi phạm quy tắc phòng chat",by:u.email});S.audit.unshift({t:Date.now(),by:u.email,action:"chat.mute",detail:`${b.dataset.mute} 1 giờ trong ${room.name}`});save();toast("Đã cấm chat người này 1 giờ trong phòng.");renderChatOnly()}})}
+   else if(b.dataset.moddel){
+     const m=S.messages.find(x=>x.id===b.dataset.moddel);
+     if(m){
+       m.status="DELETED_BY_MOD";
+       m.deletedAt=Date.now();
+       m.deletedBy=u.email;
+       S.audit.unshift({t:Date.now(),by:u.email,action:"chat.delete",detail:`${room.name}: ${m.text.slice(0,60)}`});
+       save(true);
+       triggerServerSync(0);
+       toast("Đã gỡ tin nhắn (KDV).");
+       renderChatOnly();
+     }
+   }
+   else if(b.dataset.mute){S.mutes.push({email:b.dataset.mute,room:b.dataset.room,until:Date.now()+3600e3,reason:"Vi phạm quy tắc phòng chat",by:u.email});S.audit.unshift({t:Date.now(),by:u.email,action:"chat.mute",detail:`${b.dataset.mute} 1 giờ trong ${room.name}`});save(true);toast("Đã cấm chat người này 1 giờ trong phòng.");renderChatOnly()}})}
 views["/chat"]=()=>chatView(null);
 views["/chat/:room"]=({room})=>chatView(room);
 function chatReportsHtml(u){const list=(S.reports||[]).filter(r=>r.message&&r.status==="OPEN");if(!list.length)return"";
   return `<section class="stack" style="margin-bottom:24px"><h2 class="h2">Tin nhắn bị báo cáo (${list.length})</h2>${list.map(r=>{const m=S.messages.find(x=>x.id===r.message);const room=roomOf(r.room,u);return `<div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))"><div style="padding:10px 12px" class="stack"><span class="tiny muted">${esc(room?.name||"")}, ${fmtTime(r.evidence.t)}</span><p style="margin:0"><b>${esc(displayName(userBy(r.evidence.by)))}:</b> ${esc(r.evidence.text)}</p><span class="tiny muted">Người báo cáo: ${esc(r.by)}. Nội dung được lưu lại làm bằng chứng.</span></div><div class="stack" style="padding:10px 12px">${m&&m.status==="VISIBLE"?`<button class="btn ink sm" type="button" data-cmdel="${r.id}">Xóa tin và cấm chat 1 ngày</button>`:'<span class="small muted">Tin đã bị xóa</span>'}<button class="btn sm" type="button" data-cmok="${r.id}">Bỏ qua</button></div></div>`}).join("")}</section>`}
-function mountChatReports(root){root.querySelectorAll("[data-cmdel]").forEach(b=>b.addEventListener("click",()=>{const r=S.reports.find(x=>x.id===b.dataset.cmdel);const m=S.messages.find(x=>x.id===r.message);m.status="DELETED_BY_MOD";S.mutes.push({email:m.by,room:null,until:Date.now()+86400e3,reason:"Tin nhắn vi phạm bị báo cáo",by:me().email});r.status="RESOLVED";S.audit.unshift({t:Date.now(),by:me().email,action:"chat.mute",detail:`${m.by} 1 ngày (báo cáo)`});save();toast("Đã xóa tin và cấm chat 1 ngày.");render()}));
-  root.querySelectorAll("[data-cmok]").forEach(b=>b.addEventListener("click",()=>{S.reports.find(x=>x.id===b.dataset.cmok).status="DISMISSED";save();render()}))}
+function mountChatReports(root){root.querySelectorAll("[data-cmdel]").forEach(b=>b.addEventListener("click",()=>{const r=S.reports.find(x=>x.id===b.dataset.cmdel);const m=r&&S.messages.find(x=>x.id===r.message);if(m){m.status="DELETED_BY_MOD";m.deletedAt=Date.now();m.deletedBy=me().email}S.mutes.push({email:m?m.by:r.by,room:null,until:Date.now()+86400e3,reason:"Tin nhắn vi phạm bị báo cáo",by:me().email});if(r)r.status="RESOLVED";S.audit.unshift({t:Date.now(),by:me().email,action:"chat.mute",detail:`${m?m.by:r.by} 1 ngày (báo cáo)`});save(true);triggerServerSync(0);toast("Đã gỡ tin và cấm chat 1 ngày.");render()}));
+  root.querySelectorAll("[data-cmok]").forEach(b=>b.addEventListener("click",()=>{const r=S.reports.find(x=>x.id===b.dataset.cmok);if(r){r.status="DISMISSED";save(true);render()}}))}
 /* Đồng bộ tức thời giữa các tab cùng trình duyệt (bản thật dùng WebSocket) */
 window.addEventListener("storage",(e)=>{if(e.key!==KEY)return;const sess=S.session;load();S.session=sess;if(currentPath().startsWith("/chat"))renderChatOnly();else render()});
 

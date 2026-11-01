@@ -347,7 +347,26 @@ if ($action === 'sync' && $method === 'POST') {
             $comments = merge_entities_by_key(
                 (array)($server['comments'] ?? []),
                 $clientState['comments'],
-                'id'
+                'id',
+                function (array $serverCmt, array $clientCmt): array {
+                    $base = array_merge($serverCmt, $clientCmt);
+                    $sStatus = (string)($serverCmt['status'] ?? 'VISIBLE');
+                    $cStatus = (string)($clientCmt['status'] ?? 'VISIBLE');
+
+                    if ($sStatus === 'DELETED' || $cStatus === 'DELETED') {
+                        $base['status'] = 'DELETED';
+                    } elseif ($sStatus === 'HIDDEN' || $cStatus === 'HIDDEN') {
+                        $base['status'] = 'HIDDEN';
+                    } else {
+                        $base['status'] = 'VISIBLE';
+                    }
+
+                    $sLikes = (array)($serverCmt['likes'] ?? []);
+                    $cLikes = (array)($clientCmt['likes'] ?? []);
+                    $base['likes'] = array_values(array_unique(array_merge($sLikes, $cLikes)));
+
+                    return $base;
+                }
             );
             usort($comments, fn($a, $b) => ($a['t'] ?? 0) <=> ($b['t'] ?? 0));
             $result['comments'] = $comments;
@@ -407,7 +426,36 @@ if ($action === 'sync' && $method === 'POST') {
             $messages = merge_entities_by_key(
                 (array)($server['messages'] ?? []),
                 $clientState['messages'],
-                'id'
+                'id',
+                function (array $serverMsg, array $clientMsg): array {
+                    $base = array_merge($serverMsg, $clientMsg);
+                    $sStatus = (string)($serverMsg['status'] ?? 'VISIBLE');
+                    $cStatus = (string)($clientMsg['status'] ?? 'VISIBLE');
+
+                    if ($sStatus === 'DELETED_BY_MOD' || $cStatus === 'DELETED_BY_MOD') {
+                        $base['status'] = 'DELETED_BY_MOD';
+                        $base['deletedAt'] = $clientMsg['deletedAt'] ?? ($serverMsg['deletedAt'] ?? round(microtime(true) * 1000));
+                        $base['deletedBy'] = $clientMsg['deletedBy'] ?? ($serverMsg['deletedBy'] ?? null);
+                    } elseif ($sStatus === 'DELETED' || $cStatus === 'DELETED') {
+                        $base['status'] = 'DELETED';
+                        $base['deletedAt'] = $clientMsg['deletedAt'] ?? ($serverMsg['deletedAt'] ?? round(microtime(true) * 1000));
+                        $base['deletedBy'] = $clientMsg['deletedBy'] ?? ($serverMsg['deletedBy'] ?? null);
+                    } else {
+                        $base['status'] = 'VISIBLE';
+                    }
+
+                    $sRx = (array)($serverMsg['reactions'] ?? []);
+                    $cRx = (array)($clientMsg['reactions'] ?? []);
+                    $allKeys = array_unique(array_merge(array_keys($sRx), array_keys($cRx)));
+                    $mergedRx = [];
+                    foreach ($allKeys as $emoji) {
+                        $users = array_unique(array_merge((array)($sRx[$emoji] ?? []), (array)($cRx[$emoji] ?? [])));
+                        if (!empty($users)) $mergedRx[$emoji] = array_values($users);
+                    }
+                    $base['reactions'] = $mergedRx;
+
+                    return $base;
+                }
             );
             usort($messages, fn($a, $b) => ($a['t'] ?? 0) <=> ($b['t'] ?? 0));
             if (count($messages) > 1000) {
