@@ -1578,23 +1578,28 @@ async function mountUploadedPreview(root,d){
   }
   const u=me();
   const totalPages=d.pages||1;
-  const count=u?totalPages:Math.min(GUEST_PAGES,totalPages);
+  const PREVIEW_LIMIT=10;
+  const count=u?Math.min(PREVIEW_LIMIT,totalPages):Math.min(GUEST_PAGES,totalPages);
 
   if(blob&&d.kind==="PDF"){
     try{
       box.innerHTML=`<div class="small muted" style="padding:28px 16px;text-align:center"><span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--stamp);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px"></span>Đang mở bản xem trước...</div>`;
       const lib=await loadPdfjs();
       const pdf=await lib.getDocument({data:await blob.arrayBuffer()}).promise;
-      const pagesToRender=u?Math.min(pdf.numPages,30):Math.min(GUEST_PAGES,pdf.numPages);
+      const pagesToRender=u?Math.min(pdf.numPages,PREVIEW_LIMIT):Math.min(GUEST_PAGES,pdf.numPages);
       const wrap=document.createElement("div");
       wrap.setAttribute("data-scale","");
       wrap.style.cssText="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;user-select:none;-webkit-user-select:none";
       wrap.oncontextmenu=(e)=>e.preventDefault();
       box.innerHTML="";
       box.appendChild(wrap);
+
+      const ind=root.querySelector("[data-page-ind]");
+      if(ind)ind.textContent=`Trang 1 / ${pagesToRender}`;
+
       for(let i=1;i<=pagesToRender;i++){
         const page=await pdf.getPage(i);
-        const vp=page.getViewport({scale:1.35});
+        const vp=page.getViewport({scale:1.2});
         const cv=document.createElement("canvas");
         cv.width=vp.width;
         cv.height=vp.height;
@@ -1604,6 +1609,14 @@ async function mountUploadedPreview(root,d){
         const ctx=cv.getContext("2d");
         await page.render({canvasContext:ctx,viewport:vp}).promise;
         wrap.appendChild(cv);
+        await new Promise(r=>requestAnimationFrame(r));
+      }
+      if(pdf.numPages>pagesToRender){
+        const note=document.createElement("div");
+        note.className="note";
+        note.style.cssText="border:2px dashed var(--line);background:var(--sheet);padding:14px 18px;margin-top:8px;text-align:center;width:100%;max-width:100%;box-sizing:border-box";
+        note.innerHTML=`<b class="head" style="font-size:14px">Đang hiển thị bản xem trước ${pagesToRender} trang đầu tiên (tổng ${pdf.numPages} trang)</b><p class="small muted" style="margin:4px 0 0">Để đọc toàn bộ tài liệu ngoại tuyến, làm bài tập và in ấn, vui lòng tải xuống tệp gốc.</p>`;
+        wrap.appendChild(note);
       }
       return;
     }catch(err){
@@ -1626,13 +1639,14 @@ views["/tai-lieu/:slug"]=({slug})=>{
   const related=publicDocs().filter(x=>x.course===d.course&&x.id!==d.id).sort((a,b)=>b.downloads-a.downloads).slice(0,4);
   const uploaded=!!d.uploaded;
   const totalPages=d.pages||1;
-  const canReadPages=u?totalPages:Math.min(GUEST_PAGES,totalPages);
+  const PREVIEW_LIMIT=10;
+  const canReadPages=u?Math.min(PREVIEW_LIMIT,totalPages):Math.min(GUEST_PAGES,totalPages);
   const dlAction=u?(crDecide(u,d)==="DENIED"?"nocredit":"download"):"download";
 
   const viewerBar=`<div class="viewer-bar">
     <span class="head" style="display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span data-page-ind style="padding:0">Trang 1 / ${totalPages}</span>
+      <span data-page-ind style="padding:0">Trang 1 / ${canReadPages}</span>
     </span>
     <span style="padding:0;display:flex;align-items:center">
       <button type="button" data-zoom="-1" aria-label="Thu nhỏ" title="Thu nhỏ">−</button>
@@ -1647,7 +1661,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
     :`<div class="pages" data-pages><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,canReadPages)}</div></div>`;
 
   const guestPrompt=!u?`<div style="border-top:2px solid var(--line);background:var(--sheet);padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-    <span class="small">Khách xem được ${canReadPages} trang đầu. Đăng nhập bằng email trường để đọc hết và tải về.</span>
+    <span class="small">Khách xem được ${canReadPages} trang đầu. Đăng nhập bằng email trường để đọc tiếp và tải về.</span>
     <a class="btn ink sm" href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập để đọc toàn bộ</a>
   </div>`:"" ;
 
@@ -1657,8 +1671,8 @@ views["/tai-lieu/:slug"]=({slug})=>{
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
       <div style="min-width:0;flex:1 1 260px">
         <span class="stamp" style="font-size:11px;margin-bottom:4px;display:inline-block">Bản xem trước trực tuyến</span>
-        <h3 class="head" style="margin:0;font-size:16px">Bạn vừa xem bản xem trước (${totalPages} trang)</h3>
-        <p class="small muted" style="margin:2px 0 0">Tải xuống tệp gốc (${esc(d.kind)}, ${fmtSize(d.sizeKb)}) để mở offline, in ấn và học tập đầy đủ bất kỳ lúc nào.</p>
+        <h3 class="head" style="margin:0;font-size:16px">Bạn vừa xem bản xem trước (${canReadPages} trang đầu)</h3>
+        <p class="small muted" style="margin:2px 0 0">Tải xuống tệp gốc (${esc(d.kind)}, ${fmtSize(d.sizeKb)}${d.pages?`, ${d.pages} trang`:""}) để mở offline, in ấn và học tập đầy đủ bất kỳ lúc nào.</p>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button type="button" class="btn primary" data-action="${dlAction}" data-id="${d.id}" style="height:44px;padding:0 18px;font-size:14px;display:inline-flex;align-items:center;gap:6px">${icon.down} <span>${u?`Tải xuống (${fmtSize(d.sizeKb)})`:"Đăng nhập để tải"}</span></button>
@@ -1709,7 +1723,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
    const pages=root.querySelector("[data-pages]");
    if(pages){let z=1;const sc=root.querySelector("[data-scale]"),lab=root.querySelector("[data-zoom-label]"),ind=root.querySelector("[data-page-ind]");
     root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.zoom;z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));if(sc)sc.style.width=`${z*100}%`;if(lab)lab.textContent=`${Math.round(z*100)}%`}));
-    pages.addEventListener("scroll",()=>{if(!sc||!ind)return;const kids=[...sc.children];const top=pages.scrollTop+pages.clientHeight/3;let i=0;kids.forEach((k,n)=>{if(k.offsetTop<=top)i=n});ind.textContent=`Trang ${i+1} / ${totalPages}`})}
+    pages.addEventListener("scroll",()=>{if(!sc||!ind)return;const kids=[...sc.children].filter(k=>k.tagName==="CANVAS"||k.classList.contains("sheetpage"));if(!kids.length)return;const top=pages.scrollTop+pages.clientHeight/3;let i=0;kids.forEach((k,n)=>{if(k.offsetTop<=top)i=n});ind.textContent=`Trang ${i+1} / ${kids.length}`})}
    const vEl=root.querySelector(".viewer");
    root.querySelector("[data-viewer-fullscreen]")?.addEventListener("click",()=>{if(vEl)vEl.classList.toggle("fullscreen")});
    root.querySelector('[data-form="report"]')?.addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);if(S.reports.some(r=>r.doc===d.id&&r.by===u.email&&r.status==="OPEN")){toast("Bạn đã báo cáo tài liệu này, kiểm duyệt viên đang xem xét.");return}S.reports.push({id:uid(),doc:d.id,by:u.email,reason:fd.get("reason"),details:fd.get("details"),status:"OPEN",t:Date.now()});save();e.target.closest("details").outerHTML='<p class="note">Đã gửi báo cáo. Cảm ơn bạn, kiểm duyệt viên sẽ xem xét.</p>'});
