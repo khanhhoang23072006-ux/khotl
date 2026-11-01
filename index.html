@@ -884,6 +884,10 @@ function load(){
   if(!S.comments) S.comments=[];
   if(!S.rooms) seedChat(S);
   if(!S.credits) seedCredits(S);
+  if(S.credits){
+    if(!S.credits.settings) S.credits.settings={};
+    if(S.credits.settings.dailyFree == null || S.credits.settings.dailyFree === 10) S.credits.settings.dailyFree = 5;
+  }
   if(!S.ratings) S.ratings={};
   if(!S.saved) S.saved={};
   if(!S.follows) S.follows={};
@@ -3373,7 +3377,7 @@ function deleteAccount(u){S.comments.forEach(c=>{if(c.by===u.email){c.status="DE
   S.docs.forEach(d=>{if(d.uploader===u.email){d.anonymous=true;if(d.status!=="APPROVED")d.status="REMOVED"}});Object.assign(u,{name:"Người dùng đã xóa",displayName:null,studentCode:null,deleted:true,roles:[]});S.session=null;save()}
 
 /* ===================== Hạn mức tải xuống và lượt thưởng ===================== */
-const CR_DEFAULT={dailyFree:10,uploadReward:5,milestoneEvery:20,milestoneReward:1,scarceCourseThreshold:5,scarceCourseBonus:3,helpfulCommentLikes:5,helpfulCommentReward:1,dailyEarnCap:30,creditTtlDays:90,redownloadWindowHours:24,rateLimitPerHourUser:60,linkTtlSeconds:60,multiAccountThreshold:3,violationLockThreshold:3};
+const CR_DEFAULT={dailyFree:5,uploadReward:5,milestoneEvery:20,milestoneReward:1,scarceCourseThreshold:5,scarceCourseBonus:3,helpfulCommentLikes:5,helpfulCommentReward:1,dailyEarnCap:30,creditTtlDays:90,redownloadWindowHours:24,rateLimitPerHourUser:60,linkTtlSeconds:60,multiAccountThreshold:3,violationLockThreshold:3};
 const CR_LABEL={dailyFree:"Lượt miễn phí mỗi ngày",uploadReward:"Thưởng khi tài liệu được duyệt",milestoneEvery:"Mốc lượt tải (mỗi bao nhiêu lượt)",milestoneReward:"Thưởng mỗi mốc lượt tải",scarceCourseThreshold:"Học phần thiếu: dưới bao nhiêu tài liệu",scarceCourseBonus:"Thưởng thêm cho học phần thiếu",helpfulCommentLikes:"Bình luận hữu ích: số lượt thích",helpfulCommentReward:"Thưởng bình luận hữu ích",dailyEarnCap:"Trần lượt thưởng kiếm được mỗi ngày",creditTtlDays:"Lượt thưởng hết hạn sau (ngày)",redownloadWindowHours:"Tải lại không trừ trong (giờ)",rateLimitPerHourUser:"Giới hạn gọi tải mỗi giờ (tài khoản)",linkTtlSeconds:"Link tải hết hạn sau (giây)",multiAccountThreshold:"Khóa thưởng khi một thiết bị có từ bao nhiêu tài khoản",violationLockThreshold:"Khóa thưởng sau bao nhiêu lần bị gỡ vì vi phạm"};
 const CR_TYPE={DAILY:"Dùng lượt miễn phí",SPEND:"Dùng lượt thưởng",UPLOAD_REWARD:"Thưởng tài liệu được duyệt",BONUS:"Thưởng thêm",QUEST:"Thưởng nhiệm vụ",REVOKE:"Thu hồi",ADJUSTMENT:"Quản trị viên điều chỉnh"};
 const DAY=86400e3;
@@ -3381,7 +3385,7 @@ const DAY=86400e3;
 function crNow(){return Date.now()+(S.credits?.shift||0)}
 function crDay(t){return new Date(t+7*3600e3).toISOString().slice(0,10)}
 function vnNextMidnight(t){return (Math.floor((t+7*3600e3)/DAY)+1)*DAY-7*3600e3}
-function crSet(){return {...CR_DEFAULT,...(S.credits?.settings||{})}}
+function crSet(){const s={...CR_DEFAULT,...(S.credits?.settings||{})};if(s.dailyFree==null||s.dailyFree===10)s.dailyFree=5;return s}
 function seedCredits(st){
   st.credits={settings:{},ledger:[],quota:{},debt:{},locked:{},dl:[],devices:{},rate:{},shift:0,seq:1};
   const sv="sv.demo@sis.hust.edu.vn",now=Date.now(),DAY=86400e3;
