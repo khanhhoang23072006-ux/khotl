@@ -306,7 +306,17 @@ if ($action === 'sync' && $method === 'POST') {
             $result['courses'] = merge_entities_by_key(
                 (array)($server['courses'] ?? []),
                 $clientState['courses'],
-                'code'
+                'code',
+                function (array $serverCourse, array $clientCourse): array {
+                    $sTime = (int)($serverCourse['updatedAt'] ?? 0);
+                    $cTime = (int)($clientCourse['updatedAt'] ?? 0);
+
+                    if ($cTime > $sTime) {
+                        return array_merge($serverCourse, $clientCourse);
+                    } else {
+                        return array_merge($clientCourse, $serverCourse);
+                    }
+                }
             );
         }
 

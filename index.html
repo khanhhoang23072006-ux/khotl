@@ -991,7 +991,8 @@ function safeRender(){
       }
       const activeTag=(document.activeElement&&document.activeElement.tagName)||"";
       const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA"||activeTag==="SELECT";
-      if(!isTyping&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so")&&!p.startsWith("/tai-lieu/"))render();
+      const isEditingCourse=p.startsWith("/hoc-phan")&&typeof params==="function"&&!!params().get("sua");
+      if(!isTyping&&!isEditingCourse&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so")&&!p.startsWith("/tai-lieu/"))render();
     }catch(err){}
   }
 }
@@ -1051,7 +1052,32 @@ async function syncStateWithServer(forceRender=false){
       follows:S.follows
     });
 
-    if(Array.isArray(st.courses)&&st.courses.length>0)S.courses=st.courses;
+    if(Array.isArray(st.courses)&&st.courses.length>0){
+      const localMap = new Map((S.courses||[]).map(c=>[(c.code||"").toUpperCase(), c]));
+      const merged = [];
+      const seen = new Set();
+      for(const sCourse of st.courses){
+        if(!sCourse || !sCourse.code) continue;
+        const code = String(sCourse.code).toUpperCase();
+        seen.add(code);
+        const lCourse = localMap.get(code);
+        if(!lCourse){
+          merged.push(sCourse);
+        } else {
+          const sTime = sCourse.updatedAt || 0;
+          const lTime = lCourse.updatedAt || 0;
+          if(lTime > sTime){
+            merged.push({...sCourse, ...lCourse});
+          } else {
+            merged.push({...lCourse, ...sCourse});
+          }
+        }
+      }
+      for(const [code, lCourse] of localMap.entries()){
+        if(!seen.has(code)) merged.push(lCourse);
+      }
+      S.courses = merged;
+    }
     if(Array.isArray(st.users)&&st.users.length>0){
       const curr = me();
       if(curr && curr.email){
@@ -1235,8 +1261,13 @@ const fileDB={db:null,
   async get(k){try{const db=await this.open();return await new Promise((ok)=>{const r=db.transaction("files").objectStore("files").get(k);r.onsuccess=()=>ok(r.result);r.onerror=()=>ok(null)})}catch{return null}},
   async clear(){try{const db=await this.open();db.transaction("files","readwrite").objectStore("files").clear()}catch{}}};
 
-const faculty=(code)=>DATA.faculties.find(f=>f.code===code);
-const course=(code)=>code==="CHUNG"?{code:"CHUNG",name:"Hỏi đáp chung",shortName:"Chung",faculty:null,credits:0,keywords:[]}:S.courses.find(c=>c.code===code);
+const faculty=(code)=>DATA.faculties.find(f=>f.code===(code||"").toUpperCase());
+const course=(code)=>{
+  if(!code)return null;
+  const upper=String(code).toUpperCase();
+  if(upper==="CHUNG")return {code:"CHUNG",name:"Hỏi đáp chung",shortName:"Chung",faculty:null,credits:0,keywords:[]};
+  return (S.courses||[]).find(c=>(c.code||"").toUpperCase()===upper);
+};
 const userBy=(email)=>S.users.find(u=>u.email===email);
 const me=()=>S.session?userBy(S.session):null;
 const hasRole=(u,k)=>!!u&&u.roles.some(r=>r.key===k);
@@ -1596,7 +1627,7 @@ views["/vien/:slug"]=({slug})=>{
   return {html:pageHead(esc(f.name),'<a href="#/vien">Viện, Trường và Khoa</a>',`<form class="row" data-form="loc" style="max-width:440px;flex-wrap:nowrap"><label for="loc" class="sr">Lọc học phần</label><input class="input" id="loc" name="loc" value="${esc(params().get("loc")||"")}" placeholder="Mã hoặc tên học phần"><button class="btn ink" type="submit">Lọc</button></form>`)+`<div class="wrap" style="padding-block:24px">${cs.length?`<div style="overflow-x:auto"><table class="t"><thead><tr><th style="width:110px">Mã HP</th><th>Học phần</th><th class="num" style="width:80px">Tín chỉ</th><th class="num" style="width:90px">Tài liệu</th></tr></thead><tbody>${cs.map(c=>`<tr><td><a class="code" style="font-size:20px;text-decoration:none" href="#/hoc-phan/${c.code}">${c.code}</a></td><td><a href="#/hoc-phan/${c.code}" style="text-decoration:none">${esc(c.name)}</a></td><td class="num">${c.credits??"–"}</td><td class="num"><b>${courseDocCount(c.code)}</b></td></tr>`).join("")}</tbody></table></div>`:empty("Không có học phần phù hợp.")}</div>`};
 };
 
-/** Quản trị viên sửa thông tin học phần ngay trên trang học phần (#/hoc-phan/MÃ?sua=1). */
+/** Quản trị viên và kiểm duyệt viên sửa thông tin học phần ngay trên trang học phần (#/hoc-phan/MÃ?sua=1). */
 function courseEditForm(c){
   const g=(c.grading&&c.grading.length?c.grading:[{label:"Quá trình",weight:0.4},{label:"Cuối kỳ",weight:0.6}]);
   const facOpt=DATA.faculties.map(x=>`<option value="${x.code}"${x.code===c.faculty?" selected":""}>${x.code}: ${esc(x.name)}</option>`).join("");
@@ -1606,11 +1637,12 @@ function courseEditForm(c){
    <div class="row" style="align-items:flex-start;gap:10px"><div class="field" style="flex:2;min-width:220px"><label for="ce-name">Tên học phần <span class="req">*</span></label><input class="input" id="ce-name" name="name" value="${esc(c.name)}"></div><div class="field" style="flex:1;min-width:160px"><label for="ce-short">Tên viết tắt</label><input class="input" id="ce-short" name="shortName" value="${esc(c.shortName||"")}"></div></div>
    <div class="row" style="align-items:flex-start;gap:10px"><div class="field" style="flex:2;min-width:220px"><label for="ce-en">Tên tiếng Anh</label><input class="input" id="ce-en" name="nameEn" value="${esc(c.nameEn||"")}"></div><div class="field" style="width:110px"><label for="ce-cr">Tín chỉ</label><input class="input" id="ce-cr" name="credits" inputmode="numeric" value="${c.credits??""}"></div></div>
    <div class="field"><label for="ce-fac">Viện, Trường <span class="req">*</span></label><select class="select" id="ce-fac" name="faculty">${facOpt}</select></div>
+   <div class="field"><label for="ce-desc">Mô tả học phần</label><textarea class="textarea" id="ce-desc" name="description" rows="3" placeholder="Giới thiệu vắn tắt nội dung học phần, mục tiêu, kiến thức tiên quyết...">${esc(c.description||"")}</textarea></div>
    <fieldset class="stack" style="border:0;padding:0;margin:0;gap:6px"><legend class="head small" style="padding:0;margin-bottom:6px">Cấu trúc điểm (tổng 100%)</legend><div class="stack" data-grows style="gap:6px">${g.map(row).join("")}</div><div><button class="btn sm" type="button" data-gadd>Thêm thành phần</button></div></fieldset>
    <div class="field"><label for="ce-kw">Từ khóa tìm kiếm</label><input class="input" id="ce-kw" name="keywords" value="${esc((c.keywords||[]).join(", "))}"><span class="hint">Cách nhau bằng dấu phẩy, ví dụ: giai tich 1, calculus. Giúp tìm học phần khi gõ tên khác.</span></div>
    <p class="err" data-err hidden></p>
    <div class="row" style="gap:8px"><button class="btn primary" type="submit">Lưu thay đổi</button><a class="btn" href="#/hoc-phan/${c.code}">Hủy</a></div>
-   <p class="tiny muted" style="margin:0">Mã học phần không đổi được vì tài liệu, lịch học, đánh giá đều gắn theo mã. Mọi thay đổi được ghi vào nhật ký quản trị.</p></form>`;
+   <p class="tiny muted" style="margin:0">Mã học phần không đổi được vì tài liệu, lịch học, đánh giá đều gắn theo mã. Mọi thay đổi được đồng bộ lên máy chủ và ghi vào nhật ký.</p></form>`;
 }
 function mountCourseEdit(root,c){
   const f=root.querySelector('[data-form="cedit"]');if(!f)return;
@@ -1619,31 +1651,56 @@ function mountCourseEdit(root,c){
   bindRm();
   f.querySelector("[data-gadd]").addEventListener("click",()=>{const i=rows.children.length;rows.insertAdjacentHTML("beforeend",`<div class="row" data-grow style="flex-wrap:nowrap;gap:6px"><label class="sr" for="gl${i}">Thành phần ${i+1}</label><input class="input" id="gl${i}" data-gl placeholder="Ví dụ: Giữa kỳ" style="flex:1"><label class="sr" for="gw${i}">Tỉ lệ thành phần ${i+1} (%)</label><input class="input" id="gw${i}" data-gw inputmode="numeric" style="width:80px"><span class="small">%</span><button class="btn sm" type="button" data-grm aria-label="Bỏ thành phần ${i+1}">Bỏ</button></div>`);bindRm();rows.lastElementChild.querySelector("[data-gl]").focus()});
   f.addEventListener("submit",(e)=>{e.preventDefault();const err=f.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false};
-    const fd=new FormData(f);const name=String(fd.get("name")).trim();if(name.length<2)return fail("Nhập tên học phần.");
-    const crRaw=String(fd.get("credits")).trim();const credits=crRaw===""?null:Number(crRaw);if(credits!==null&&!(Number.isInteger(credits)&&credits>=0&&credits<=20))return fail("Tín chỉ là số nguyên từ 0 đến 20.");
-    const fac=String(fd.get("faculty"));if(!faculty(fac))return fail("Chọn Viện, Trường.");
+    const u=me();
+    if(!u||(!isAdmin(u)&&!isMod(u)&&!isSystemAdminEmail(u.email)))return fail("Bạn không có quyền sửa thông tin học phần.");
+    const fd=new FormData(f);const name=String(fd.get("name")||"").trim();if(name.length<2)return fail("Nhập tên học phần.");
+    const crRaw=String(fd.get("credits")||"").trim();const credits=crRaw===""?null:Number(crRaw);if(credits!==null&&!(Number.isInteger(credits)&&credits>=0&&credits<=20))return fail("Tín chỉ là số nguyên từ 0 đến 20.");
+    const fac=String(fd.get("faculty")||"");if(!faculty(fac))return fail("Chọn Viện, Trường.");
     const grading=[...rows.querySelectorAll("[data-grow]")].map(r=>({label:r.querySelector("[data-gl]").value.trim(),pct:Number(r.querySelector("[data-gw]").value)}));
     if(grading.some(x=>!x.label))return fail("Đặt tên cho mọi thành phần điểm.");if(grading.some(x=>!(x.pct>0&&x.pct<=100)))return fail("Tỉ lệ mỗi thành phần từ 1 đến 100%.");
     const sum=grading.reduce((a,x)=>a+x.pct,0);if(Math.round(sum)!==100)return fail(`Tổng cấu trúc điểm đang là ${sum}%, cần đúng 100%.`);
-    const before=JSON.stringify({name:c.name,nameEn:c.nameEn,shortName:c.shortName,credits:c.credits,faculty:c.faculty,grading:c.grading,keywords:c.keywords});
-    Object.assign(c,{name,nameEn:String(fd.get("nameEn")).trim(),shortName:String(fd.get("shortName")).trim(),credits,faculty:fac,grading:grading.map(x=>({label:x.label,weight:Math.round(x.pct)/100})),keywords:String(fd.get("keywords")).split(",").map(x=>x.trim()).filter(Boolean)});
-    if(JSON.stringify({name:c.name,nameEn:c.nameEn,shortName:c.shortName,credits:c.credits,faculty:c.faculty,grading:c.grading,keywords:c.keywords})!==before)audit("course.update",c.code);
+    const now=Date.now();
+    const updatedData={
+      name,
+      nameEn:String(fd.get("nameEn")||"").trim(),
+      shortName:String(fd.get("shortName")||"").trim(),
+      description:String(fd.get("description")||"").trim(),
+      credits,
+      faculty:fac,
+      grading:grading.map(x=>({label:x.label,weight:Math.round(x.pct)/100})),
+      keywords:String(fd.get("keywords")||"").split(",").map(x=>x.trim()).filter(Boolean),
+      updatedAt:now
+    };
+    Object.assign(c,updatedData);
+    if(u)audit("course.update",c.code);
     if(typeof aiIndexCache!=="undefined")aiIndexCache=null;
-    save();toast(`Đã lưu học phần ${c.code}.`);go(`#/hoc-phan/${c.code}`)});
+    save(true);
+    triggerServerSync(0);
+    toast(`Đã lưu học phần ${c.code}.`);
+    go(`#/hoc-phan/${c.code}`);
+  });
 }
 views["/hoc-phan/:code"]=({code})=>{
-  const c=course(code.toUpperCase());if(!c)return views.notfound();const f=faculty(c.faculty);const p=params();const cs=courseStats(c.code);const reviews=S.reviews.filter(r=>r.course===c.code).sort((a,b)=>b.t-a.t);const myReview=me()&&reviews.find(r=>r.by===me().email);
+  const c=course(code);if(!c)return views.notfound();
+  const f=faculty(c.faculty)||{code:c.faculty||"SOICT",name:"Đại học Bách khoa Hà Nội",shortName:c.faculty||"HUST",slug:"soict"};
+  const p=params();const cs=courseStats(c.code);const reviews=S.reviews.filter(r=>r.course===c.code).sort((a,b)=>b.t-a.t);const myReview=me()&&reviews.find(r=>r.by===me().email);
   const type=p.get("loai")||"",ky=p.get("ky")||"";const all=publicDocs().filter(d=>d.course===c.code);
   const list=all.filter(d=>(!type||d.type===type)&&(!ky||d.term===ky)).sort((a,b)=>(b.term||"").localeCompare(a.term||"")||b.downloads-a.downloads);
   const counts={};all.forEach(d=>counts[d.type]=(counts[d.type]||0)+1);const terms=[...new Set(all.map(d=>d.term).filter(Boolean))].sort().reverse();
   const tab=(t)=>`#/hoc-phan/${c.code}${t||ky?"?"+new URLSearchParams({...(t?{loai:t}:{}),...(ky?{ky}:{})}).toString():""}`;
+  const canEdit=!!(me()&&(isAdmin(me())||isMod(me())||isSystemAdminEmail(me().email)));
   return {html:`<section class="gridpaper course-hero" style="border-bottom:var(--bw) solid var(--line)"><div class="wrap stack" style="padding-block:28px;gap:16px">
    <p style="margin:0"><a class="crumb" href="#/vien/${f.slug}">${esc(f.shortName)}</a></p>
-   <h1 style="display:flex;flex-direction:column;gap:6px;text-transform:none"><span class="code-big">${c.code}</span><span style="font-family:var(--font);font-weight:800;font-size:26px;text-transform:none">${esc(c.name)}</span></h1>
+   <h1 style="display:flex;flex-direction:column;gap:6px;text-transform:none">
+     <span class="code-big">${c.code}${c.shortName?` <span class="badge" style="font-size:16px;vertical-align:middle">${esc(c.shortName)}</span>`:""}</span>
+     <span style="font-family:var(--font);font-weight:800;font-size:26px;text-transform:none">${esc(c.name)}</span>
+     ${c.nameEn?`<span class="small muted" style="font-style:italic">${esc(c.nameEn)}</span>`:""}
+   </h1>
+   ${c.description?`<p class="small" style="max-width:640px;margin:0;line-height:1.6">${esc(c.description)}</p>`:""}
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Tín chỉ</span><span class="v">${c.credits??"–"}</span></div><div class="cell"><span class="l">Tài liệu</span><span class="v">${all.length}</span></div><div class="cell"><span class="l">Đơn vị</span><span class="v">${esc(f.shortName)}</span></div></div>
-   ${c.grading?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
+   ${c.grading&&c.grading.length?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Độ khó</span><span class="v">${fmt1(cs.difficulty)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Khối lượng</span><span class="v">${fmt1(cs.workload)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Theo dõi</span><span class="v">${cs.followers}</span></div></div>
-   <div class="row"><a class="btn primary" href="#/tai-len?hp=${c.code}">Đóng góp tài liệu cho học phần này</a><a class="btn" href="#/chat/${encodeURIComponent("c:"+c.code)}">Phòng chat</a><a class="btn" href="#/hoi-dap?hp=${encodeURIComponent(c.code)}">Hỏi đáp${typeof CM==="function"&&CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length?` (${CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length})`:""}</a><button class="btn${follows(me(),c.code)?" ink":""}" type="button" data-follow="${c.code}" aria-pressed="${follows(me(),c.code)}">${follows(me(),c.code)?"Đang theo dõi":"Theo dõi"}</button>${isAdmin(me())?`<a class="btn ink" href="#/hoc-phan/${c.code}${p.get("sua")?"":"?sua=1"}" aria-expanded="${!!p.get("sua")}">${p.get("sua")?"Đóng chỉnh sửa":"Sửa học phần"}</a>`:""}</div>${isAdmin(me())&&p.get("sua")?courseEditForm(c):""}</div></section>
+   <div class="row"><a class="btn primary" href="#/tai-len?hp=${c.code}">Đóng góp tài liệu cho học phần này</a><a class="btn" href="#/chat/${encodeURIComponent("c:"+c.code)}">Phòng chat</a><a class="btn" href="#/hoi-dap?hp=${encodeURIComponent(c.code)}">Hỏi đáp${typeof CM==="function"&&CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length?` (${CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length})`:""}</a><button class="btn${follows(me(),c.code)?" ink":""}" type="button" data-follow="${c.code}" aria-pressed="${follows(me(),c.code)}">${follows(me(),c.code)?"Đang theo dõi":"Theo dõi"}</button>${canEdit?`<a class="btn ink" href="#/hoc-phan/${c.code}${p.get("sua")?"":"?sua=1"}" aria-expanded="${!!p.get("sua")}">${p.get("sua")?"Đóng chỉnh sửa":"Sửa học phần"}</a>`:""}</div>${canEdit&&p.get("sua")?courseEditForm(c):""}</div></section>
   <div class="wrap stack" style="padding-block:24px">
    <h2 class="h2">Tài liệu theo loại</h2>
    <nav class="tabs" aria-label="Tài liệu theo loại"><a href="${tab("")}"${!type?' aria-current="page"':""}>Tất cả <span class="tiny">${all.length}</span></a>${Object.keys(TYPES).filter(t=>counts[t]).map(t=>`<a href="${tab(t)}"${type===t?' aria-current="page"':""}>${TYPES[t]} <span class="tiny">${counts[t]}</span></a>`).join("")}</nav>
@@ -2533,10 +2590,10 @@ views["/kiem-duyet/bao-cao"]=()=>{
 
 /* ----- Quản trị ----- */
 function adminTabs(a){return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px"><h1 class="code" style="font-size:40px;line-height:1">Quản trị</h1><nav class="tabs" aria-label="Quản trị"><a href="#/quan-tri/hoc-phan"${a==="c"?' aria-current="page"':""}>Học phần</a><a href="#/quan-tri/nguoi-dung"${a==="u"?' aria-current="page"':""}>Phân quyền</a><a href="#/quan-tri/luot-tai"${a==="cr"?' aria-current="page"':""}>Lượt tải</a><a href="#/quan-tri/quang-cao"${a==="ad"?' aria-current="page"':""}>Quảng cáo</a><a href="#/quan-tri/extension"${a==="ext"?' aria-current="page"':""}>Extension</a><a href="#/quan-tri/nhat-ky"${a==="l"?' aria-current="page"':""}>Nhật ký</a></nav></div>`}
-function audit(action,detail){S.audit.unshift({t:Date.now(),by:me().email,action,detail});save()}
+function audit(action,detail){const u=me();S.audit.unshift({t:Date.now(),by:u?u.email:"system",action,detail});save()}
 views["/quan-tri"]=()=>{go("#/quan-tri/hoc-phan");return{html:""}};
 views["/quan-tri/hoc-phan"]=()=>{
-  const u=me();if(!u)return needLogin("/quan-tri/hoc-phan");if(!isAdmin(u))return views.notfound();const f=norm(params().get("q")||"");
+  const u=me();if(!u)return needLogin("/quan-tri/hoc-phan");if(!isAdmin(u)&&!isMod(u)&&!isSystemAdminEmail(u.email))return views.notfound();const f=norm(params().get("q")||"");
   const list=S.courses.filter(c=>!f||norm(`${c.code} ${c.name}`).includes(f)).sort((a,b)=>a.code.localeCompare(b.code));
   const facOpt=DATA.faculties.map(x=>`<option value="${x.code}">${x.code}: ${esc(x.name)}</option>`).join("");
   return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("c")}<div class="two wide"><section class="stack" style="min-width:0"><form class="row" data-form="aq" style="flex-wrap:nowrap"><label for="aq" class="sr">Lọc</label><input class="input" id="aq" name="q" value="${esc(params().get("q")||"")}" placeholder="Mã hoặc tên học phần"><button class="btn ink" type="submit">Lọc</button></form><p class="small muted" style="margin:0">Hiện ${list.length} trên ${S.courses.length} học phần</p>
@@ -2546,12 +2603,12 @@ views["/quan-tri/hoc-phan"]=()=>{
    mount(root){root.querySelector('[data-form="aq"]').addEventListener("submit",(e)=>{e.preventDefault();go(`#/quan-tri/hoc-phan?q=${encodeURIComponent(e.target.q.value)}`)});
     root.querySelector('[data-form="addc"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target),err=e.target.querySelector("[data-err]");const code=String(fd.get("code")).trim().toUpperCase();const fail=(m)=>{err.textContent=m;err.hidden=false};
      if(!/^[A-Z]{2,4}\d{4}[A-Z]?$/.test(code))return fail("Mã dạng IT3011.");if(course(code))return fail("Mã học phần đã tồn tại.");if(String(fd.get("name")).trim().length<2)return fail("Nhập tên học phần.");if(!fd.get("faculty"))return fail("Chọn Viện.");
-     S.courses.push({code,name:String(fd.get("name")).trim(),nameEn:String(fd.get("nameEn")||"").trim(),credits:+fd.get("credits")||null,faculty:fd.get("faculty"),keywords:[]});audit("course.create",code);toast(`Đã thêm học phần ${code}.`);render()});
+     S.courses.push({code,name:String(fd.get("name")).trim(),nameEn:String(fd.get("nameEn")||"").trim(),credits:+fd.get("credits")||null,faculty:fd.get("faculty"),keywords:[],updatedAt:Date.now()});audit("course.create",code);save(true);triggerServerSync(0);toast(`Đã thêm học phần ${code}.`);render()});
     root.querySelector('[data-form="csv"]').addEventListener("submit",(e)=>{e.preventDefault();let created=0,updated=0;const errs=[];
      e.target.csv.value.split(/\r?\n/).forEach((line,i)=>{line=line.trim();if(!line||/^(ma|mã|code)\s*[,;]/i.test(line))return;const [code0,name,nameEn,credits,fac]=line.split(/[,;]/).map(s=>(s||"").trim());const code=code0.toUpperCase();
       if(!/^[A-Z]{2,4}\d{4}[A-Z]?$/.test(code))return errs.push(`Dòng ${i+1}: mã “${code0}” không hợp lệ`);if(!faculty((fac||"").toUpperCase()))return errs.push(`Dòng ${i+1}: không có Viện mã “${fac||""}”`);if(!name)return errs.push(`Dòng ${i+1}: thiếu tên`);
-      const ex=course(code);const data={name,nameEn,credits:+credits||null,faculty:fac.toUpperCase()};if(ex){Object.assign(ex,data);updated++}else{S.courses.push({code,keywords:[],...data});created++}});
-     audit("course.import",`${created} thêm, ${updated} cập nhật`);save();e.target.querySelector("[data-result]").innerHTML=`<div class="note"><p style="margin:0">Thêm ${created}, cập nhật ${updated}, lỗi ${errs.length}.</p>${errs.map(x=>`<p class="tiny" style="margin:0;color:var(--stamp)">${esc(x)}</p>`).join("")}</div>`;toast("Đã nhập CSV.")})}};
+      const ex=course(code);const data={name,nameEn,credits:+credits||null,faculty:fac.toUpperCase(),updatedAt:Date.now()};if(ex){Object.assign(ex,data);updated++}else{S.courses.push({code,keywords:[],...data});created++}});
+     audit("course.import",`${created} thêm, ${updated} cập nhật`);save(true);triggerServerSync(0);e.target.querySelector("[data-result]").innerHTML=`<div class="note"><p style="margin:0">Thêm ${created}, cập nhật ${updated}, lỗi ${errs.length}.</p>${errs.map(x=>`<p class="tiny" style="margin:0;color:var(--stamp)">${esc(x)}</p>`).join("")}</div>`;toast("Đã nhập CSV.")})}};
 };
 views["/quan-tri/nguoi-dung"]=()=>{
   const u=me();if(!u)return needLogin("/quan-tri/nguoi-dung");if(!isAdmin(u))return views.notfound();
