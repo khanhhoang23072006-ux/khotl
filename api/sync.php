@@ -255,13 +255,66 @@ function merge_cm(array $serverCm, array $clientCm): array
     $ads = array_values(array_filter($ads, fn($a) => empty($a['deleted'])));
     $spaces = merge_entities_by_key((array)($serverCm['spaces'] ?? []), (array)($clientCm['spaces'] ?? []), 'id');
     $spaces = array_values(array_filter($spaces, fn($s) => empty($s['deleted'])));
-    $questions = merge_entities_by_key((array)($serverCm['questions'] ?? []), (array)($clientCm['questions'] ?? []), 'id');
+
+    // Hợp nhất câu hỏi (Questions)
+    $questions = merge_entities_by_key(
+        (array)($serverCm['questions'] ?? []),
+        (array)($clientCm['questions'] ?? []),
+        'id',
+        function (array $sQ, array $cQ): array {
+            $base = array_merge($sQ, $cQ);
+            $sStatus = (string)($sQ['status'] ?? 'VISIBLE');
+            $cStatus = (string)($cQ['status'] ?? 'VISIBLE');
+            if ($sStatus === 'DELETED' || $cStatus === 'DELETED') {
+                $base['status'] = 'DELETED';
+            } elseif ($sStatus === 'HIDDEN' || $cStatus === 'HIDDEN') {
+                $base['status'] = 'HIDDEN';
+            } else {
+                $base['status'] = 'VISIBLE';
+            }
+            $sVotes = (array)($sQ['votes'] ?? []);
+            $cVotes = (array)($cQ['votes'] ?? []);
+            $base['votes'] = array_merge($sVotes, $cVotes);
+            if (!empty($cQ['accepted'])) {
+                $base['accepted'] = $cQ['accepted'];
+            } elseif (!empty($sQ['accepted'])) {
+                $base['accepted'] = $sQ['accepted'];
+            }
+            $base['views'] = max((int)($sQ['views'] ?? 0), (int)($cQ['views'] ?? 0));
+            return $base;
+        }
+    );
+
+    // Hợp nhất câu trả lời (Answers)
+    $answers = merge_entities_by_key(
+        (array)($serverCm['answers'] ?? []),
+        (array)($clientCm['answers'] ?? []),
+        'id',
+        function (array $sA, array $cA): array {
+            $base = array_merge($sA, $cA);
+            $sStatus = (string)($sA['status'] ?? 'VISIBLE');
+            $cStatus = (string)($cA['status'] ?? 'VISIBLE');
+            if ($sStatus === 'DELETED' || $cStatus === 'DELETED') {
+                $base['status'] = 'DELETED';
+            } elseif ($sStatus === 'HIDDEN' || $cStatus === 'HIDDEN') {
+                $base['status'] = 'HIDDEN';
+            } else {
+                $base['status'] = 'VISIBLE';
+            }
+            $sVotes = (array)($sA['votes'] ?? []);
+            $cVotes = (array)($cA['votes'] ?? []);
+            $base['votes'] = array_merge($sVotes, $cVotes);
+            return $base;
+        }
+    );
+
     $events = merge_entities_by_key((array)($serverCm['events'] ?? []), (array)($clientCm['events'] ?? []), 'id');
     $certs = merge_entities_by_key((array)($serverCm['certs'] ?? []), (array)($clientCm['certs'] ?? []), 'id');
 
     $base['ads'] = $ads;
     $base['spaces'] = $spaces;
     $base['questions'] = $questions;
+    $base['answers'] = $answers;
     $base['events'] = $events;
     $base['certs'] = $certs;
     $base['adSeen'] = array_merge((array)($serverCm['adSeen'] ?? []), (array)($clientCm['adSeen'] ?? []));

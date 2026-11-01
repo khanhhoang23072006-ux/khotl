@@ -992,7 +992,7 @@ function safeRender(){
       const activeTag=(document.activeElement&&document.activeElement.tagName)||"";
       const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA"||activeTag==="SELECT";
       const isEditingCourse=p.startsWith("/hoc-phan")&&typeof params==="function"&&!!params().get("sua");
-      if(!isTyping&&!isEditingCourse&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so")&&!p.startsWith("/tai-lieu/"))render();
+      if(!isTyping&&!isEditingCourse&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so")&&!p.startsWith("/tai-lieu/")&&!p.startsWith("/hoi-dap/hoi"))render();
     }catch(err){}
   }
 }
@@ -1130,7 +1130,59 @@ async function syncStateWithServer(forceRender=false){
     }
     if(st.credits)S.credits=st.credits;
     if(st.mod)S.mod=st.mod;
-    if(st.cm)S.cm={...(typeof CM==="function"?CM():(S.cm||{})),...st.cm,adSeen:{...((typeof CM==="function"?CM().adSeen:S.cm?.adSeen)||{}),...(st.cm.adSeen||{})},adHidden:{...((typeof CM==="function"?CM().adHidden:S.cm?.adHidden)||{}),...(st.cm.adHidden||{})}};
+    if(st.cm && typeof st.cm === "object"){
+      const currentCm = typeof CM === "function" ? CM() : (S.cm || {});
+      const localQuestions = currentCm.questions || [];
+      const serverQuestions = Array.isArray(st.cm.questions) ? st.cm.questions : [];
+      const qMap = new Map();
+      localQuestions.forEach(q => { if (q && q.id) qMap.set(q.id, { ...q }); });
+      serverQuestions.forEach(sq => {
+        if (!sq || !sq.id) return;
+        const lq = qMap.get(sq.id);
+        if (!lq) {
+          qMap.set(sq.id, { ...sq, votes: sq.votes || {} });
+        } else {
+          const mergedVotes = { ...(lq.votes || {}), ...(sq.votes || {}) };
+          const status = (sq.status === "DELETED" || lq.status === "DELETED") ? "DELETED" : (sq.status === "HIDDEN" || lq.status === "HIDDEN") ? "HIDDEN" : "VISIBLE";
+          qMap.set(sq.id, {
+            ...lq,
+            ...sq,
+            votes: mergedVotes,
+            views: Math.max(lq.views || 0, sq.views || 0),
+            accepted: sq.accepted || lq.accepted || null,
+            status
+          });
+        }
+      });
+      const localAnswers = currentCm.answers || [];
+      const serverAnswers = Array.isArray(st.cm.answers) ? st.cm.answers : [];
+      const aMap = new Map();
+      localAnswers.forEach(a => { if (a && a.id) aMap.set(a.id, { ...a }); });
+      serverAnswers.forEach(sa => {
+        if (!sa || !sa.id) return;
+        const la = aMap.get(sa.id);
+        if (!la) {
+          aMap.set(sa.id, { ...sa, votes: sa.votes || {} });
+        } else {
+          const mergedVotes = { ...(la.votes || {}), ...(sa.votes || {}) };
+          const status = (sa.status === "DELETED" || la.status === "DELETED") ? "DELETED" : (sa.status === "HIDDEN" || la.status === "HIDDEN") ? "HIDDEN" : "VISIBLE";
+          aMap.set(sa.id, {
+            ...la,
+            ...sa,
+            votes: mergedVotes,
+            status
+          });
+        }
+      });
+      S.cm = {
+        ...currentCm,
+        ...st.cm,
+        questions: Array.from(qMap.values()),
+        answers: Array.from(aMap.values()),
+        adSeen: { ...(currentCm.adSeen || {}), ...(st.cm.adSeen || {}) },
+        adHidden: { ...(currentCm.adHidden || {}), ...(st.cm.adHidden || {}) }
+      };
+    }
     if(Array.isArray(st.comments)){
       const localMap=new Map((S.comments||[]).map(c=>[c.id,c]));
       const seen=new Set();
@@ -1270,13 +1322,13 @@ const course=(code)=>{
 };
 const userBy=(email)=>S.users.find(u=>u.email===email);
 const me=()=>S.session?userBy(S.session):null;
-const hasRole=(u,k)=>!!u&&u.roles.some(r=>r.key===k);
+const hasRole=(u,k)=>!!(u&&Array.isArray(u.roles)&&u.roles.some(r=>r&&r.key===k));
 const isMod=(u)=>hasRole(u,"MODERATOR")||hasRole(u,"ADMIN");
 const isAdmin=(u)=>hasRole(u,"ADMIN");
-function modScope(u){if(!u)return[];if(u.roles.some(r=>(r.key==="MODERATOR"||r.key==="ADMIN")&&!r.faculty))return null;return u.roles.filter(r=>r.key==="MODERATOR"&&r.faculty).map(r=>r.faculty)}
+function modScope(u){if(!u||!Array.isArray(u.roles))return[];if(u.roles.some(r=>r&&(r.key==="MODERATOR"||r.key==="ADMIN")&&!r.faculty))return null;return u.roles.filter(r=>r&&r.key==="MODERATOR"&&r.faculty).map(r=>r.faculty)}
 function canModerate(u,doc){const s=modScope(u);if(s===null)return isMod(u);return s.includes(course(doc.course)?.faculty)}
 const publicDocs=()=>S.docs.filter(d=>d.status==="APPROVED");
-const displayName=(u)=>{if(!u)return "";if(isSystemAdminEmail(u.email)||isAdmin(u))return "Ban Quản trị HUSTDOCU";return u.displayName||u.name||""};
+const displayName=(u)=>{if(!u)return "";if((u.email&&isSystemAdminEmail(u.email))||isAdmin(u))return "Ban Quản trị HUSTDOCU";return u.displayName||u.name||(u.email?u.email.split("@")[0]:"")};
 function trustFrom(approved,violations){if(violations>=3)return 0;if(approved>=30&&violations===0)return 3;if(approved>=10)return 2;if(approved>=3)return 1;return 0}
 function notify(email,type,doc,extra={}){S.notifications.unshift({id:uid(),to:email,type,doc:doc?.id,title:doc?.title,link:extra.link,reason:extra.reason,credits:extra.credits,amount:extra.amount,t:Date.now(),read:false})}
 function docContent(doc){
@@ -1300,7 +1352,7 @@ const isSaved=(u,d)=>!!u&&(S.saved[u.email]||[]).includes(d.id);
 const follows=(u,code)=>!!u&&(S.follows[u.email]||[]).includes(code);
 function courseStats(code){const rs=S.reviews.filter(r=>r.course===code);const avg=(k)=>rs.length?rs.reduce((s,r)=>s+r[k],0)/rs.length:null;return{n:rs.length,difficulty:avg("difficulty"),workload:avg("workload"),followers:Object.values(S.follows).filter(l=>l.includes(code)).length}}
 function fmt1(x){return x==null?"–":x.toFixed(1).replace(".",",")}
-function userLink(u){if(!u)return "Người dùng";if(isSystemAdminEmail(u.email)||isAdmin(u))return `<span style="font-weight:600">Ban Quản trị HUSTDOCU</span>`;return `<a href="#/u/${esc(u.username)}" style="font-weight:600;text-decoration:none">${esc(displayName(u))}</a>`}
+function userLink(u){if(!u)return "Người dùng";if((u.email&&isSystemAdminEmail(u.email))||isAdmin(u))return `<span style="font-weight:600">Ban Quản trị HUSTDOCU</span>`;const d=esc(displayName(u)||"Người dùng");return u.username?`<a href="#/u/${esc(u.username)}" style="font-weight:600;text-decoration:none">${d}</a>`:`<span style="font-weight:600">${d}</span>`}
 function timeAgo(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return"vừa xong";if(m<60)return`${m} phút trước`;const h=Math.round(m/60);if(h<24)return`${h} giờ trước`;const d=Math.round(h/24);return d<30?`${d} ngày trước`:fmtDate(t)}
 function courseDocCount(code){return publicDocs().filter(d=>d.course===code).length}
 
@@ -5812,7 +5864,21 @@ const EXTRA_USERS = [
   ["Đinh Khánh Vy", "vy.dk", "SOICT", 69],
 ];
 function CM() {
-  if (!S.cm) S.cm = seedCm();
+  if (!S.cm || typeof S.cm !== "object") S.cm = seedCm();
+  if (!Array.isArray(S.cm.questions)) S.cm.questions = [];
+  if (!Array.isArray(S.cm.answers)) S.cm.answers = [];
+  if (!Array.isArray(S.cm.log)) S.cm.log = [];
+  if (!Array.isArray(S.cm.spaces)) S.cm.spaces = [];
+  if (!Array.isArray(S.cm.ads)) S.cm.ads = [];
+  if (!S.cm.adSeen || typeof S.cm.adSeen !== "object") S.cm.adSeen = {};
+  if (!S.cm.adHidden || typeof S.cm.adHidden !== "object") S.cm.adHidden = {};
+  if (S.cm.questions.length === 0) {
+    const fresh = seedCm();
+    S.cm.questions = fresh.questions;
+    S.cm.answers = fresh.answers;
+    if (!S.cm.spaces.length) S.cm.spaces = fresh.spaces;
+    if (!S.cm.ads.length) S.cm.ads = fresh.ads;
+  }
   return S.cm;
 }
 function seedCm() {
@@ -6056,7 +6122,9 @@ function claimQuest(u, type, q, ev) {
 /* ===================== Huy hiệu hiếm ===================== */
 function acceptedCount(email) {
   const cm = CM();
-  return cm.questions.filter((q) => q.accepted && cm.answers.find((a) => a.id === q.accepted)?.by === email).length;
+  const qList = Array.isArray(cm.questions) ? cm.questions : [];
+  const aList = Array.isArray(cm.answers) ? cm.answers : [];
+  return qList.filter((q) => q && q.accepted && aList.find((a) => a && a.id === q.accepted)?.by === email).length;
 }
 BADGES.push(
   { id: "gold-doc", ic: "★", name: "Tài liệu vàng", desc: "Có tài liệu đạt 4,5 sao trở lên với ít nhất 10 lượt chấm", rare: true, ok: (u) => S.docs.some((d) => d.uploader === u.email && d.status === "APPROVED" && d.ratingCount >= 10 && d.ratingSum / d.ratingCount >= 4.5) },
@@ -6244,18 +6312,20 @@ views["/hoi-dap"] = () => {
   const hp = p.get("hp") || "";
   const loc = p.get("loc") || "moi";
   const q = (p.get("q") || "").trim();
-  let list = cm.questions.filter((x) => x.status === "VISIBLE" && (!hp || x.course === hp) && (!q || norm(`${x.title} ${x.body}`).includes(norm(q))));
-  const ans = (x) => cm.answers.filter((a) => a.q === x.id && a.status === "VISIBLE");
+  const qList = Array.isArray(cm.questions) ? cm.questions : [];
+  const aList = Array.isArray(cm.answers) ? cm.answers : [];
+  let list = qList.filter((x) => x && x.status === "VISIBLE" && (!hp || x.course === hp) && (!q || norm(`${x.title || ""} ${x.body || ""}`).includes(norm(q))));
+  const ans = (x) => aList.filter((a) => a && a.q === x.id && a.status === "VISIBLE");
   if (loc === "chua-tra-loi") list = list.filter((x) => !ans(x).length);
-  list.sort(loc === "binh-chon" ? (a, b) => voteSum(b.votes) - voteSum(a.votes) : (a, b) => b.t - a.t);
-  const codes = [...new Set(cm.questions.map((x) => x.course).filter(Boolean))].sort((a,b)=>a==="CHUNG"?-1:b==="CHUNG"?1:a.localeCompare(b));
+  list.sort(loc === "binh-chon" ? (a, b) => voteSum(b.votes) - voteSum(a.votes) : (a, b) => (b.t || 0) - (a.t || 0));
+  const codes = [...new Set(qList.map((x) => x && x.course).filter(Boolean))].sort((a,b)=>a==="CHUNG"?-1:b==="CHUNG"?1:a.localeCompare(b));
   const link = (over) => `#/hoi-dap?${new URLSearchParams({ ...(hp ? { hp } : {}), loc, ...(q ? { q } : {}), ...over })}`;
   const isChung = hp === "CHUNG";
   return {
     html:
       cmHead("Hỏi đáp", "qa", `<p class="small muted" style="margin:0">Hỏi đáp theo học phần và <b>Hỏi đáp chung</b> (đời sống, thủ tục, quy chế, CLB, học tập...). Người hỏi chọn câu trả lời hay nhất.</p>`) +
       `<div class="wrap stack" style="padding-block:20px;gap:16px">
-      <div class="row" style="justify-content:space-between;gap:8px"><form class="row" data-form="qs" style="gap:6px;flex-wrap:nowrap;flex:1 1 360px"><label class="sr" for="qsq">Tìm câu hỏi</label><input class="input" id="qsq" value="${esc(q)}" placeholder="Tìm câu hỏi"><select class="select" id="qshp" style="width:auto;max-width:200px" aria-label="Chủ đề hoặc Học phần"><option value="">Tất cả chủ đề</option><option value="CHUNG"${isChung ? " selected" : ""} style="font-weight:700;color:var(--stamp)">Hỏi đáp chung (ngoài môn học)</option><optgroup label="Theo học phần">${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><button class="btn ink" type="submit">Tìm</button></form><a class="btn primary" href="#/hoi-dap/hoi${hp ? `?hp=${encodeURIComponent(hp)}` : ""}">Đặt câu hỏi</a></div>
+      <div class="row" style="justify-content:space-between;gap:8px"><form class="row" data-form="qs" style="gap:6px;flex-wrap:nowrap;flex:1 1 360px"><label class="sr" for="qsq">Tìm câu hỏi</label><input class="input" id="qsq" value="${esc(q)}" placeholder="Tìm câu hỏi"><select class="select" id="qshp" style="width:auto;max-width:200px" aria-label="Chủ đề hoặc Học phần"><option value="">Tất cả chủ đề</option><option value="CHUNG"${isChung ? " selected" : ""} style="font-weight:700;color:var(--stamp)">Hỏi đáp chung (ngoài môn học)</option><optgroup label="Theo học phần">${(S.courses || []).map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><button class="btn ink" type="submit">Tìm</button></form><a class="btn primary" href="#/hoi-dap/hoi${hp ? `?hp=${encodeURIComponent(hp)}` : ""}">Đặt câu hỏi</a></div>
       <nav class="tabs" aria-label="Lọc">${[["moi", "Mới nhất"], ["binh-chon", "Nhiều bình chọn"], ["chua-tra-loi", "Chưa có trả lời"]].map(([k, l]) => `<a href="${link({ loc: k })}"${k === loc ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>
       <div class="row" style="gap:6px;overflow-x:auto;padding-bottom:2px">
         <a class="btn sm${!hp ? " ink" : ""}" href="#/hoi-dap?${new URLSearchParams({ loc })}">Tất cả</a>
@@ -6266,7 +6336,8 @@ views["/hoi-dap"] = () => {
         .map((x) => {
           const a = ans(x);
           const isQChung = x.course === "CHUNG";
-          return `<li style="display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:10px 12px;align-items:start"><span style="text-align:center;min-width:44px"><b class="code" style="font-size:20px;display:block">${voteSum(x.votes)}</b><span class="tiny muted">bình chọn</span></span><span style="text-align:center;min-width:52px;${x.accepted ? "border:2px solid var(--stamp);color:var(--stamp)" : a.length ? "border:2px solid var(--line)" : ""};padding:2px 4px"><b class="code" style="font-size:20px;display:block">${a.length}</b><span class="tiny">trả lời</span></span><span style="min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">${isQChung ? '<span class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border:1px solid var(--stamp);font-size:11px;font-weight:700;padding:1px 6px">Hỏi đáp chung</span>' : `<span class="code" style="font-size:13px;font-weight:700;background:var(--wash);padding:1px 6px;border:1px solid var(--line)">${esc(x.course)}</span>`}<a href="#/hoi-dap/${x.id}" style="font-weight:600;line-height:1.35">${esc(x.title)}</a></div><span class="tiny muted" style="display:block">${isQChung ? "Chủ đề chung ngoài môn học" : esc(course(x.course)?.name || "")}, hỏi bởi ${esc(displayName(userBy(x.by) || { name: "?" }))}, ${fmtTime(x.t)}</span></span></li>`;
+          const asker = userBy(x.by) || { name: x.by ? x.by.split("@")[0] : "Sinh viên", email: x.by, username: x.by ? x.by.split("@")[0] : "" };
+          return `<li style="display:grid;grid-template-columns:auto auto minmax(0,1fr);gap:12px;padding:10px 12px;align-items:start"><span style="text-align:center;min-width:44px"><b class="code" style="font-size:20px;display:block">${voteSum(x.votes)}</b><span class="tiny muted">bình chọn</span></span><span style="text-align:center;min-width:52px;${x.accepted ? "border:2px solid var(--stamp);color:var(--stamp)" : a.length ? "border:2px solid var(--line)" : ""};padding:2px 4px"><b class="code" style="font-size:20px;display:block">${a.length}</b><span class="tiny">trả lời</span></span><span style="min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">${isQChung ? '<span class="badge" style="background:rgba(255,51,75,0.12);color:var(--stamp);border:1px solid var(--stamp);font-size:11px;font-weight:700;padding:1px 6px">Hỏi đáp chung</span>' : `<span class="code" style="font-size:13px;font-weight:700;background:var(--wash);padding:1px 6px;border:1px solid var(--line)">${esc(x.course)}</span>`}<a href="#/hoi-dap/${x.id}" style="font-weight:600;line-height:1.35">${esc(x.title)}</a></div><span class="tiny muted" style="display:block">${isQChung ? "Chủ đề chung ngoài môn học" : esc(course(x.course)?.name || "")}, hỏi bởi ${userLink(asker)}, ${fmtTime(x.t)}</span></span></li>`;
         })
         .join("")}</ul>` : empty("Chưa có câu hỏi nào.", '<a href="#/hoi-dap/hoi">Đặt câu hỏi đầu tiên</a>')}
       </div>`,
@@ -6286,7 +6357,7 @@ views["/hoi-dap/hoi"] = () => {
     html:
       cmHead("Đặt câu hỏi", "qa") +
       `<div class="wrap" style="max-width:760px;padding-block:20px"><form class="stack" data-form="ask" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:12px">
-      <div class="field"><label for="aq-c">Chủ đề hoặc Học phần <span class="req">*</span></label><select class="select" id="aq-c" required><option value="">-- Chọn chủ đề hoặc học phần --</option><option value="CHUNG"${hp === "CHUNG" ? " selected" : ""} style="font-weight:700;color:var(--stamp)">[Hỏi đáp chung] Đời sống, thủ tục, quy chế, CLB, học bổng, đăng ký tín chỉ...</option><optgroup label="Theo học phần Bách Khoa">${S.courses.map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><p class="tiny muted" style="margin:4px 0 0">Chọn <b>[Hỏi đáp chung]</b> nếu câu hỏi về đời sống sinh viên, học phí, tìm phòng trọ, quy chế... không thuộc môn học cụ thể.</p></div>
+      <div class="field"><label for="aq-c">Chủ đề hoặc Học phần <span class="req">*</span></label><select class="select" id="aq-c" required><option value="">-- Chọn chủ đề hoặc học phần --</option><option value="CHUNG"${hp === "CHUNG" ? " selected" : ""} style="font-weight:700;color:var(--stamp)">[Hỏi đáp chung] Đời sống, thủ tục, quy chế, CLB, học bổng, đăng ký tín chỉ...</option><optgroup label="Theo học phần Bách Khoa">${(S.courses || []).map((c) => `<option value="${c.code}"${c.code === hp ? " selected" : ""}>${c.code} - ${esc(c.name)}</option>`).join("")}</optgroup></select><p class="tiny muted" style="margin:4px 0 0">Chọn <b>[Hỏi đáp chung]</b> nếu câu hỏi về đời sống sinh viên, học phí, tìm phòng trọ, quy chế... không thuộc môn học cụ thể.</p></div>
       <div class="field"><label for="aq-t">Tiêu đề <span class="req">*</span></label><input class="input" id="aq-t" maxlength="150" placeholder="Hỏi cụ thể, ví dụ: Khi nào cây AVL cần quay kép?"></div>
       <div class="field"><label for="aq-b">Nội dung</label><textarea class="textarea" id="aq-b" maxlength="3000" placeholder="Bạn đã thử gì, chỗ nào chưa hiểu"></textarea></div>
       <p class="small muted" style="margin:0">Không đăng đáp án bài kiểm tra đang diễn ra. Câu hỏi vi phạm quy định sẽ bị ẩn.</p>
@@ -6304,13 +6375,25 @@ views["/hoi-dap/hoi"] = () => {
         const bad = qaCheck(`${title} ${body}`);
         if (bad) return fail(bad);
         const cm = CM();
-        const recent = cm.questions.filter((x) => x.by === u.email && Date.now() - x.t < 3600e3).length;
+        if (!Array.isArray(cm.questions)) cm.questions = [];
+        const recent = cm.questions.filter((x) => x && x.by === u.email && Date.now() - (x.t || 0) < 3600e3).length;
         if (recent >= 5) return fail("Bạn đặt quá nhiều câu hỏi trong một giờ, thử lại sau.");
         const q = { id: `q${uid()}`, course: c, by: u.email, title, body, t: Date.now(), votes: {}, views: 0, accepted: null, status: "VISIBLE" };
         cm.questions.unshift(q);
         logAction(u, "ask");
-        if (c !== "CHUNG") { for (const [email, list] of Object.entries(S.follows)) if (list.includes(c) && email !== u.email) S.notifications.unshift({ id: uid(), to: email, type: "QA", title: `Câu hỏi mới ở ${c}: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false }); } else { S.users.slice(0, 5).forEach(x => { if (x.email !== u.email) S.notifications.unshift({ id: uid(), to: x.email, type: "QA", title: `Câu hỏi chung mới: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false }); }); }
+        if (c !== "CHUNG") {
+          for (const [email, list] of Object.entries(S.follows || {})) {
+            if (Array.isArray(list) && list.includes(c) && email !== u.email) {
+              S.notifications.unshift({ id: uid(), to: email, type: "QA", title: `Câu hỏi mới ở ${c}: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false });
+            }
+          }
+        } else {
+          (S.users || []).slice(0, 5).forEach((x) => {
+            if (x && x.email !== u.email) S.notifications.unshift({ id: uid(), to: x.email, type: "QA", title: `Câu hỏi chung mới: ${title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false });
+          });
+        }
         save();
+        syncStateWithServer(false).catch(() => {});
         toast("Đã đăng câu hỏi.");
         go(`#/hoi-dap/${q.id}`);
       });
@@ -6318,17 +6401,21 @@ views["/hoi-dap/hoi"] = () => {
   };
 };
 function voteBox(kind, item, u) {
-  const mine = u ? item.votes[u.email] || 0 : 0;
+  if (!item) return "";
+  if (!item.votes || typeof item.votes !== "object") item.votes = {};
+  const mine = u && u.email ? item.votes[u.email] || 0 : 0;
   return `<div class="stack" style="gap:2px;align-items:center;min-width:44px"><button class="icon-btn" type="button" data-vote="${kind}|${item.id}|1" aria-label="Bình chọn hữu ích" aria-pressed="${mine === 1}" style="${mine === 1 ? "color:var(--stamp)" : ""}">▲</button><b class="code" style="font-size:22px">${voteSum(item.votes)}</b><button class="icon-btn" type="button" data-vote="${kind}|${item.id}|-1" aria-label="Bình chọn không hữu ích" aria-pressed="${mine === -1}" style="${mine === -1 ? "color:var(--stamp)" : ""}">▼</button></div>`;
 }
 views["/hoi-dap/:id"] = ({ id }) => {
   const u = me();
   const cm = CM();
-  const q = cm.questions.find((x) => x.id === id);
+  const qList = Array.isArray(cm.questions) ? cm.questions : [];
+  const aList = Array.isArray(cm.answers) ? cm.answers : [];
+  const q = qList.find((x) => x && x.id === id);
   if (!q || (q.status !== "VISIBLE" && !isMod(u))) return views.notfound();
   q.views = (q.views || 0) + 1;
-  const asker = userBy(q.by) || { name: "?" };
-  const list = cm.answers.filter((a) => a.q === q.id && (a.status === "VISIBLE" || isMod(u))).sort((a, b) => (b.id === q.accepted) - (a.id === q.accepted) || voteSum(b.votes) - voteSum(a.votes) || a.t - b.t);
+  const asker = userBy(q.by) || { name: q.by ? q.by.split("@")[0] : "Sinh viên", email: q.by, username: q.by ? q.by.split("@")[0] : "" };
+  const list = aList.filter((a) => a && a.q === q.id && (a.status === "VISIBLE" || isMod(u))).sort((a, b) => (b.id === q.accepted) - (a.id === q.accepted) || voteSum(b.votes) - voteSum(a.votes) || (a.t || 0) - (b.t || 0));
   const docs = q.course !== "CHUNG" && typeof examDocs === "function" ? examDocs(q.course, 3) : [];
   return {
     html:
@@ -6338,7 +6425,7 @@ views["/hoi-dap/:id"] = ({ id }) => {
       <h2 class="h2" style="margin:8px 0 0">${list.length} câu trả lời</h2>
       ${list
         .map((a) => {
-          const by = userBy(a.by) || { name: "?" };
+          const by = userBy(a.by) || { name: a.by ? a.by.split("@")[0] : "Sinh viên", email: a.by, username: a.by ? a.by.split("@")[0] : "", reputation: 0 };
           const acc = a.id === q.accepted;
           return `<div class="tb" style="grid-template-columns:auto minmax(0,1fr);${acc ? "border-color:var(--stamp)" : ""}${a.status !== "VISIBLE" ? ";opacity:.5" : ""}"><div style="padding:10px">${voteBox("a", a, u)}</div><div style="padding:12px 14px" class="stack">${acc ? '<span class="stamp" style="transform:none;width:fit-content">Câu trả lời hay nhất</span>' : ""}<p style="margin:0;white-space:pre-line">${esc(a.body)}</p><div class="row" style="justify-content:space-between;gap:8px"><span class="tiny muted">${userLink(by)}, uy tín ${by.reputation ?? 0}, ${fmtTime(a.t)}</span><span class="row" style="gap:6px">${u?.email === q.by && !acc ? `<button class="btn sm" type="button" data-accept="${a.id}">Chọn là hay nhất</button>` : ""}${u?.email === q.by && acc ? `<button class="btn sm ghost" type="button" data-accept="">Bỏ chọn</button>` : ""}${isMod(u) ? `<button class="btn sm ghost" type="button" data-hidea="${a.id}">${a.status === "VISIBLE" ? "Ẩn (KDV)" : "Hiện lại"}</button>` : ""}</span></div></div></div>`;
         })
@@ -6351,8 +6438,10 @@ views["/hoi-dap/:id"] = ({ id }) => {
         b.addEventListener("click", () => {
           if (!u) return go(`#/dang-nhap?next=${encodeURIComponent(`/hoi-dap/${q.id}`)}`);
           const [kind, iid, v] = b.dataset.vote.split("|");
-          const item = kind === "q" ? q : cm.answers.find((x) => x.id === iid);
+          const item = kind === "q" ? q : (cm.answers || []).find((x) => x && x.id === iid);
+          if (!item) return;
           if (item.by === u.email) return toast("Không tự bình chọn cho mình.");
+          if (!item.votes || typeof item.votes !== "object") item.votes = {};
           const old = item.votes[u.email] || 0;
           const nv = old === +v ? 0 : +v;
           const repFor = (x) => (x === 1 ? (kind === "q" ? VOTE_REP.q : VOTE_REP.a) : x === -1 ? VOTE_REP.down : 0);
@@ -6361,15 +6450,16 @@ views["/hoi-dap/:id"] = ({ id }) => {
           else delete item.votes[u.email];
           if (kind === "a" && nv === 1 && typeof crCommentLiked === "function") crCommentLiked({ id: `ans-${item.id}`, by: item.by, likes: Object.values(item.votes).filter((x) => x > 0) }, { id: null, title: `câu trả lời ở “${q.title}”` });
           save();
+          syncStateWithServer(false).catch(() => {});
           render();
         }),
       );
       root.querySelectorAll("[data-accept]").forEach((b) =>
         b.addEventListener("click", () => {
-          const prev = q.accepted && cm.answers.find((x) => x.id === q.accepted);
+          const prev = q.accepted && (cm.answers || []).find((x) => x && x.id === q.accepted);
           if (prev) changeRep(prev.by, -VOTE_REP.accept);
           q.accepted = b.dataset.accept || null;
-          const a = q.accepted && cm.answers.find((x) => x.id === q.accepted);
+          const a = q.accepted && (cm.answers || []).find((x) => x && x.id === q.accepted);
           if (a && a.by !== u.email) {
             changeRep(a.by, VOTE_REP.accept);
             CM().log.push({ user: a.by, kind: "accepted", t: Date.now() });
@@ -6378,6 +6468,7 @@ views["/hoi-dap/:id"] = ({ id }) => {
             if (au) checkBadges(au);
           }
           save();
+          syncStateWithServer(false).catch(() => {});
           render();
         }),
       );
@@ -6389,25 +6480,31 @@ views["/hoi-dap/:id"] = ({ id }) => {
         if (body.length < 15) return fail("Câu trả lời ít nhất 15 ký tự.");
         const bad = qaCheck(body);
         if (bad) return fail(bad);
-        if (cm.answers.some((a) => a.by === u.email && Date.now() - a.t < 20e3)) return fail("Bạn trả lời quá nhanh, đợi một chút nhé.");
+        if ((cm.answers || []).some((a) => a && a.by === u.email && Date.now() - (a.t || 0) < 20e3)) return fail("Bạn trả lời quá nhanh, đợi một chút nhé.");
+        if (!Array.isArray(cm.answers)) cm.answers = [];
         cm.answers.push({ id: `a${uid()}`, q: q.id, by: u.email, body, t: Date.now(), votes: {}, status: "VISIBLE" });
         logAction(u, "answer");
         if (q.by !== u.email) S.notifications.unshift({ id: uid(), to: q.by, type: "QA", title: `Có câu trả lời mới: ${q.title}`, link: `#/hoi-dap/${q.id}`, t: Date.now(), read: false });
         save();
+        syncStateWithServer(false).catch(() => {});
         toast("Đã đăng câu trả lời.");
         render();
       });
       root.querySelector("[data-hideq]")?.addEventListener("click", () => {
         q.status = q.status === "VISIBLE" ? "HIDDEN" : "VISIBLE";
         save();
+        syncStateWithServer(false).catch(() => {});
         render();
       });
       root.querySelectorAll("[data-hidea]").forEach((b) =>
         b.addEventListener("click", () => {
-          const a = cm.answers.find((x) => x.id === b.dataset.hidea);
-          a.status = a.status === "VISIBLE" ? "HIDDEN" : "VISIBLE";
-          save();
-          render();
+          const a = (cm.answers || []).find((x) => x && x.id === b.dataset.hidea);
+          if (a) {
+            a.status = a.status === "VISIBLE" ? "HIDDEN" : "VISIBLE";
+            save();
+            syncStateWithServer(false).catch(() => {});
+            render();
+          }
         }),
       );
     },
