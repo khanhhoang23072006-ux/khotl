@@ -150,4 +150,10 @@ async function main() {
   console.log(`Đã ghi ${items.length} mục, ${errors.length} lỗi.`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) await main();
+import { fileURLToPath } from "node:url";
+const isMain = process.argv[1] && (
+  import.meta.url === `file://${process.argv[1]}` ||
+  fileURLToPath(import.meta.url) === process.argv[1] ||
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))
+);
+if (isMain) await main();

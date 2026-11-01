@@ -3605,19 +3605,39 @@ function recSection(u) {
 const FEED_TAG = { ctdt: "CTĐT", decuong: "Đề cương", dangky: "Đăng ký học tập", lichthi: "Lịch thi", hocphi: "Học phí", hocbong: "Học bổng, khen thưởng", quyche: "Quy chế" };
 let hustFeed = DATA.hustFeed || null;
 let feedLoading = false;
-/** Lấy bản mới nhất data/hust-feed.json (GitHub Actions cập nhật mỗi ngày); mở file trực tiếp thì dùng bản nhúng lúc dựng. */
-function loadFeed() {
+/** Lấy bản mới nhất thông báo HUST từ API hoặc data/hust-feed.json (tự động cập nhật mỗi 30 phút). */
+function loadFeed(force = false) {
   if (feedLoading || location.protocol === "file:") return;
   feedLoading = true;
-  fetch(`data/hust-feed.json?v=${Math.floor(Date.now() / 3600e3)}`)
+  const targetUrl = API_BASE ? `${API_BASE}/api/feed.php${force ? "?refresh=1" : ""}` : `data/hust-feed.json?v=${Math.floor(Date.now() / 1800e3)}`;
+  fetch(targetUrl)
     .then((r) => (r.ok ? r.json() : null))
     .then((j) => {
-      if (j && Array.isArray(j.items) && (!hustFeed || j.fetchedAt !== hustFeed.fetchedAt)) {
+      if (j && Array.isArray(j.items) && (!hustFeed || j.fetchedAt !== hustFeed.fetchedAt || force)) {
         hustFeed = j;
-        if (/^\/hoc-tap/.test(currentPath())) render();
+        const cur = typeof currentPath === "function" ? currentPath() : "";
+        if (cur === "/" || /^\/hoc-tap/.test(cur) || /^\/thong-bao-truong/.test(cur)) {
+          safeRender();
+        }
       }
     })
-    .catch(() => {});
+    .catch(() => {
+      if (API_BASE) {
+        fetch(`data/hust-feed.json?v=${Math.floor(Date.now() / 1800e3)}`)
+          .then((r) => (r.ok ? r.json() : null))
+          .then((j) => {
+            if (j && Array.isArray(j.items)) {
+              hustFeed = j;
+              const cur = typeof currentPath === "function" ? currentPath() : "";
+              if (cur === "/" || /^\/hoc-tap/.test(cur) || /^\/thong-bao-truong/.test(cur)) safeRender();
+            }
+          })
+          .catch(() => {});
+      }
+    })
+    .finally(() => {
+      feedLoading = false;
+    });
 }
 function feedList(filter, k = 6) {
   if (!hustFeed?.items?.length) return '<p class="small muted" style="margin:0">Chưa lấy được thông báo.</p>';
@@ -3625,7 +3645,7 @@ function feedList(filter, k = 6) {
   if (!items.length) return '<p class="small muted" style="margin:0">Chưa có thông báo mới thuộc mục này.</p>';
   return `<ul class="tb" style="list-style:none;margin:0;padding:0">${items
     .map((x) => `<li style="padding:8px 12px;display:flex;flex-direction:column;gap:4px"><a href="${esc(x.url)}" target="_blank" rel="noopener" style="font-weight:600;line-height:1.35">${esc(x.title)}</a><span class="row" style="gap:6px">${x.date ? `<span class="tiny muted">${fmtDate(parseYmd(x.date))}</span>` : ""}${x.tags.map((t) => `<span class="why" style="font-size:11px;border:1px solid var(--line);padding:0 6px">${FEED_TAG[t] || t}</span>`).join("")}</span></li>`)
-    .join("")}</ul><p class="tiny muted" style="margin:0">Nguồn: <a href="https://ctt.hust.edu.vn" target="_blank" rel="noopener">ctt.hust.edu.vn</a>, tự động cập nhật mỗi ngày. Lần lấy gần nhất: ${fmtTime(Date.parse(hustFeed.fetchedAt))}.</p>`;
+    .join("")}</ul><p class="tiny muted" style="margin:0">Nguồn: <a href="https://ctt.hust.edu.vn" target="_blank" rel="noopener">ctt.hust.edu.vn</a>, tự động cập nhật mỗi 30 phút. Lần lấy gần nhất: ${fmtTime(Date.parse(hustFeed.fetchedAt))}.</p>`;
 }
 
 /* ===================== Xếp lịch đăng ký lớp ===================== */
@@ -6657,18 +6677,25 @@ views["/thong-bao-truong"] = () => {
   const items = (hustFeed?.items || []).filter((x) => (!tag || x.tags.includes(tag)) && (!q || norm(x.title).includes(norm(q))));
   return {
     html:
-      cmHead("Thông báo từ trường", "tb", `<p class="small muted" style="margin:0">Tự động lấy mỗi ngày từ trang công khai <a href="https://ctt.hust.edu.vn" target="_blank" rel="noopener">ctt.hust.edu.vn</a> và gắn nhãn theo chủ đề. Bấm vào tiêu đề để đọc bản gốc trên trang của trường.</p>`) +
+      cmHead("Thông báo từ trường", "tb", `<p class="small muted" style="margin:0">Tự động cập nhật mỗi 30 phút từ trang công khai <a href="https://ctt.hust.edu.vn" target="_blank" rel="noopener">ctt.hust.edu.vn</a> và gắn nhãn theo chủ đề. Bấm vào tiêu đề để đọc bản gốc trên trang của trường.</p>`) +
       `<div class="wrap stack" style="max-width:900px;padding-block:20px;gap:12px">
-      <form class="row" data-form="fq" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="fq">Tìm thông báo</label><input class="input" id="fq" value="${esc(q)}" placeholder="Tìm, ví dụ: học phí, đăng ký"><button class="btn ink" type="submit">Tìm</button></form>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <form class="row" data-form="fq" style="gap:6px;flex:1 1 260px;min-width:0;flex-wrap:nowrap"><label class="sr" for="fq">Tìm thông báo</label><input class="input" id="fq" value="${esc(q)}" placeholder="Tìm, ví dụ: học phí, đăng ký"><button class="btn ink" type="submit">Tìm</button></form>
+        <button type="button" class="btn sm" data-feed-refresh style="height:38px;display:inline-flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> Cập nhật ngay</button>
+      </div>
       <nav class="tabs" aria-label="Nhãn"><a href="#/thong-bao-truong"${!tag ? ' aria-current="page"' : ""}>Tất cả</a>${Object.entries(FEED_TAG).map(([k, l]) => `<a href="#/thong-bao-truong?nhan=${k}"${k === tag ? ' aria-current="page"' : ""}>${l}</a>`).join("")}</nav>
       ${items.length ? `<ul class="tb" style="list-style:none;margin:0;padding:0">${items
         .map((x) => `<li style="padding:10px 12px;display:flex;flex-direction:column;gap:4px">${Date.parse(x.firstSeen) > lastSeen && lastSeen ? '<span class="stamp" style="transform:none;width:fit-content">Mới</span>' : ""}<a href="${esc(x.url)}" target="_blank" rel="noopener" style="font-weight:600;line-height:1.35">${esc(x.title)}</a><span class="row" style="gap:6px">${x.date ? `<span class="tiny muted">${fmtDate(Date.parse(x.date))}</span>` : ""}<span class="tiny muted">${esc(x.source)}</span>${x.tags.map((t) => `<a class="why" href="#/thong-bao-truong?nhan=${t}" style="font-size:11px;text-decoration:none">${FEED_TAG[t] || t}</a>`).join("")}</span></li>`)
         .join("")}</ul>` : empty("Không có thông báo phù hợp.")}
-      ${hustFeed ? `<p class="tiny muted" style="margin:0">Lần lấy gần nhất: ${fmtTime(Date.parse(hustFeed.fetchedAt))}. ${hustFeed.items.length} thông báo đang lưu.</p>` : ""}</div>`,
+      ${hustFeed ? `<p class="tiny muted" style="margin:0">Cập nhật tự động: Mỗi 30 phút 1 lần. Lần lấy gần nhất: ${fmtTime(Date.parse(hustFeed.fetchedAt))}. Hiện có ${hustFeed.items.length} thông báo.</p>` : ""}</div>`,
     mount(root) {
       root.querySelector('[data-form="fq"]').addEventListener("submit", (e) => {
         e.preventDefault();
         go(`#/thong-bao-truong?${new URLSearchParams({ ...(tag ? { nhan: tag } : {}), q: root.querySelector("#fq").value.trim() })}`);
+      });
+      root.querySelector('[data-feed-refresh]')?.addEventListener("click", () => {
+        toast("Đang tải lại thông báo mới nhất từ ctt.hust.edu.vn...");
+        loadFeed(true);
       });
     },
   };
@@ -6678,7 +6705,7 @@ function feedWidget() {
   if (!hustFeed?.items?.length) return "";
   const items = hustFeed.items.filter((x) => x.date).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
   return `<section class="panel stack" style="gap:10px;padding:20px">
-    <div class="sechead"><h2 class="h2">Tin vắn từ trường</h2><a href="#/thong-bao-truong" style="font-weight:700">Xem tất cả</a></div>
+    <div class="sechead"><div style="display:flex;align-items:center;gap:8px"><h2 class="h2" style="margin:0">Tin vắn từ trường</h2><span class="badge" style="font-size:10px;padding:2px 6px">Cập nhật mỗi 30 phút</span></div><a href="#/thong-bao-truong" style="font-weight:700">Xem tất cả</a></div>
     <ol class="news">
       ${items.map((x, i) => {
         let tag = "THÔNG BÁO";
@@ -7748,6 +7775,8 @@ window.isAppReady = true;
 syncAllWithServer(true);
 window.addEventListener("focus",()=>syncAllWithServer(true));
 setInterval(()=>syncAllWithServer(false),5000);
+loadFeed(false);
+setInterval(()=>loadFeed(false), 30 * 60 * 1000);
 </script>
 </body>
 </html>
