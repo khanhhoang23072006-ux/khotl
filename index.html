@@ -188,12 +188,21 @@ table.t thead th{font-size:11px;color:var(--pencil);font-weight:500}
 .sheetpage .ti{font-weight:700;font-size:1.35em;margin:.6em 0 .2em}
 .sheetpage .ft{position:absolute;left:8%;bottom:4%;color:#666;font-size:.8em}
 .sheetpage .frame{position:absolute;inset:4%;border:1.5px solid #1b1f23;pointer-events:none}
-.viewer{border:2px solid var(--line);background:var(--sheet)}
-.viewer .bar{display:flex;justify-content:space-between;align-items:stretch;border-bottom:2px solid var(--line);background:var(--paper);font-size:14px}
-.viewer .bar span{display:flex;align-items:center;padding:0 12px}
-.viewer .bar button{width:44px;height:44px;border:0;border-left:1px solid var(--line);background:none;cursor:pointer;font-size:18px}
+.viewer{border:2px solid var(--line);background:var(--sheet);transition:all .2s ease}
+.viewer-bar{display:flex;justify-content:space-between;align-items:stretch;border-bottom:2px solid var(--line);background:var(--paper);font-size:14px;height:44px;min-height:44px;padding:0 6px 0 12px;box-sizing:border-box}
+.viewer-bar span{display:flex;align-items:center}
+.viewer-bar button:not(.btn){width:44px;height:44px;border:0;border-left:1px solid var(--line);background:none;cursor:pointer;font-size:18px;display:inline-flex;align-items:center;justify-content:center;color:inherit}
+.viewer-bar button:not(.btn):hover{background:var(--wash)}
+@media (max-width:600px){
+  .viewer-bar{height:40px;min-height:40px;padding:0 4px 0 8px;font-size:12px}
+  .viewer-bar button:not(.btn){width:34px;height:40px;font-size:15px}
+  .viewer-bar .btn{height:28px!important;padding:0 8px!important;font-size:11px!important}
+}
 .viewer .pages{max-height:80vh;overflow:auto;background:var(--wash);padding:8px;display:flex;flex-direction:column;align-items:center;gap:8px}
 .viewer iframe{width:100%;height:80vh;border:0;background:#fff}
+.viewer.fullscreen{position:fixed;inset:0;z-index:9999;background:var(--sheet);display:flex;flex-direction:column;width:100vw;height:100vh;margin:0;border:0}
+.viewer.fullscreen .pages{max-height:none;flex:1;height:calc(100vh - 46px)}
+.viewer.fullscreen iframe{height:calc(100vh - 46px)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0}
 .chips a{display:inline-flex;height:32px;align-items:center;padding:0 8px;border:1px solid var(--line);background:var(--sheet);font-size:13px;text-decoration:none}
 .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;background:var(--fill);color:var(--on-fill);padding:10px 16px;font-size:14px;border:2px solid var(--line);box-shadow:4px 4px 0 var(--stamp);max-width:calc(100% - 32px)}
@@ -1538,7 +1547,31 @@ views["/hoc-phan/:code"]=({code})=>{
 
 function canSee(d,u){if(d.status==="APPROVED")return"public";if(!u)return null;if(d.uploader===u.email)return"owner";if(canModerate(u,d))return"moderator";return null}
 function renderPages(d,count){const c=course(d.course);return docContent(d).slice(0,count).map((lines,i)=>`<div class="sheetpage" role="img" aria-label="Trang ${i+1}" style="width:100%"><div class="frame"></div>${i===0?`<div class="hd">ĐẠI HỌC BÁCH KHOA HÀ NỘI</div><div class="ti">${esc(d.title)}</div><div>${c.code} ${esc(c.name)}</div><br>`:""}${lines.slice(0,i===0?12:18).map(l=>`<div>${esc(l)}</div>`).join("")}<div class="ft">Trang ${i+1}/${d.pages}. Dữ liệu mẫu để demo.</div></div>`).join("")}
-async function mountUploadedPreview(root,d){const box=root.querySelector("[data-file-preview]");if(!box)return;let blob=await fileDB.get(d.id);if(!blob){try{const res=await fetch(API_BASE+"/api/docs.php?action=file&id="+encodeURIComponent(d.id));if(res.ok){blob=await res.blob();await fileDB.put(d.id,blob)}}catch{}}if(!blob){box.innerHTML=`<p class="small muted" style="padding:16px">Tệp đang được đồng bộ từ máy chủ hoặc không có bản xem trước.</p>`;return}const url=URL.createObjectURL(blob);if(d.kind==="PDF")box.innerHTML=`<iframe src="${url}" title="${esc(d.title)}"></iframe>`;else if(d.kind==="IMAGE")box.innerHTML=`<img src="${url}" alt="${esc(d.title)}" style="max-width:100%;display:block;margin:0 auto">`;else box.innerHTML=`<p class="small" style="padding:16px">Định dạng ${d.kind} không có bản xem trước trong hệ thống. Tải về để mở.</p>`}
+async function mountUploadedPreview(root,d){
+  const box=root.querySelector("[data-file-preview]");if(!box)return;
+  let blob=await fileDB.get(d.id);
+  if(!blob){
+    try{
+      const res=await fetch(API_BASE+"/api/docs.php?action=file&id="+encodeURIComponent(d.id));
+      if(res.ok){blob=await res.blob();await fileDB.put(d.id,blob)}
+    }catch{}
+  }
+  if(blob){
+    const url=URL.createObjectURL(blob);
+    if(d.kind==="PDF"){
+      box.innerHTML=`<iframe src="${url}" title="${esc(d.title)}"></iframe>`;
+      return;
+    }
+    if(d.kind==="IMAGE"||d.kind==="JPG"||d.kind==="PNG"||d.kind==="WEBP"){
+      box.innerHTML=`<img src="${url}" alt="${esc(d.title)}" style="max-width:100%;display:block;margin:0 auto;border:1px solid var(--line)">`;
+      return;
+    }
+  }
+  const u=me();
+  const totalPages=d.pages||1;
+  const count=u?totalPages:Math.min(GUEST_PAGES,totalPages);
+  box.innerHTML=`<div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,count)}</div>`;
+}
 
 views["/tai-lieu/:slug"]=({slug})=>{
   const d=S.docs.find(x=>x.slug===slug);const u=me();if(!d)return views.notfound();const access=canSee(d,u);if(!access)return views.notfound();
@@ -1547,15 +1580,59 @@ views["/tai-lieu/:slug"]=({slug})=>{
   if(access==="public"&&u?.email!==d.uploader){d.views++;if(u)logAct(u,d,"view");save()}
   const related=publicDocs().filter(x=>x.course===d.course&&x.id!==d.id).sort((a,b)=>b.downloads-a.downloads).slice(0,4);
   const uploaded=!!d.uploaded;
-  const viewer=uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`
-   :u?`<div class="viewer"><div class="bar"><span class="head" data-page-ind>Trang 1 / ${d.pages}</span><span style="padding:0"><button type="button" data-zoom="-1" aria-label="Thu nhỏ">−</button><button type="button" data-zoom="0" aria-label="Vừa chiều ngang" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button><button type="button" data-zoom="1" aria-label="Phóng to">+</button></span></div><div class="pages" data-pages><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,d.pages)}</div></div></div>`
-   :`<div class="stack">${renderPages(d,Math.min(GUEST_PAGES,d.pages))}<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;align-items:flex-start"><p class="head" style="margin:0">Khách xem được ${Math.min(GUEST_PAGES,d.pages)} trang đầu. Đăng nhập bằng email trường để đọc hết và tải về.</p><a class="btn ink" href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập để đọc toàn bộ</a></div></div>`;
+  const totalPages=d.pages||1;
+  const canReadPages=u?totalPages:Math.min(GUEST_PAGES,totalPages);
+  const dlAction=u?(crDecide(u,d)==="DENIED"?"nocredit":"download"):"download";
+  const dlBarBtn=`<button class="btn primary sm" type="button" data-action="${dlAction}" data-id="${d.id}" style="height:32px;padding:0 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;margin:auto 0 auto 6px;white-space:nowrap">${icon.down}<span>${u?"Tải về":"Tải xuống"}</span></button>`;
+
+  const viewerBar=`<div class="viewer-bar">
+    <span class="head" style="display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span data-page-ind style="padding:0">Trang 1 / ${totalPages}</span>
+    </span>
+    <span style="padding:0;display:flex;align-items:center">
+      <button type="button" data-zoom="-1" aria-label="Thu nhỏ" title="Thu nhỏ">−</button>
+      <button type="button" data-zoom="0" aria-label="Vừa chiều ngang" title="100%" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button>
+      <button type="button" data-zoom="1" aria-label="Phóng to" title="Phóng to">+</button>
+      <button type="button" data-viewer-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình" style="font-size:15px">⛶</button>
+      ${dlBarBtn}
+    </span>
+  </div>`;
+
+  const viewerContent=uploaded
+    ?`<div data-file-preview data-pages class="pages" style="display:block"><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,canReadPages)}</div></div>`
+    :`<div class="pages" data-pages><div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,canReadPages)}</div></div>`;
+
+  const guestPrompt=!u?`<div style="border-top:2px solid var(--line);background:var(--sheet);padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span class="small">Khách xem được ${canReadPages} trang đầu. Đăng nhập bằng email trường để đọc hết và tải về.</span>
+    <a class="btn ink sm" href="#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}">Đăng nhập để đọc toàn bộ</a>
+  </div>`:"" ;
+
+  const viewer=`<div class="viewer">${viewerBar}${viewerContent}${guestPrompt}</div>`;
+
+  const docEndCta=`<div class="card stack" style="border:2px solid var(--line);background:var(--sheet);padding:18px;margin-top:16px;gap:10px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="min-width:0;flex:1 1 260px">
+        <span class="stamp" style="font-size:11px;margin-bottom:4px;display:inline-block">Bản xem trước trực tuyến</span>
+        <h3 class="head" style="margin:0;font-size:16px">Bạn vừa xem bản xem trước (${totalPages} trang)</h3>
+        <p class="small muted" style="margin:2px 0 0">Tải xuống tệp gốc (${esc(d.kind)}, ${fmtSize(d.sizeKb)}) để mở offline, in ấn và học tập đầy đủ bất kỳ lúc nào.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button type="button" class="btn primary" data-action="${dlAction}" data-id="${d.id}" style="height:44px;padding:0 18px;font-size:14px;display:inline-flex;align-items:center;gap:6px">${icon.down} <span>${u?`Tải xuống (${fmtSize(d.sizeKb)})`:"Đăng nhập để tải"}</span></button>
+        <button type="button" class="btn${isSaved(u,d)?" ink":""}" data-save aria-pressed="${isSaved(u,d)}" style="height:44px">${isSaved(u,d)?"✓ Đã lưu":"★ Lưu tài liệu"}</button>
+      </div>
+    </div>
+  </div>`;
+
   return {html:`<div class="wrap" style="padding-block:20px">
    <nav class="small muted row" style="gap:8px;margin-bottom:12px" aria-label="Vị trí tài liệu"><a href="#/vien/${f.slug}">${esc(f.shortName)}</a><span aria-hidden="true">/</span><a href="#/hoc-phan/${c.code}">${c.code} ${esc(c.name)}</a></nav>
    ${access!=="public"?`<div class="note${d.status==="CHANGES_REQUESTED"||d.status==="REJECTED"?" red":""}" style="margin-bottom:16px"><span class="badge ${d.status}">${STATUS[d.status]}</span> ${{PROCESSING:"Đang chạy kiểm tra tự động.",PENDING_REVIEW:"Đã qua kiểm tra tự động, đang chờ kiểm duyệt viên. Chỉ bạn và kiểm duyệt viên thấy trang này.",CHANGES_REQUESTED:"Kiểm duyệt viên đề nghị bạn chỉnh sửa rồi gửi lại.",REJECTED:"Tài liệu không được duyệt.",REMOVED:"Tài liệu đã bị gỡ khỏi kho."}[d.status]||""}${d.reviewNote?`<div><b class="head">Ghi chú của kiểm duyệt viên:</b> ${esc(d.reviewNote)}</div>`:""}${mod&&d.status==="PENDING_REVIEW"?`<div><a href="#/kiem-duyet/${d.id}"><b>Mở trong hàng chờ kiểm duyệt</b></a></div>`:""}${access==="owner"&&d.status==="CHANGES_REQUESTED"?`<div><a href="#/tai-lieu-cua-toi/${d.id}/sua"><b>Sửa và gửi lại</b></a></div>`:""}</div>`:""}
    <div class="two">
-    <div style="order:2;min-width:0" class="stack">${viewer}</div>
-    <aside class="stack" style="order:1">
+    <div class="main-doc stack" style="min-width:0">
+      ${viewer}
+      ${docEndCta}
+    </div>
+    <aside class="stack">
      <div class="tb" style="grid-template-columns:1fr 1fr">
       <div style="grid-column:span 2;padding:12px"><h1 class="head" style="font-size:22px;line-height:1.2">${esc(d.title)}</h1>${d.status==="APPROVED"?`<div class="row" style="margin-top:8px"><span class="stamp">Đã duyệt</span><span class="tiny muted">${fmtDate(d.publishedAt)}</span></div>`:""}</div>
       <div style="grid-column:span 2;display:flex;justify-content:space-between;align-items:flex-end;padding:8px 12px"><span style="display:flex;flex-direction:column"><span class="tiny muted">Mã HP</span><a class="code" style="font-size:30px;line-height:1;text-decoration:none" href="#/hoc-phan/${c.code}">${c.code}</a></span><span class="small" style="text-align:right;max-width:60%">${esc(c.name)}</span></div>
@@ -1564,7 +1641,13 @@ views["/tai-lieu/:slug"]=({slug})=>{
       <div class="cell"><span class="l">Lượt xem</span><span class="v">${fmtCount(d.views)}</span></div><div class="cell"><span class="l">Lượt tải</span><span class="v">${fmtCount(d.downloads)}</span></div>
       <div style="grid-column:span 2;display:flex;gap:12px;align-items:center;padding:8px 12px"><span class="avatar" style="width:36px;height:36px">${showUp?esc(initials(displayName(up))):"?"}</span><span style="display:flex;flex-direction:column;min-width:0"><b style="font-weight:600">${showUp?esc(displayName(up)):"Người đăng ẩn danh"}${showUp&&d.anonymous?' <span class="tiny muted">(ẩn danh với người xem)</span>':""}</b>${showUp?`<span class="tiny muted">Đã đóng góp ${up?.approved||0} tài liệu được duyệt</span>`:""}</span></div>
      </div>
-     ${u?crButton(u,d):`<button class="btn primary lg block" type="button" data-action="download" data-id="${d.id}">${icon.down}Đăng nhập để tải xuống</button>`}
+     <div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:14px;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="head" style="font-size:14px">Tải tệp gốc</span>
+        <span class="badge ${d.kind}">${esc(d.kind)}</span>
+      </div>
+      ${u?crButton(u,d):`<button class="btn primary lg block" type="button" data-action="download" data-id="${d.id}">${icon.down}Đăng nhập để tải xuống</button>`}
+     </div>
      ${d.status==="APPROVED"?`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:8px 12px"><span class="tiny muted" style="display:block">${u&&u.email!==d.uploader?(myRating(u,d)?"Điểm bạn chấm":"Chấm điểm tài liệu"):"Điểm trung bình"}</span>${u&&u.email!==d.uploader?`<div class="stars" role="radiogroup" aria-label="Chấm điểm">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="${myRating(u,d)===n}" aria-label="${n} sao" data-rate="${n}" class="${myRating(u,d)>=n?"on":""}">★</button>`).join("")}</div>`:`<b class="code" style="font-size:24px">${rating(d)}</b>`}</div><button type="button" class="btn${isSaved(u,d)?" ink":""}" style="border:0;height:auto" data-save aria-pressed="${isSaved(u,d)}">${isSaved(u,d)?"Đã lưu":"Lưu"}</button></div>`:""}
      ${d.description?`<section style="border:2px solid var(--line);background:var(--sheet);padding:8px 12px"><h2 class="tiny muted" style="font-weight:400">Mô tả</h2><p style="margin:0;white-space:pre-line;font-size:14px">${esc(d.description)}</p></section>`:""}${typeof adSlot==="function"?adSlot("doc"):""}
      ${d.tags?.length?`<ul class="chips" aria-label="Thẻ">${d.tags.map(t=>`<li><a href="#/tim-kiem?q=${encodeURIComponent(t)}">${esc(t)}</a></li>`).join("")}</ul>`:""}
@@ -1578,12 +1661,14 @@ views["/tai-lieu/:slug"]=({slug})=>{
   </div>`,mount(root){
    if(uploaded)mountUploadedPreview(root,d);
    root.querySelectorAll("[data-rate]").forEach(b=>b.addEventListener("click",()=>{rate(u,d,+b.dataset.rate);toast(`Bạn chấm ${b.dataset.rate}/5.`);render()}));
-   root.querySelector("[data-save]")?.addEventListener("click",()=>{if(!u)return go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);const l=S.saved[u.email]=S.saved[u.email]||[];const i=l.indexOf(d.id);if(i>=0){l.splice(i,1);toast("Đã bỏ lưu.")}else{l.push(d.id);toast("Đã lưu vào mục Đã lưu.")}save();render()});
+   root.querySelectorAll("[data-save]").forEach(b=>b.addEventListener("click",()=>{if(!u)return go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);const l=S.saved[u.email]=S.saved[u.email]||[];const i=l.indexOf(d.id);if(i>=0){l.splice(i,1);toast("Đã bỏ lưu.")}else{l.push(d.id);toast("Đã lưu vào mục Đã lưu.")}save();render()}));
    mountComments(root,d,u);mountDocAi(root,d,u);
    const pages=root.querySelector("[data-pages]");
    if(pages){let z=1;const sc=root.querySelector("[data-scale]"),lab=root.querySelector("[data-zoom-label]"),ind=root.querySelector("[data-page-ind]");
-    root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.zoom;z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));sc.style.width=`${z*100}%`;lab.textContent=`${Math.round(z*100)}%`}));
-    pages.addEventListener("scroll",()=>{const kids=[...sc.children];const top=pages.scrollTop+pages.clientHeight/3;let i=0;kids.forEach((k,n)=>{if(k.offsetTop<=top)i=n});ind.textContent=`Trang ${i+1} / ${d.pages}`})}
+    root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.zoom;z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));if(sc)sc.style.width=`${z*100}%`;if(lab)lab.textContent=`${Math.round(z*100)}%`}));
+    pages.addEventListener("scroll",()=>{if(!sc||!ind)return;const kids=[...sc.children];const top=pages.scrollTop+pages.clientHeight/3;let i=0;kids.forEach((k,n)=>{if(k.offsetTop<=top)i=n});ind.textContent=`Trang ${i+1} / ${totalPages}`})}
+   const vEl=root.querySelector(".viewer");
+   root.querySelector("[data-viewer-fullscreen]")?.addEventListener("click",()=>{if(vEl)vEl.classList.toggle("fullscreen")});
    root.querySelector('[data-form="report"]')?.addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);if(S.reports.some(r=>r.doc===d.id&&r.by===u.email&&r.status==="OPEN")){toast("Bạn đã báo cáo tài liệu này, kiểm duyệt viên đang xem xét.");return}S.reports.push({id:uid(),doc:d.id,by:u.email,reason:fd.get("reason"),details:fd.get("details"),status:"OPEN",t:Date.now()});save();e.target.closest("details").outerHTML='<p class="note">Đã gửi báo cáo. Cảm ơn bạn, kiểm duyệt viên sẽ xem xét.</p>'});
    root.querySelector('[data-form="remove"]')?.addEventListener("submit",(e)=>{e.preventDefault();removeDoc(d,new FormData(e.target).get("reason"));toast("Đã gỡ tài liệu.");render()});
   }};
@@ -2199,7 +2284,7 @@ views["/kiem-duyet/:id"]=({id})=>{
   const s=modScope(u);const next=S.docs.filter(x=>x.status==="PENDING_REVIEW"&&x.id!==d.id&&(s===null||s.includes(course(x.course)?.faculty))).sort((a,b)=>(b.priority||0)-(a.priority||0)||a.createdAt-b.createdAt)[0];
   const AC={AUTO_APPROVE:"tự duyệt",APPEAL_OVERTURN:"lật lại quyết định sau kháng nghị",APPEAL_UPHELD:"giữ nguyên quyết định sau kháng nghị",AUTO_CHECK_PASSED:"qua kiểm tra tự động",AUTO_REJECTED:"từ chối tự động",APPROVE:"duyệt",REJECT:"từ chối",REQUEST_CHANGES:"yêu cầu sửa",REMOVE:"gỡ tài liệu",NOTE:"ghi chú"};
   return {html:`<div class="wrap" style="padding-block:20px">${modTabs("q")}<div class="two wide"><div class="stack" style="min-width:0"><a class="small" href="#/kiem-duyet">Về hàng chờ</a>
-   ${d.uploaded?`<div class="viewer"><div class="bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`:`<div class="viewer"><div class="pages"><div style="width:100%;display:flex;flex-direction:column;gap:8px">${renderPages(d,d.pages)}</div></div></div>`}</div>
+   ${d.uploaded?`<div class="viewer"><div class="viewer-bar"><span class="head">Tệp gốc: ${esc(d.fileName||"")}</span></div><div data-file-preview class="pages" style="display:block"></div></div>`:`<div class="viewer"><div class="pages"><div style="width:100%;display:flex;flex-direction:column;gap:8px">${renderPages(d,d.pages)}</div></div></div>`}</div>
    <aside class="stack" style="gap:16px">
     <div class="tb" style="grid-template-columns:1fr 1fr"><div style="grid-column:span 2;padding:12px"><span class="badge ${d.status}">${STATUS[d.status]}</span><h2 class="head" style="font-size:20px;margin-top:6px">${esc(d.title)}</h2>${d.description?`<p class="small" style="margin:4px 0 0;white-space:pre-line">${esc(d.description)}</p>`:""}</div>
      <div class="cell" style="grid-column:span 2"><span class="l">Người đăng</span><span class="v">${esc(displayName(up))} (${esc(d.uploader)})${d.anonymous?' <span style="color:var(--stamp)">(chọn ẩn danh)</span>':""}<span class="tiny muted" style="display:block;font-weight:400">${up?.approved||0} tài liệu đã duyệt, bậc uy tín ${up?.trust||0}</span></span></div>
