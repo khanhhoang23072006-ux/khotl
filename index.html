@@ -930,10 +930,6 @@ function load(){
     ];
     defaults.forEach(d=>{
       if(!existing.has(d.id))S.cm.ads.push(d);
-      else{
-        const found=S.cm.ads.find(x=>x.id===d.id);
-        if(found&&!found.placements.includes("home"))found.placements.push("home");
-      }
     });
   }
 }
@@ -1175,11 +1171,33 @@ async function syncStateWithServer(forceRender=false){
           });
         }
       });
+      const adMap = new Map((currentCm.ads || []).map(a => [a.id, a]));
+      for (const sAd of (st.cm.ads || [])) {
+        if (!sAd || !sAd.id) continue;
+        const lAd = adMap.get(sAd.id);
+        if (!lAd) {
+          if (!sAd.deleted) adMap.set(sAd.id, sAd);
+        } else {
+          if (sAd.deleted || lAd.deleted) {
+            adMap.delete(sAd.id);
+          } else {
+            const sTime = sAd.updatedAt || 0;
+            const lTime = lAd.updatedAt || 0;
+            if (lTime >= sTime) {
+              Object.assign(lAd, sAd, lAd);
+            } else {
+              Object.assign(lAd, sAd);
+            }
+          }
+        }
+      }
+
       S.cm = {
         ...currentCm,
         ...st.cm,
         questions: Array.from(qMap.values()),
         answers: Array.from(aMap.values()),
+        ads: Array.from(adMap.values()),
         adSeen: { ...(currentCm.adSeen || {}), ...(st.cm.adSeen || {}) },
         adHidden: { ...(currentCm.adHidden || {}), ...(st.cm.adHidden || {}) }
       };
@@ -6849,10 +6867,11 @@ function adHomeCarousel() {
   return `<section class="wrap ad-carousel-wrap" style="padding-top:24px" aria-label="Góc đối tác & quảng cáo">
     <div class="panel" style="border:2px solid var(--line);background:var(--sheet);padding:16px 20px;position:relative;box-shadow:4px 4px 0 var(--line)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span class="stamp" style="font-size:11px;padding:2px 8px;transform:none">ĐỐI TÁC ĐỒNG HÀNH</span>
           <h2 class="h2" style="margin:0;font-size:16px">Góc nhà tài trợ & Ưu đãi học tập</h2>
           <span class="tiny muted" style="display:inline-block;padding:1px 6px;border:1px solid var(--line);border-radius:2px;font-size:11px">${list.length} đối tác</span>
+          ${isAdmin(u)?`<a class="btn sm ink" href="#/quan-tri/quang-cao" style="font-size:11px;padding:2px 8px;height:24px;line-height:20px;display:inline-flex;align-items:center;gap:4px">Quản lý quảng cáo</a>`:""}
         </div>
         <div class="row" style="gap:6px;align-items:center">
           <button type="button" class="btn sm" data-ad-prev aria-label="Quảng cáo trước" title="Quảng cáo trước" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">‹</button>
@@ -6873,7 +6892,10 @@ function adHomeCarousel() {
               <p class="small" style="margin:0;color:var(--ink);opacity:.85;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(a.body)}</p>
             </div>
             <div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:6px;border-top:1px dashed var(--line);padding-top:10px">
-              <button type="button" class="tiny" data-adhide="${a.id}" style="all:unset;cursor:pointer;color:var(--pencil);text-decoration:underline;font-size:11px">Ẩn tin này</button>
+              <div class="row" style="gap:8px;align-items:center">
+                <button type="button" class="tiny" data-adhide="${a.id}" style="all:unset;cursor:pointer;color:var(--pencil);text-decoration:underline;font-size:11px">Ẩn tin này</button>
+                ${isAdmin(u)?`<a class="btn sm" href="#/quan-tri/quang-cao?sua=${a.id}" style="font-size:11px;padding:1px 6px;height:24px;line-height:20px;border-style:dashed" title="Sửa chiến dịch này">Sửa</a>`:""}
+              </div>
               <a class="btn primary sm" href="${esc(a.url)}" target="_blank" rel="sponsored noopener" data-adclick="${a.id}" style="height:32px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;gap:4px">
                 <span>${esc(a.cta || "Xem ưu đãi")}</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
@@ -7011,58 +7033,169 @@ document.addEventListener("click", (e) => {
 views["/quan-tri/quang-cao"] = () => {
   const u = me();
   if (!u) return needLogin("/quan-tri/quang-cao");
-  if (!isAdmin(u)) return views.notfound();
+  if (!isAdmin(u) && !isSystemAdminEmail(u?.email)) return views.notfound();
   const cm = CM();
   const editId = params().get("sua");
-  const ed = cm.ads.find((a) => a.id === editId) || { id: "", sponsor: "", title: "", body: "", url: "https://", cta: "Xem", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
+  const ed = (editId ? cm.ads.find((a) => a.id === editId) : null) || { id: "", sponsor: "", title: "", body: "", url: "https://", cta: "Xem ưu đãi", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
   const PL = { home: "Trang chủ", search: "Kết quả tìm kiếm", doc: "Trang tài liệu" };
+  const isEditing = !!(editId && ed.id);
+
+  const formHtml = `
+    <form class="stack panel" data-form="ad" id="form-ad" style="border:2px solid ${isEditing ? "var(--stamp)" : "var(--line)"};background:var(--sheet);padding:18px;gap:14px;box-shadow:${isEditing ? "4px 4px 0 var(--stamp)" : "none"}">
+      <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+        <h2 class="h2" style="margin:0">${isEditing ? `Sửa chiến dịch: ${esc(ed.title)}` : "Tạo chiến dịch quảng cáo mới"}</h2>
+        ${isEditing ? `<div class="row" style="gap:6px;align-items:center"><span class="badge" style="font-weight:700">Mã: ${esc(ed.id)}</span><a class="btn sm ghost" href="#/quan-tri/quang-cao">Hủy sửa</a></div>` : ""}
+      </div>
+      <div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+        <div class="field"><label for="ad-s">Nhà tài trợ / Đơn vị <span class="req">*</span></label><input class="input" id="ad-s" value="${esc(ed.sponsor)}" maxlength="80" placeholder="Ví dụ: Nhà sách Bách Việt" required></div>
+        <div class="field"><label for="ad-t">Tiêu đề chiến dịch <span class="req">*</span></label><input class="input" id="ad-t" value="${esc(ed.title)}" maxlength="90" placeholder="Ví dụ: Giảm 20% giáo trình đại cương" required></div>
+        <div class="field" style="grid-column:1/-1"><label for="ad-b">Nội dung quảng cáo</label><textarea class="textarea" id="ad-b" maxlength="250" style="min-height:64px" placeholder="Mô tả ưu đãi, đối tượng áp dụng...">${esc(ed.body)}</textarea></div>
+        <div class="field"><label for="ad-u">Liên kết (URL hoặc route nội bộ) <span class="req">*</span></label><input class="input" id="ad-u" value="${esc(ed.url)}" placeholder="https://example.com hoặc #/..." required></div>
+        <div class="field"><label for="ad-c">Nhãn nút hành động (CTA)</label><input class="input" id="ad-c" value="${esc(ed.cta || "Xem ưu đãi")}" maxlength="25" placeholder="Xem ưu đãi"></div>
+        <div class="field"><label for="ad-f">Từ ngày</label><input class="input" id="ad-f" type="date" value="${ed.from}"></div>
+        <div class="field"><label for="ad-to">Đến ngày</label><input class="input" id="ad-to" type="date" value="${ed.to}"></div>
+        <div class="field"><label for="ad-cap">Tối đa hiển thị / người / ngày</label><input class="input" id="ad-cap" type="number" min="1" max="50" value="${ed.cap || 3}"></div>
+        <div class="field" style="display:flex;align-items:center;padding-top:24px"><label class="check"><input type="checkbox" id="ad-active"${ed.active !== false ? " checked" : ""}><span><b>Đang kích hoạt</b> (cho phép hiển thị)</span></label></div>
+      </div>
+      <div class="row" style="gap:12px;flex-wrap:wrap"><span class="small" style="font-weight:700">Vị trí hiển thị:</span>${Object.entries(PL).map(([k, l]) => `<label class="check"><input type="checkbox" data-pl="${k}"${(ed.placements || []).includes(k) ? " checked" : ""}><span>${l}</span></label>`).join("")}</div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><span class="small" style="font-weight:700">Nhắm theo Viện/Trường (bỏ trống là tất cả):</span>${DATA.faculties.map((f) => `<label class="check"><input type="checkbox" data-fac="${f.code}"${(ed.faculties || []).includes(f.code) ? " checked" : ""}><span>${f.code}</span></label>`).join("")}</div>
+
+      <!-- Xem trước trực tiếp -->
+      <div style="border:1.5px dashed var(--pencil);background:var(--paper);padding:14px;border-radius:2px;display:flex;flex-direction:column;gap:8px" id="ad-preview-box">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <span class="tiny muted" style="font-weight:700;text-transform:uppercase;letter-spacing:.04em">Xem trước hiển thị thực tế (Live Preview)</span>
+          <span class="tiny" style="border:1px solid var(--pencil);padding:1px 6px;color:var(--pencil);font-weight:600">Quảng cáo</span>
+        </div>
+        <div class="tiny muted" id="ad-prev-sponsor">Tài trợ: ${esc(ed.sponsor || "Tên đơn vị")}</div>
+        <div class="head" id="ad-prev-title" style="font-size:16px;line-height:1.3;color:var(--ink)">${esc(ed.title || "Tiêu đề chiến dịch quảng cáo")}</div>
+        <div class="small" id="ad-prev-body" style="color:var(--ink);opacity:.85;line-height:1.45">${esc(ed.body || "Nội dung vắn tắt quảng cáo sẽ hiển thị ở đây...")}</div>
+        <div class="row" style="justify-content:space-between;align-items:center;margin-top:4px">
+          <span class="tiny muted" id="ad-prev-url" style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ed.url || "https://...")}</span>
+          <span class="btn primary sm" id="ad-prev-cta" style="pointer-events:none;height:30px;font-size:11px;padding:0 12px">${esc(ed.cta || "Xem ưu đãi")}</span>
+        </div>
+      </div>
+
+      <p class="err" data-err role="alert" hidden></p>
+      <div class="row" style="gap:8px">
+        <button class="btn primary" type="submit">${isEditing ? "Lưu thay đổi" : "Tạo chiến dịch"}</button>
+        ${isEditing ? '<a class="btn ghost" href="#/quan-tri/quang-cao">Hủy sửa</a>' : '<button class="btn ghost" type="reset">Đặt lại</button>'}
+      </div>
+    </form>
+  `;
+
   return {
     html: `<div class="wrap stack" style="padding-block:20px;gap:24px">${adminTabs("ad")}
      <p class="note" style="margin:0">Nguyên tắc: luôn ghi “Quảng cáo” và tên nhà tài trợ; không đặt trong trình xem tài liệu; không ảnh hưởng thứ hạng tìm kiếm; chỉ nhắm theo Viện, không dùng lịch sử xem/tải; không nhận quảng cáo dịch vụ làm bài hộ, bán đề thi, vay tiền.</p>
-     <div style="overflow-x:auto"><table class="t" style="min-width:720px"><thead><tr><th>Chiến dịch</th><th>Vị trí</th><th>Thời gian</th><th class="num">Hiển thị</th><th class="num">Nhấp</th><th class="num">CTR</th><th>Trạng thái</th><th></th></tr></thead><tbody>${cm.ads
-       .map((a) => `<tr><td><b style="font-weight:600">${esc(a.title)}</b><span class="tiny muted" style="display:block">${esc(a.sponsor)}${a.faculties.length ? `, nhắm ${a.faculties.join(", ")}` : ""}</span></td><td class="small">${a.placements.map((p) => PL[p]).join(", ")}</td><td class="small">${fmtDate(Date.parse(a.from))} đến ${fmtDate(Date.parse(a.to))}</td><td class="num">${fmtCount(a.imp)}</td><td class="num">${a.clicks}</td><td class="num">${a.imp ? ((a.clicks / a.imp) * 100).toFixed(1).replace(".", ",") : "0"}%</td><td>${a.active ? "Đang chạy" : "Tạm dừng"}</td><td class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" type="button" data-toggle="${a.id}">${a.active ? "Dừng" : "Chạy"}</button><a class="btn sm" href="#/quan-tri/quang-cao?sua=${a.id}">Sửa</a><button class="btn sm ghost" type="button" data-delad="${a.id}">Xóa</button></td></tr>`)
-       .join("")}</tbody></table></div>
-     <form class="stack" data-form="ad" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">${ed.id ? "Sửa chiến dịch" : "Chiến dịch mới"}</h2>
-      <div style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-       <div class="field"><label for="ad-s">Nhà tài trợ</label><input class="input" id="ad-s" value="${esc(ed.sponsor)}" maxlength="80"></div>
-       <div class="field"><label for="ad-t">Tiêu đề</label><input class="input" id="ad-t" value="${esc(ed.title)}" maxlength="70"></div>
-       <div class="field" style="grid-column:1/-1"><label for="ad-b">Nội dung</label><textarea class="textarea" id="ad-b" maxlength="160" style="min-height:56px">${esc(ed.body)}</textarea></div>
-       <div class="field"><label for="ad-u">Liên kết (https)</label><input class="input" id="ad-u" value="${esc(ed.url)}"></div>
-       <div class="field"><label for="ad-c">Nút</label><input class="input" id="ad-c" value="${esc(ed.cta)}" maxlength="20"></div>
-       <div class="field"><label for="ad-f">Từ ngày</label><input class="input" id="ad-f" type="date" value="${ed.from}"></div>
-       <div class="field"><label for="ad-to">Đến ngày</label><input class="input" id="ad-to" type="date" value="${ed.to}"></div>
-       <div class="field"><label for="ad-cap">Tối đa mỗi người mỗi ngày</label><input class="input" id="ad-cap" type="number" min="1" max="20" value="${ed.cap}"></div>
-      </div>
-      <div class="row" style="gap:12px"><span class="small">Vị trí:</span>${Object.entries(PL).map(([k, l]) => `<label class="check"><input type="checkbox" data-pl="${k}"${ed.placements.includes(k) ? " checked" : ""}><span>${l}</span></label>`).join("")}</div>
-      <div class="row" style="gap:12px"><span class="small">Nhắm theo Viện (bỏ trống là mọi Viện):</span>${DATA.faculties.map((f) => `<label class="check"><input type="checkbox" data-fac="${f.code}"${ed.faculties.includes(f.code) ? " checked" : ""}><span>${f.code}</span></label>`).join("")}</div>
-      <p class="err" data-err role="alert" hidden></p><div class="row" style="gap:6px"><button class="btn primary" type="submit">${ed.id ? "Lưu" : "Tạo chiến dịch"}</button>${ed.id ? '<a class="btn ghost" href="#/quan-tri/quang-cao">Thôi</a>' : ""}</div></form></div>`,
+     ${isEditing ? formHtml : ""}
+     <section class="stack" style="gap:12px">
+       <div class="row" style="justify-content:space-between;align-items:center">
+         <h2 class="h2" style="margin:0">Danh sách chiến dịch (${cm.ads.length})</h2>
+         ${!isEditing ? `<a class="btn sm primary" href="#form-ad">+ Tạo chiến dịch mới</a>` : ""}
+       </div>
+       <div style="overflow-x:auto"><table class="t" style="min-width:720px"><thead><tr><th>Chiến dịch</th><th>Vị trí</th><th>Thời gian</th><th class="num">Hiển thị</th><th class="num">Nhấp</th><th class="num">CTR</th><th>Trạng thái</th><th></th></tr></thead><tbody>${cm.ads
+         .map((a) => `<tr style="${a.id === editId ? "background:rgba(255,43,68,0.06);outline:2px solid var(--stamp)" : ""}"><td><div class="row" style="gap:6px;align-items:center"><b style="font-weight:600">${esc(a.title)}</b>${a.id === editId ? '<span class="badge" style="font-size:10px;padding:1px 6px">Đang sửa</span>' : ""}</div><span class="tiny muted" style="display:block">${esc(a.sponsor)}${(a.faculties || []).length ? `, nhắm ${a.faculties.join(", ")}` : ""}</span></td><td class="small">${(a.placements || []).map((p) => PL[p] || p).join(", ")}</td><td class="small">${fmtDate(Date.parse(a.from))} đến ${fmtDate(Date.parse(a.to))}</td><td class="num">${fmtCount(a.imp || 0)}</td><td class="num">${a.clicks || 0}</td><td class="num">${a.imp ? (((a.clicks || 0) / a.imp) * 100).toFixed(1).replace(".", ",") : "0"}%</td><td><span class="badge ${a.active ? "APPROVED" : "REMOVED"}" style="font-size:10px;height:20px;padding:0 6px">${a.active ? "Đang chạy" : "Tạm dừng"}</span></td><td class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" type="button" data-toggle="${a.id}">${a.active ? "Dừng" : "Chạy"}</button><a class="btn sm${a.id === editId ? " ink" : ""}" href="#/quan-tri/quang-cao?sua=${a.id}">Sửa</a><button class="btn sm ghost" type="button" data-delad="${a.id}">Xóa</button></td></tr>`)
+         .join("")}</tbody></table></div>
+     </section>
+     ${!isEditing ? formHtml : ""}
+    </div>`,
     mount(root) {
-      root.querySelectorAll("[data-toggle]").forEach((b) => b.addEventListener("click", () => ((cm.ads.find((a) => a.id === b.dataset.toggle).active ^= true), save(), render())));
+      if (isEditing) {
+        root.querySelector("#form-ad")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        root.querySelector("#ad-t")?.focus();
+      }
+
+      // Real-time live preview binder
+      const bindPreview = () => {
+        const s = root.querySelector("#ad-s")?.value.trim() || "Tên đơn vị";
+        const t = root.querySelector("#ad-t")?.value.trim() || "Tiêu đề chiến dịch quảng cáo";
+        const b = root.querySelector("#ad-b")?.value.trim() || "Nội dung vắn tắt quảng cáo sẽ hiển thị ở đây...";
+        const u = root.querySelector("#ad-u")?.value.trim() || "https://...";
+        const c = root.querySelector("#ad-c")?.value.trim() || "Xem ưu đãi";
+        const ps = root.querySelector("#ad-prev-sponsor"); if (ps) ps.textContent = `Tài trợ: ${s}`;
+        const pt = root.querySelector("#ad-prev-title"); if (pt) pt.textContent = t;
+        const pb = root.querySelector("#ad-prev-body"); if (pb) pb.textContent = b;
+        const pu = root.querySelector("#ad-prev-url"); if (pu) pu.textContent = u;
+        const pc = root.querySelector("#ad-prev-cta"); if (pc) pc.textContent = c;
+      };
+      root.querySelectorAll("#ad-s, #ad-t, #ad-b, #ad-u, #ad-c").forEach(inp => {
+        inp.addEventListener("input", bindPreview);
+      });
+
+      root.querySelectorAll("[data-toggle]").forEach((b) => b.addEventListener("click", () => {
+        const ad = cm.ads.find((a) => a.id === b.dataset.toggle);
+        if (ad) {
+          ad.active = !ad.active;
+          ad.updatedAt = Date.now();
+          save(true);
+          triggerServerSync(0);
+          render();
+        }
+      }));
+
       root.querySelectorAll("[data-delad]").forEach((b) => b.addEventListener("click", () => {
         const ad = cm.ads.find((a) => a.id === b.dataset.delad);
-        if (ad) ad.deleted = true;
-        save();
+        if (!ad) return;
+        if (!confirm(`Bạn có chắc muốn xóa vĩnh viễn chiến dịch "${ad.title}" của ${ad.sponsor}?`)) return;
+        ad.deleted = true;
+        ad.updatedAt = Date.now();
+        save(true);
         cm.ads = cm.ads.filter((a) => a.id !== b.dataset.delad);
-        save(false);
+        save(true);
+        triggerServerSync(0);
+        toast("Đã xóa chiến dịch.");
         render();
       }));
-      root.querySelector('[data-form="ad"]').addEventListener("submit", (e) => {
+
+      root.querySelector('[data-form="ad"]')?.addEventListener("submit", (e) => {
         e.preventDefault();
-        const v = (sel) => root.querySelector(sel).value.trim();
+        const v = (sel) => root.querySelector(sel)?.value.trim() || "";
         const err = root.querySelector("[data-err]");
         const fail = (m) => ((err.textContent = tr(m)), (err.hidden = false));
-        const data = { sponsor: v("#ad-s"), title: v("#ad-t"), body: v("#ad-b"), url: v("#ad-u"), cta: v("#ad-c") || "Xem", from: v("#ad-f"), to: v("#ad-to"), cap: Math.max(1, Math.min(20, +v("#ad-cap") || 3)), placements: [...root.querySelectorAll("[data-pl]:checked")].map((x) => x.dataset.pl), faculties: [...root.querySelectorAll("[data-fac]:checked")].map((x) => x.dataset.fac) };
-        if (!data.sponsor || data.title.length < 5) return fail("Nhập nhà tài trợ và tiêu đề.");
-        if (!/^https:\/\/[^\s]+$/.test(data.url)) return fail("Liên kết phải bắt đầu bằng https://");
-        if (!data.placements.length) return fail("Chọn ít nhất một vị trí.");
+
+        let url = v("#ad-u");
+        if (url && !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("#/")) {
+          url = "https://" + url;
+        }
+        if (!url || (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("#/"))) {
+          return fail("Liên kết quảng cáo không hợp lệ (cần https:// hoặc đường dẫn hợp lệ).");
+        }
+
+        const now = Date.now();
+        const data = {
+          sponsor: v("#ad-s"),
+          title: v("#ad-t"),
+          body: v("#ad-b"),
+          url,
+          cta: v("#ad-c") || "Xem ưu đãi",
+          from: v("#ad-f") || vnDate(now),
+          to: v("#ad-to") || vnDate(now + 30 * D7),
+          cap: Math.max(1, Math.min(50, +v("#ad-cap") || 3)),
+          active: !!root.querySelector("#ad-active")?.checked,
+          placements: [...root.querySelectorAll("[data-pl]:checked")].map((x) => x.dataset.pl),
+          faculties: [...root.querySelectorAll("[data-fac]:checked")].map((x) => x.dataset.fac),
+          updatedAt: now
+        };
+
+        if (!data.sponsor || data.title.length < 3) return fail("Vui lòng nhập tên nhà tài trợ và tiêu đề quảng cáo.");
+        if (!data.placements.length) return fail("Chọn ít nhất một vị trí hiển thị.");
         if (data.to < data.from) return fail("Ngày kết thúc phải sau ngày bắt đầu.");
         if (/lam bai ho|ban de|vay tien|thi ho/.test(norm(`${data.title} ${data.body}`))) return fail("Nội dung quảng cáo không phù hợp quy định.");
-        if (ed.id) Object.assign(cm.ads.find((a) => a.id === ed.id), data);
-        else cm.ads.unshift({ id: `ad${uid()}`, active: true, imp: 0, clicks: 0, ...data });
-        S.audit.unshift({ t: Date.now(), by: u.email, action: ed.id ? "ad.update" : "ad.create", detail: `${data.sponsor}: ${data.title}` });
-        save();
-        toast("Đã lưu chiến dịch.");
+
+        const existingIdx = ed.id ? cm.ads.findIndex((a) => a.id === ed.id) : -1;
+        if (existingIdx >= 0) {
+          Object.assign(cm.ads[existingIdx], data);
+        } else if (ed.id) {
+          cm.ads.unshift({ id: ed.id, imp: 0, clicks: 0, ...data });
+        } else {
+          cm.ads.unshift({ id: `ad${uid()}`, imp: 0, clicks: 0, ...data });
+        }
+
+        S.audit.unshift({ t: now, by: u.email, action: ed.id ? "ad.update" : "ad.create", detail: `${data.sponsor}: ${data.title}` });
+        save(true);
+        triggerServerSync(0);
+        toast(ed.id ? `Đã lưu cập nhật chiến dịch "${data.title}".` : "Đã tạo chiến dịch quảng cáo mới.");
         go("#/quan-tri/quang-cao");
+        render();
       });
     },
   };

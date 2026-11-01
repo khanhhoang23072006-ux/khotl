@@ -251,7 +251,19 @@ function merge_mod(array $serverMod, array $clientMod): array
 function merge_cm(array $serverCm, array $clientCm): array
 {
     $base = array_merge($serverCm, $clientCm);
-    $ads = merge_entities_by_key((array)($serverCm['ads'] ?? []), (array)($clientCm['ads'] ?? []), 'id');
+    $ads = merge_entities_by_key(
+        (array)($serverCm['ads'] ?? []),
+        (array)($clientCm['ads'] ?? []),
+        'id',
+        function (array $sAd, array $cAd): array {
+            $sTime = (int)($sAd['updatedAt'] ?? 0);
+            $cTime = (int)($cAd['updatedAt'] ?? 0);
+            if ($cTime >= $sTime) {
+                return array_merge($sAd, $cAd);
+            }
+            return array_merge($cAd, $sAd);
+        }
+    );
     $ads = array_values(array_filter($ads, fn($a) => empty($a['deleted'])));
     $spaces = merge_entities_by_key((array)($serverCm['spaces'] ?? []), (array)($clientCm['spaces'] ?? []), 'id');
     $spaces = array_values(array_filter($spaces, fn($s) => empty($s['deleted'])));
