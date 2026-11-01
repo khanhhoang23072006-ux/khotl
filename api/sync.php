@@ -192,6 +192,8 @@ function merge_credits(array $serverCr, array $clientCr): array
 {
     $base = array_merge($serverCr, $clientCr);
     $settings = array_merge((array)($serverCr['settings'] ?? []), (array)($clientCr['settings'] ?? []));
+    // Bắt buộc cố định hạn mức tải miễn phí hàng ngày là 5 lượt
+    $settings['dailyFree'] = 5;
 
     // Ledger: hợp nhất các giao dịch theo id
     $ledger = merge_entities_by_key((array)($serverCr['ledger'] ?? []), (array)($clientCr['ledger'] ?? []), 'id');

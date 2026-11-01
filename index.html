@@ -886,7 +886,7 @@ function load(){
   if(!S.credits) seedCredits(S);
   if(S.credits){
     if(!S.credits.settings) S.credits.settings={};
-    if(S.credits.settings.dailyFree == null || S.credits.settings.dailyFree === 10) S.credits.settings.dailyFree = 5;
+    S.credits.settings.dailyFree = 5;
   }
   if(!S.ratings) S.ratings={};
   if(!S.saved) S.saved={};
@@ -1145,7 +1145,10 @@ async function syncStateWithServer(forceRender=false){
         }
       });
     }
-    if(st.credits)S.credits=st.credits;
+    if(st.credits){
+      if(st.credits.settings) st.credits.settings.dailyFree = 5;
+      S.credits = st.credits;
+    }
     if(st.mod)S.mod=st.mod;
     if(st.cm && typeof st.cm === "object"){
       const currentCm = typeof CM === "function" ? CM() : (S.cm || {});
@@ -3385,7 +3388,7 @@ const DAY=86400e3;
 function crNow(){return Date.now()+(S.credits?.shift||0)}
 function crDay(t){return new Date(t+7*3600e3).toISOString().slice(0,10)}
 function vnNextMidnight(t){return (Math.floor((t+7*3600e3)/DAY)+1)*DAY-7*3600e3}
-function crSet(){const s={...CR_DEFAULT,...(S.credits?.settings||{})};if(s.dailyFree==null||s.dailyFree===10)s.dailyFree=5;return s}
+function crSet(){const s={...CR_DEFAULT,...(S.credits?.settings||{})};s.dailyFree=5;return s}
 function seedCredits(st){
   st.credits={settings:{},ledger:[],quota:{},debt:{},locked:{},dl:[],devices:{},rate:{},shift:0,seq:1};
   const sv="sv.demo@sis.hust.edu.vn",now=Date.now(),DAY=86400e3;
