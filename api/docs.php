@@ -169,23 +169,35 @@ if ($action === 'file' && $method === 'GET') {
 }
 
 // -------------------------------------------------------------
-// GET ?action=download&id=… : Tải file đính kèm
+// GET ?action=download&id=… : Tải file đính kèm (+ tăng lượt tải)
 // -------------------------------------------------------------
-if ($action === 'download' && $method === 'GET') {
-    $id = safe_doc_id((string)($_GET['id'] ?? ''));
+if ($action === 'download' && ($method === 'GET' || $method === 'POST')) {
+    $id = safe_doc_id((string)($_GET['id'] ?? $_POST['id'] ?? $input['id'] ?? ''));
     if ($id === '') api_fail(400, 'Thiếu ID tài liệu.');
+    $now = round(microtime(true) * 1000);
 
     // Tăng lượt tải
-    $doc = docs_update(function (array &$docs) use ($id) {
+    $doc = docs_update(function (array &$docs) use ($id, $now) {
         foreach ($docs as &$d) {
             if ($d['id'] === $id) {
-                $d['downloads'] = ($d['downloads'] ?? 0) + 1;
-                $d['updatedAt'] = round(microtime(true) * 1000);
+                $d['downloads'] = (int)($d['downloads'] ?? 0) + 1;
+                $d['updatedAt'] = $now;
                 return $d;
             }
         }
         return null;
     });
+
+    // Nếu client yêu cầu JSON thay vì stream file (vd gọi API ghi nhận lượt tải)
+    if (isset($_GET['json']) || (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false)) {
+        echo json_encode([
+            'success' => true,
+            'id' => $id,
+            'downloads' => $doc ? (int)($doc['downloads'] ?? 1) : 1,
+            'updatedAt' => $doc['updatedAt'] ?? $now
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 
     $filesDir = docs_files_dir();
     $matched = glob($filesDir . '/' . $id . '.*');
@@ -201,6 +213,46 @@ if ($action === 'download' && $method === 'GET') {
     header('Content-Length: ' . filesize($filePath));
     header('Content-Disposition: attachment; filename="' . rawurlencode($downloadName) . '"');
     readfile($filePath);
+    exit;
+}
+
+// -------------------------------------------------------------
+// POST / GET ?action=record_download : Ghi nhận 1 lượt tải tài liệu (+1 downloads)
+// -------------------------------------------------------------
+if ($action === 'record_download') {
+    $rawInput = file_get_contents('php://input');
+    $inputData = json_decode($rawInput ?: '[]', true) ?: [];
+    $id = safe_doc_id((string)($inputData['id'] ?? $_POST['id'] ?? $_GET['id'] ?? ''));
+    if ($id === '') api_fail(400, 'Thiếu ID tài liệu.');
+    $now = round(microtime(true) * 1000);
+
+    $updatedDoc = docs_update(function (array &$docs) use ($id, $inputData, $now) {
+        foreach ($docs as &$d) {
+            if ($d['id'] === $id) {
+                $d['downloads'] = (int)($d['downloads'] ?? 0) + 1;
+                $d['updatedAt'] = $now;
+                return $d;
+            }
+        }
+        $cd = $inputData['doc'] ?? null;
+        if (is_array($cd) && !empty($cd['id']) && safe_doc_id($cd['id']) === $id) {
+            $cd['id'] = $id;
+            $cd['downloads'] = (int)($cd['downloads'] ?? 0) + 1;
+            $cd['updatedAt'] = $now;
+            $docs[] = $cd;
+            return $cd;
+        }
+        return null;
+    });
+
+    $count = $updatedDoc ? (int)($updatedDoc['downloads'] ?? 1) : 1;
+    $upAt = $updatedDoc ? ($updatedDoc['updatedAt'] ?? $now) : $now;
+    echo json_encode([
+        'success' => true,
+        'id' => $id,
+        'downloads' => $count,
+        'updatedAt' => $upAt
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -259,7 +311,11 @@ if ($action === 'upload_file' && $method === 'POST') {
         $found = false;
         foreach ($docs as &$item) {
             if ($item['id'] === $id) {
+                $maxDl = max((int)($item['downloads'] ?? 0), (int)($docData['downloads'] ?? 0));
+                $maxViews = max((int)($item['views'] ?? 0), (int)($docData['views'] ?? 0));
                 $item = array_merge($item, $docData);
+                $item['downloads'] = $maxDl;
+                $item['views'] = $maxViews;
                 $found = true;
                 return $item;
             }
@@ -291,7 +347,11 @@ if ($action === 'save' && $method === 'POST') {
     $saved = docs_update(function (array &$docs) use ($id, $docData) {
         foreach ($docs as &$item) {
             if ($item['id'] === $id) {
+                $maxDl = max((int)($item['downloads'] ?? 0), (int)($docData['downloads'] ?? 0));
+                $maxViews = max((int)($item['views'] ?? 0), (int)($docData['views'] ?? 0));
                 $item = array_merge($item, $docData);
+                $item['downloads'] = $maxDl;
+                $item['views'] = $maxViews;
                 return $item;
             }
         }
@@ -402,11 +462,18 @@ if ($action === 'sync_all' && $method === 'POST') {
             if (isset($serverMap[$id])) {
                 $idx = $serverMap[$id];
                 $serverDoc = $docs[$idx];
+                $maxDl = max((int)($serverDoc['downloads'] ?? 0), (int)($cd['downloads'] ?? 0));
+                $maxViews = max((int)($serverDoc['views'] ?? 0), (int)($cd['views'] ?? 0));
                 // Lấy bản mới hơn theo updatedAt
                 $serverUp = $serverDoc['updatedAt'] ?? 0;
                 $clientUp = $cd['updatedAt'] ?? 0;
                 if ($clientUp > $serverUp) {
                     $docs[$idx] = array_merge($serverDoc, $cd);
+                }
+                $docs[$idx]['downloads'] = $maxDl;
+                $docs[$idx]['views'] = $maxViews;
+                if ($maxDl > (int)($serverDoc['downloads'] ?? 0) || $maxViews > (int)($serverDoc['views'] ?? 0)) {
+                    $docs[$idx]['updatedAt'] = max($serverUp, $clientUp, $now);
                 }
             } else {
                 // Thêm tài liệu mới từ client lên server

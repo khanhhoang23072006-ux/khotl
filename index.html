@@ -977,7 +977,21 @@ async function syncDocsFromServer(forceRender=false){
     if(!data||!data.success||!Array.isArray(data.docs))return;
     const serverDocs=data.docs;
     const beforeStr=JSON.stringify(S.docs);
-    S.docs=serverDocs;
+    const localMap=new Map((S.docs||[]).map(x=>[x.id,x]));
+    const mergedDocs=serverDocs.map(sd=>{
+      const local=localMap.get(sd.id);
+      if(local){
+        sd.downloads=Math.max(Number(sd.downloads)||0,Number(local.downloads)||0);
+        sd.views=Math.max(Number(sd.views)||0,Number(local.views)||0);
+      }
+      return sd;
+    });
+    for(const ld of (S.docs||[])){
+      if(!mergedDocs.some(x=>x.id===ld.id)){
+        mergedDocs.push(ld);
+      }
+    }
+    S.docs=mergedDocs;
     if(JSON.stringify(S.docs)!==beforeStr||forceRender){
       save(false);
       safeRender();
@@ -985,6 +999,29 @@ async function syncDocsFromServer(forceRender=false){
   }catch(e){}finally{
     isSyncingDocs=false;
   }
+}
+
+async function recordDocDownload(id, doc){
+  if(!id)return;
+  try{
+    const res=await fetch(API_BASE+"/api/docs.php?action=record_download",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({id, doc: doc || (S.docs||[]).find(x=>x.id===id)})
+    });
+    if(res.ok){
+      const data=await res.json();
+      if(data&&typeof data.downloads==="number"){
+        const target=(S.docs||[]).find(x=>x.id===id);
+        if(target){
+          target.downloads=Math.max(Number(target.downloads)||0, data.downloads);
+          target.updatedAt=data.updatedAt||Date.now();
+          save(false);
+          safeRender();
+        }
+      }
+    }
+  }catch(e){}
 }
 
 function safeRender(){
@@ -2055,7 +2092,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
   const access=canSee(d,u);if(!access)return views.notfound();
   const c=course(d.course),f=faculty(c.faculty),up=userBy(d.uploader);const mod=u&&canModerate(u,d);
   const showUp=!d.anonymous||access!=="public"||mod;
-  if(access==="public"&&u?.email!==d.uploader){d.views++;if(u)logAct(u,d,"view");save()}
+  if(access==="public"&&u?.email!==d.uploader){d.views=(Number(d.views)||0)+1;d.updatedAt=Date.now();if(u)logAct(u,d,"view");save()}
   const related=publicDocs().filter(x=>x.course===d.course&&x.id!==d.id).sort((a,b)=>b.downloads-a.downloads).slice(0,4);
   const uploaded=!!d.uploaded;
   const totalPages=d.pages||1;
@@ -3426,8 +3463,9 @@ function crCharge(u,d){const t=crNow(),s=crSet();
   if(dec==="FREE"){const k=u.email+"|"+crDay(t);S.credits.quota[k]=(S.credits.quota[k]||0)+1;crEntry({user:u.email,type:"DAILY",amount:-1,doc:d.id,note:`Lượt miễn phí ${S.credits.quota[k]}/${s.dailyFree} hôm nay`})}
   if(dec==="BONUS"){crTake(u.email,1);crEntry({user:u.email,type:"SPEND",amount:-1,doc:d.id,note:"Dùng 1 lượt thưởng"})}
   S.credits.dl.push({user:u.email,doc:d.id,t,charge:dec});logAct(u,d,"download");
-  if(dec==="FREE"||dec==="BONUS"){d.downloads++;
-    if(d.downloads%s.milestoneEvery===0){const g=crGrant(d.uploader,"BONUS",s.milestoneReward,{dedupe:`milestone:${d.id}:${d.downloads}`,doc:d.id,note:`Tài liệu đạt ${d.downloads} lượt tải`});if(g)notify(d.uploader,"CREDITS_CHANGED",d,{amount:g,link:"#/luot-tai"})}}
+  d.downloads=(Number(d.downloads)||0)+1;
+  d.updatedAt=Date.now();
+  if(d.downloads%s.milestoneEvery===0){const g=crGrant(d.uploader,"BONUS",s.milestoneReward,{dedupe:`milestone:${d.id}:${d.downloads}`,doc:d.id,note:`Tài liệu đạt ${d.downloads} lượt tải`});if(g)notify(d.uploader,"CREDITS_CHANGED",d,{amount:g,link:"#/luot-tai"})}
   save();return dec}
 function crReward(d,actor){const s=crSet();const approvedBefore=S.docs.filter(x=>x.course===d.course&&x.status==="APPROVED"&&x.id!==d.id).length;
   let n=crGrant(d.uploader,"UPLOAD_REWARD",s.uploadReward,{dedupe:`upload:${d.id}`,doc:d.id,note:`Tài liệu “${d.title}” được duyệt`,actor});
@@ -8961,6 +8999,7 @@ document.addEventListener("click",async(e)=>{const el=e.target.closest("[data-ac
   }
   else if(a==="download"){const d=S.docs.find(x=>x.id===el.dataset.id);const u=me();if(!u){go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);return}
    const charge=crCharge(u,d);if(charge==="DENIED"){crDialog();render();return}if(charge==="RATE"){toast("Bạn tải quá nhiều trong một giờ, thử lại sau.");return}
+   recordDocDownload(d.id, d);
    let blob=d.uploaded?await fileDB.get(d.id):null;let name=d.fileName||`${d.course}-${d.slug}.txt`;
    if(!blob&&d.uploaded){try{const res=await fetch(API_BASE+"/api/docs.php?action=file&id="+encodeURIComponent(d.id));if(res.ok){blob=await res.blob();await fileDB.put(d.id,blob)}}catch{}}
    if(!blob){blob=new Blob([`${d.title}\n${d.course} ${course(d.course).name}\n\n${docContent(d).map((p,i)=>`Trang ${i+1}\n${p.join("\n")}`).join("\n\n")}\n\nTài liệu sinh viên HUSTDOCU.`],{type:"text/plain;charset=utf-8"})}
@@ -8974,6 +9013,10 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{applyT
 window.addEventListener("hashchange",render);
 render();
 window.isAppReady = true;
+window.S = S;
+window.save = save;
+window.render = render;
+window.syncDocsFromServer = syncDocsFromServer;
 syncAllWithServer(true);
 window.addEventListener("focus",()=>syncAllWithServer(true));
 setInterval(()=>syncAllWithServer(false),5000);
