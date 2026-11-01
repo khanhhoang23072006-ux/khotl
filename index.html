@@ -203,6 +203,8 @@ table.t thead th{font-size:11px;color:var(--pencil);font-weight:500}
 .viewer.fullscreen{position:fixed;inset:0;z-index:9999;background:var(--sheet);display:flex;flex-direction:column;width:100vw;height:100vh;margin:0;border:0}
 .viewer.fullscreen .pages{max-height:none;flex:1;height:calc(100vh - 46px)}
 .viewer.fullscreen iframe{height:calc(100vh - 46px)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media print{.viewer,.viewer-bar,.viewer .pages,[data-file-preview]{display:none!important}}
 .chips{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:0}
 .chips a{display:inline-flex;height:32px;align-items:center;padding:0 8px;border:1px solid var(--line);background:var(--sheet);font-size:13px;text-decoration:none}
 .toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:60;background:var(--fill);color:var(--on-fill);padding:10px 16px;font-size:14px;border:2px solid var(--line);box-shadow:4px 4px 0 var(--stamp);max-width:calc(100% - 32px)}
@@ -1547,6 +1549,24 @@ views["/hoc-phan/:code"]=({code})=>{
 
 function canSee(d,u){if(d.status==="APPROVED")return"public";if(!u)return null;if(d.uploader===u.email)return"owner";if(canModerate(u,d))return"moderator";return null}
 function renderPages(d,count){const c=course(d.course);return docContent(d).slice(0,count).map((lines,i)=>`<div class="sheetpage" role="img" aria-label="Trang ${i+1}" style="width:100%"><div class="frame"></div>${i===0?`<div class="hd">ĐẠI HỌC BÁCH KHOA HÀ NỘI</div><div class="ti">${esc(d.title)}</div><div>${c.code} ${esc(c.name)}</div><br>`:""}${lines.slice(0,i===0?12:18).map(l=>`<div>${esc(l)}</div>`).join("")}<div class="ft">Trang ${i+1}/${d.pages}. Dữ liệu mẫu để demo.</div></div>`).join("")}
+var pdfjsLoading = null;
+function loadPdfjs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  pdfjsLoading =
+    pdfjsLoading ||
+    new Promise((ok, fail) => {
+      const s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+      s.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        ok(window.pdfjsLib);
+      };
+      s.onerror = () => fail(new Error("Không tải được pdf.js"));
+      document.head.appendChild(s);
+    });
+  return pdfjsLoading;
+}
+
 async function mountUploadedPreview(root,d){
   const box=root.querySelector("[data-file-preview]");if(!box)return;
   let blob=await fileDB.get(d.id);
@@ -1556,20 +1576,45 @@ async function mountUploadedPreview(root,d){
       if(res.ok){blob=await res.blob();await fileDB.put(d.id,blob)}
     }catch{}
   }
-  if(blob){
-    const url=URL.createObjectURL(blob);
-    if(d.kind==="PDF"){
-      box.innerHTML=`<iframe src="${url}" title="${esc(d.title)}"></iframe>`;
-      return;
-    }
-    if(d.kind==="IMAGE"||d.kind==="JPG"||d.kind==="PNG"||d.kind==="WEBP"){
-      box.innerHTML=`<img src="${url}" alt="${esc(d.title)}" style="max-width:100%;display:block;margin:0 auto;border:1px solid var(--line)">`;
-      return;
-    }
-  }
   const u=me();
   const totalPages=d.pages||1;
   const count=u?totalPages:Math.min(GUEST_PAGES,totalPages);
+
+  if(blob&&d.kind==="PDF"){
+    try{
+      box.innerHTML=`<div class="small muted" style="padding:28px 16px;text-align:center"><span class="spinner" style="display:inline-block;width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--stamp);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:8px"></span>Đang mở bản xem trước...</div>`;
+      const lib=await loadPdfjs();
+      const pdf=await lib.getDocument({data:await blob.arrayBuffer()}).promise;
+      const pagesToRender=u?Math.min(pdf.numPages,30):Math.min(GUEST_PAGES,pdf.numPages);
+      const wrap=document.createElement("div");
+      wrap.setAttribute("data-scale","");
+      wrap.style.cssText="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;user-select:none;-webkit-user-select:none";
+      wrap.oncontextmenu=(e)=>e.preventDefault();
+      box.innerHTML="";
+      box.appendChild(wrap);
+      for(let i=1;i<=pagesToRender;i++){
+        const page=await pdf.getPage(i);
+        const vp=page.getViewport({scale:1.35});
+        const cv=document.createElement("canvas");
+        cv.width=vp.width;
+        cv.height=vp.height;
+        cv.style.cssText="max-width:100%;height:auto;border:1px solid var(--line);box-shadow:2px 2px 0 var(--line);background:#fff;display:block";
+        cv.setAttribute("role","img");
+        cv.setAttribute("aria-label",`Trang ${i}/${pdf.numPages}`);
+        const ctx=cv.getContext("2d");
+        await page.render({canvasContext:ctx,viewport:vp}).promise;
+        wrap.appendChild(cv);
+      }
+      return;
+    }catch(err){
+      console.warn("PDF.js fallback:",err);
+    }
+  }
+  if(blob&&(d.kind==="IMAGE"||d.kind==="JPG"||d.kind==="PNG"||d.kind==="WEBP")){
+    const url=URL.createObjectURL(blob);
+    box.innerHTML=`<img src="${url}" alt="${esc(d.title)}" style="max-width:100%;display:block;margin:0 auto;border:1px solid var(--line);user-select:none" oncontextmenu="return false;">`;
+    return;
+  }
   box.innerHTML=`<div data-scale style="width:100%;display:flex;flex-direction:column;gap:8px;align-items:center">${renderPages(d,count)}</div>`;
 }
 
@@ -1583,7 +1628,6 @@ views["/tai-lieu/:slug"]=({slug})=>{
   const totalPages=d.pages||1;
   const canReadPages=u?totalPages:Math.min(GUEST_PAGES,totalPages);
   const dlAction=u?(crDecide(u,d)==="DENIED"?"nocredit":"download"):"download";
-  const dlBarBtn=`<button class="btn primary sm" type="button" data-action="${dlAction}" data-id="${d.id}" style="height:32px;padding:0 10px;font-size:12px;display:inline-flex;align-items:center;gap:4px;margin:auto 0 auto 6px;white-space:nowrap">${icon.down}<span>${u?"Tải về":"Tải xuống"}</span></button>`;
 
   const viewerBar=`<div class="viewer-bar">
     <span class="head" style="display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0">
@@ -1595,7 +1639,6 @@ views["/tai-lieu/:slug"]=({slug})=>{
       <button type="button" data-zoom="0" aria-label="Vừa chiều ngang" title="100%" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button>
       <button type="button" data-zoom="1" aria-label="Phóng to" title="Phóng to">+</button>
       <button type="button" data-viewer-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình" style="font-size:15px">⛶</button>
-      ${dlBarBtn}
     </span>
   </div>`;
 
@@ -6720,24 +6763,7 @@ function seedMod() {
 }
 const isCtv = (u) => !!u?.roles?.some((r) => r.key === "VOLUNTEER");
 
-/* ----- Trích chữ PDF (pdf.js nạp khi cần) ----- */
-let pdfjsLoading = null;
-function loadPdfjs() {
-  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
-  pdfjsLoading =
-    pdfjsLoading ||
-    new Promise((ok, fail) => {
-      const s = document.createElement("script");
-      s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-      s.onload = () => {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-        ok(window.pdfjsLib);
-      };
-      s.onerror = () => fail(new Error("Không tải được pdf.js"));
-      document.head.appendChild(s);
-    });
-  return pdfjsLoading;
-}
+/* ----- Trích chữ PDF (pdf.js dùng loadPdfjs chung) ----- */
 async function extractPdfText(blob, maxPages = 30) {
   try {
     const lib = await loadPdfjs();
