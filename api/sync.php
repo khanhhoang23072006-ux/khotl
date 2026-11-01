@@ -378,8 +378,25 @@ if ($action === 'sync' && $method === 'POST') {
     $merged = sync_state_update(function (array $server) use ($clientState, $now) {
         $result = $server;
 
+        // 0. Danh sách mã học phần đã xóa (Tombstones)
+        $serverDeletedCourses = (array)($server['deletedCourses'] ?? []);
+        $clientDeletedCourses = (array)($clientState['deletedCourses'] ?? []);
+        $mergedDeletedCourses = array_values(array_unique(array_filter(array_map(function($c) {
+            return strtoupper(preg_replace('/[\s\-_]+/', '', (string)$c));
+        }, array_merge($serverDeletedCourses, $clientDeletedCourses)))));
+        $deletedCourseSet = array_flip($mergedDeletedCourses);
+
         // 1. Học phần (Courses)
         if (!empty($clientState['courses']) && is_array($clientState['courses'])) {
+            // Nếu client chủ động gửi danh sách courses mới mà trong đó có mã từng bị xóa (re-created), gỡ khỏi deletedCourses
+            foreach ($clientState['courses'] as $cc) {
+                if (!is_array($cc)) continue;
+                $code = strtoupper(preg_replace('/[\s\-_]+/', '', (string)($cc['code'] ?? '')));
+                if ($code !== '' && isset($deletedCourseSet[$code])) {
+                    unset($deletedCourseSet[$code]);
+                }
+            }
+
             $result['courses'] = merge_entities_by_key(
                 (array)($server['courses'] ?? []),
                 $clientState['courses'],
@@ -395,6 +412,20 @@ if ($action === 'sync' && $method === 'POST') {
                     }
                 }
             );
+        }
+
+        $result['deletedCourses'] = array_values(array_keys($deletedCourseSet));
+
+        // Lọc bỏ triệt để các học phần nằm trong danh sách đã xóa
+        if (!empty($result['courses']) && is_array($result['courses'])) {
+            $result['courses'] = array_values(array_filter($result['courses'], function ($c) use ($deletedCourseSet) {
+                if (!is_array($c)) return false;
+                $code = strtoupper(preg_replace('/[\s\-_]+/', '', (string)($c['code'] ?? '')));
+                if ($code === '' || isset($deletedCourseSet[$code]) || !empty($c['deleted'])) {
+                    return false;
+                }
+                return true;
+            }));
         }
 
         // 2. Người dùng & Phân quyền (Users)

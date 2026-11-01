@@ -874,6 +874,8 @@ function load(){
   if(!S.docs) S.docs=[];
   S.docs=S.docs.filter(d=>d.uploaded===true||(!d.id.startsWith("d")&&!d.id.startsWith("h")&&!d.id.startsWith("p-")&&!d.id.startsWith("p")));
   if(!S.courses) S.courses=DATA.courses.map(c=>({...c}));
+  if(!Array.isArray(S.deletedCourses)) S.deletedCourses=[];
+  if(S.deletedCourses.length) S.courses=(S.courses||[]).filter(c=>!S.deletedCourses.includes((c.code||"").toUpperCase()));
   if(!S.messages) S.messages=[];
   S.messages=S.messages.filter(m=>m.id&&!/^m\d+$/.test(m.id));
   if(!S.comments) S.comments=[];
@@ -1001,6 +1003,7 @@ async function syncStateWithServer(forceRender=false){
   try{
     const payload={
       courses:S.courses||[],
+      deletedCourses:S.deletedCourses||[],
       users:S.users||[],
       credits:S.credits||{},
       mod:(typeof MD==="function"?MD():S.mod)||{},
@@ -1031,6 +1034,7 @@ async function syncStateWithServer(forceRender=false){
 
     const beforeStr=JSON.stringify({
       courses:S.courses,
+      deletedCourses:S.deletedCourses,
       users:S.users,
       credits:S.credits,
       mod:S.mod,
@@ -1049,13 +1053,21 @@ async function syncStateWithServer(forceRender=false){
       follows:S.follows
     });
 
+    if(Array.isArray(st.deletedCourses)){
+      const delSet=new Set((S.deletedCourses||[]).map(x=>String(x).toUpperCase()));
+      st.deletedCourses.forEach(x=>{if(x)delSet.add(String(x).replace(/[\s\-_]+/g,"").toUpperCase())});
+      S.deletedCourses=Array.from(delSet);
+    }
+
     if(Array.isArray(st.courses)&&st.courses.length>0){
+      const delSet=new Set((S.deletedCourses||[]).map(x=>String(x).toUpperCase()));
       const localMap = new Map((S.courses||[]).map(c=>[(c.code||"").toUpperCase(), c]));
       const merged = [];
       const seen = new Set();
       for(const sCourse of st.courses){
         if(!sCourse || !sCourse.code) continue;
-        const code = String(sCourse.code).toUpperCase();
+        const code = String(sCourse.code).replace(/[\s\-_]+/g,"").toUpperCase();
+        if(delSet.has(code) || sCourse.deleted) continue;
         seen.add(code);
         const lCourse = localMap.get(code);
         if(!lCourse){
@@ -1072,7 +1084,7 @@ async function syncStateWithServer(forceRender=false){
         }
       }
       for(const [code, lCourse] of localMap.entries()){
-        if(!seen.has(code)) merged.push(lCourse);
+        if(!seen.has(code) && !delSet.has(code) && !lCourse.deleted) merged.push(lCourse);
       }
       S.courses = merged;
     }
@@ -1292,6 +1304,7 @@ async function syncStateWithServer(forceRender=false){
 
     const afterStr=JSON.stringify({
       courses:S.courses,
+      deletedCourses:S.deletedCourses,
       users:S.users,
       credits:S.credits,
       mod:S.mod,
@@ -1729,7 +1742,10 @@ function courseEditForm(c){
    </fieldset>
    <div class="field"><label for="ce-kw">Từ khóa tìm kiếm</label><input class="input" id="ce-kw" name="keywords" value="${esc((c.keywords||[]).join(", "))}"><span class="hint">Cách nhau bằng dấu phẩy, ví dụ: giai tich 1, calculus. Giúp tìm học phần khi gõ tên khác.</span></div>
    <p class="err" data-err hidden></p>
-   <div class="row" style="gap:8px"><button class="btn primary" type="submit">Lưu thay đổi</button><a class="btn" href="#/hoc-phan/${c.code}">Hủy</a></div>
+   <div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+     <div class="row" style="gap:8px"><button class="btn primary" type="submit">Lưu thay đổi</button><a class="btn" href="#/hoc-phan/${c.code}">Hủy</a></div>
+     <button class="btn sm" type="button" data-del-current-course="${c.code}" style="border-color:var(--stamp);color:var(--stamp);background:transparent">🗑️ Xóa học phần này</button>
+   </div>
    <p class="tiny muted" style="margin:0">Mã học phần không đổi được vì tài liệu, lịch học, đánh giá đều gắn theo mã. Mọi thay đổi được đồng bộ lên máy chủ và ghi vào nhật ký.</p></form>`;
 }
 function mountCourseEdit(root,c){
@@ -1870,6 +1886,14 @@ function mountCourseEdit(root,c){
     toast(`Đã lưu học phần ${c.code}.`);
     go(`#/hoc-phan/${c.code}`);
     render();
+  });
+  f.querySelector('[data-del-current-course]')?.addEventListener("click",async(e)=>{
+    e.preventDefault();
+    const ok=await deleteCourse(c.code);
+    if(ok){
+      go("#/quan-tri/hoc-phan");
+      render();
+    }
   });
 }
 views["/hoc-phan/:code"]=({code})=>{
@@ -2944,6 +2968,43 @@ views["/kiem-duyet/bao-cao"]=()=>{
     root.querySelectorAll("[data-dismiss]").forEach(b=>b.addEventListener("click",()=>{const r=S.reports.find(x=>x.id===b.dataset.dismiss);r.status="DISMISSED";save();toast("Đã bỏ qua báo cáo.");render()}))}};
 };
 
+async function deleteCourse(rawCode){
+  const u=me();
+  if(!u||(!isAdmin(u)&&!isMod(u)&&!isSystemAdminEmail(u.email))){
+    toast("Bạn không có quyền xóa học phần.");
+    return false;
+  }
+  const code=(rawCode||"").replace(/[\s\-_]+/g,"").toUpperCase();
+  const c=course(code);
+  if(!c){
+    toast("Không tìm thấy học phần.");
+    return false;
+  }
+  const nDocs=courseDocCount(code);
+  const warnDocs=nDocs>0?`\n\nLƯU Ý: Học phần này hiện đang có ${nDocs} tài liệu liên kết! Sau khi xóa học phần, các tài liệu vẫn được lưu trữ nhưng học phần sẽ không còn hiển thị.`:"";
+  const ok=confirm(`Bạn có chắc chắn muốn xóa học phần "${code} - ${c.name}" không?${warnDocs}\n\nThao tác này sẽ đồng bộ và không thể hoàn tác.`);
+  if(!ok)return false;
+
+  if(!Array.isArray(S.deletedCourses))S.deletedCourses=[];
+  if(!S.deletedCourses.includes(code))S.deletedCourses.push(code);
+
+  S.courses=(S.courses||[]).filter(x=>(x.code||"").replace(/[\s\-_]+/g,"").toUpperCase()!==code);
+
+  if(S.follows){
+    Object.keys(S.follows).forEach(em=>{
+      if(Array.isArray(S.follows[em])){
+        S.follows[em]=S.follows[em].filter(k=>(k||"").replace(/[\s\-_]+/g,"").toUpperCase()!==code);
+      }
+    });
+  }
+
+  audit("course.delete",`${code}: ${c.name}`);
+  save(true);
+  triggerServerSync(0);
+  toast(`Đã xóa học phần ${code} thành công.`);
+  return true;
+}
+
 /* ----- Quản trị ----- */
 function adminTabs(a){return `<div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:16px"><h1 class="code" style="font-size:40px;line-height:1">Quản trị</h1><nav class="tabs" aria-label="Quản trị"><a href="#/quan-tri/hoc-phan"${a==="c"?' aria-current="page"':""}>Học phần</a><a href="#/quan-tri/nguoi-dung"${a==="u"?' aria-current="page"':""}>Phân quyền</a><a href="#/quan-tri/luot-tai"${a==="cr"?' aria-current="page"':""}>Lượt tải</a><a href="#/quan-tri/quang-cao"${a==="ad"?' aria-current="page"':""}>Quảng cáo</a><a href="#/quan-tri/extension"${a==="ext"?' aria-current="page"':""}>Extension</a><a href="#/quan-tri/nhat-ky"${a==="l"?' aria-current="page"':""}>Nhật ký</a></nav></div>`}
 function audit(action,detail){const u=me();S.audit.unshift({t:Date.now(),by:u?u.email:"system",action,detail});save()}
@@ -2954,7 +3015,7 @@ views["/quan-tri/hoc-phan"]=()=>{
   const list=S.courses.filter(c=>!f||norm(`${c.code} ${c.name}`).includes(f)).sort((a,b)=>a.code.localeCompare(b.code));
   const facOpt=DATA.faculties.map(x=>`<option value="${x.code}"${x.code===preFac?" selected":""}>${x.code}: ${esc(x.name)}</option>`).join("");
   return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("c")}<div class="two wide"><section class="stack" style="min-width:0"><form class="row" data-form="aq" style="flex-wrap:nowrap"><label for="aq" class="sr">Lọc</label><input class="input" id="aq" name="q" value="${esc(params().get("q")||"")}" placeholder="Mã hoặc tên học phần"><button class="btn ink" type="submit">Lọc</button></form><p class="small muted" style="margin:0">Hiện ${list.length} trên ${S.courses.length} học phần</p>
-   <div style="overflow-x:auto"><table class="t"><thead><tr><th>Mã</th><th>Tên học phần</th><th>Viện</th><th class="num">Tín chỉ</th><th class="num">Tài liệu</th><th><span class="sr">Sửa</span></th></tr></thead><tbody>${list.map(c=>`<tr><td class="head"><a href="#/hoc-phan/${c.code}">${c.code}</a></td><td>${esc(c.name)}</td><td>${c.faculty}</td><td class="num">${c.credits??"–"}</td><td class="num">${courseDocCount(c.code)}</td><td><a href="#/hoc-phan/${c.code}?sua=1" aria-label="Sửa ${c.code}">Sửa</a></td></tr>`).join("")}</tbody></table></div></section>
+   <div style="overflow-x:auto"><table class="t"><thead><tr><th>Mã</th><th>Tên học phần</th><th>Viện</th><th class="num">Tín chỉ</th><th class="num">Tài liệu</th><th style="text-align:right">Thao tác</th></tr></thead><tbody>${list.map(c=>`<tr><td class="head"><a href="#/hoc-phan/${c.code}">${c.code}</a></td><td>${esc(c.name)}</td><td>${c.faculty}</td><td class="num">${c.credits??"–"}</td><td class="num">${courseDocCount(c.code)}</td><td style="text-align:right;white-space:nowrap"><a href="#/hoc-phan/${c.code}?sua=1" aria-label="Sửa ${c.code}" style="margin-right:8px">Sửa</a><button class="btn sm ghost" type="button" data-del-course="${c.code}" style="color:var(--stamp);padding:2px 8px;font-size:12px">Xóa</button></td></tr>`).join("")}</tbody></table></div></section>
    <aside class="stack" style="gap:24px"><form class="stack" data-form="addc" novalidate style="border:2px solid var(--line);background:var(--sheet);padding:18px;gap:12px"><div class="row" style="justify-content:space-between;align-items:center"><h2 class="h2" style="margin:0">Thêm học phần</h2><span class="badge" style="font-size:11px;font-weight:700">Tự động đồng bộ</span></div><div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:10px"><div class="field" style="width:130px"><label for="cc">Mã HP <span class="req">*</span></label><input class="input" id="cc" name="code" placeholder="IT3011, CH101" autocomplete="off" required></div><div class="field" style="flex:1"><label for="cn">Tên học phần <span class="req">*</span></label><input class="input" id="cn" name="name" placeholder="Ví dụ: Cấu trúc dữ liệu và giải thuật" required></div></div><div class="row" style="flex-wrap:nowrap;align-items:flex-start;gap:10px"><div class="field" style="flex:2"><label for="ce">Tên tiếng Anh</label><input class="input" id="ce" name="nameEn" placeholder="Data Structures..."></div><div class="field" style="flex:1"><label for="cs">Viết tắt</label><input class="input" id="cs" name="shortName" placeholder="CTDL"></div><div class="field" style="width:85px"><label for="cr">Tín chỉ</label><input class="input" id="cr" name="credits" inputmode="numeric" placeholder="3"></div></div><div class="field"><label for="cf">Viện, Trường trực thuộc <span class="req">*</span></label><select class="select" id="cf" name="faculty" required><option value="">-- Chọn Viện, Trường --</option>${facOpt}</select></div><div class="field"><label for="cd">Mô tả học phần</label><textarea class="textarea" id="cd" name="description" rows="2" placeholder="Giới thiệu vắn tắt nội dung môn học (không bắt buộc)..."></textarea></div><div class="field"><label for="ck">Từ khóa tìm kiếm</label><input class="input" id="ck" name="keywords" placeholder="Cách nhau bằng dấu phẩy, ví dụ: ctdl, dsa"><span class="hint">Tự động xóa khoảng trắng ở mã. Cấu trúc điểm mặc định 40% quá trình, 60% cuối kỳ.</span></div><p class="note red" data-err role="alert" style="margin:0" hidden></p><button class="btn primary" type="submit" data-sub-btn>+ Thêm học phần</button></form>
     <form class="stack" data-form="csv" style="border:2px solid var(--line);background:var(--sheet);padding:16px"><h2 class="h2">Nhập từ CSV</h2><div class="field"><label for="csv">Nội dung CSV</label><textarea class="textarea" id="csv" style="min-height:140px;font-family:ui-monospace,monospace;font-size:13px" placeholder="IT4409,Công nghệ Web và dịch vụ trực tuyến,Web Technologies,3,SOICT"></textarea><span class="hint">Mỗi dòng: mã, tên, tên tiếng Anh, số tín chỉ, mã Viện. Mã đã có sẽ được cập nhật.</span></div><div data-result></div><button class="btn ink" type="submit">Nhập</button></form></aside></div></div>`,
    mount(root){root.querySelector('[data-form="aq"]').addEventListener("submit",(e)=>{e.preventDefault();go(`#/quan-tri/hoc-phan?q=${encodeURIComponent(e.target.q.value)}`)});
@@ -2970,9 +3031,19 @@ views["/quan-tri/hoc-phan"]=()=>{
      const now=Date.now();
      const newCourse={code,name,nameEn:String(fd.get("nameEn")||"").trim(),shortName:String(fd.get("shortName")||"").trim(),description:String(fd.get("description")||"").trim(),credits,faculty:fac,grading:[{label:"Quá trình",weight:0.4},{label:"Cuối kỳ",weight:0.6}],keywords:String(fd.get("keywords")||"").split(",").map(k=>k.trim()).filter(Boolean),updatedAt:now};
      if(!Array.isArray(S.courses))S.courses=[];
+     if(!Array.isArray(S.deletedCourses))S.deletedCourses=[];
+     S.deletedCourses=S.deletedCourses.filter(k=>(k||"").replace(/[\s\-_]+/g,"").toUpperCase()!==code);
      const exIdx=S.courses.findIndex(c=>(c.code||"").toUpperCase()===code);
      if(exIdx>=0){Object.assign(S.courses[exIdx],newCourse)}else{S.courses.unshift(newCourse)}
      audit("course.create",code);save(true);triggerServerSync(0);toast(`Đã thêm thành công học phần ${code}: ${name}.`);go(`#/quan-tri/hoc-phan?q=${encodeURIComponent(code)}`);render()});
+    root.querySelectorAll('[data-del-course]').forEach(b=>{
+      b.addEventListener("click",async(e)=>{
+        e.preventDefault();
+        const code=b.getAttribute("data-del-course");
+        const ok=await deleteCourse(code);
+        if(ok)render();
+      });
+    });
     root.querySelector('[data-form="csv"]').addEventListener("submit",(e)=>{e.preventDefault();let created=0,updated=0;const errs=[];
      e.target.csv.value.split(/\r?\n/).forEach((line,i)=>{line=line.trim();if(!line||/^(ma|mã|code)\s*[,;]/i.test(line))return;const [code0,name,nameEn,credits,fac]=line.split(/[,;]/).map(s=>(s||"").trim());const code=(code0||"").replace(/[\s\-_]+/g,"").toUpperCase();
       if(!/^[A-Z]{2,5}\d{3,4}[A-Z0-9]?$/.test(code))return errs.push(`Dòng ${i+1}: mã “${code0}” không hợp lệ`);if(!faculty((fac||"").toUpperCase()))return errs.push(`Dòng ${i+1}: không có Viện mã “${fac||""}”`);if(!name)return errs.push(`Dòng ${i+1}: thiếu tên`);
