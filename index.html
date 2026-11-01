@@ -1067,10 +1067,11 @@ async function syncStateWithServer(forceRender=false){
           const sTime = sCourse.updatedAt || 0;
           const lTime = lCourse.updatedAt || 0;
           if(lTime > sTime){
-            merged.push({...sCourse, ...lCourse});
+            Object.assign(lCourse, sCourse, lCourse);
           } else {
-            merged.push({...lCourse, ...sCourse});
+            Object.assign(lCourse, sCourse);
           }
+          merged.push(lCourse);
         }
       }
       for(const [code, lCourse] of localMap.entries()){
@@ -1681,16 +1682,28 @@ views["/vien/:slug"]=({slug})=>{
 
 /** Quản trị viên và kiểm duyệt viên sửa thông tin học phần ngay trên trang học phần (#/hoc-phan/MÃ?sua=1). */
 function courseEditForm(c){
-  const g=(c.grading&&c.grading.length?c.grading:[{label:"Quá trình",weight:0.4},{label:"Cuối kỳ",weight:0.6}]);
-  const facOpt=DATA.faculties.map(x=>`<option value="${x.code}"${x.code===c.faculty?" selected":""}>${x.code}: ${esc(x.name)}</option>`).join("");
-  const row=(x,i)=>`<div class="row" data-grow style="flex-wrap:nowrap;gap:6px"><label class="sr" for="gl${i}">Thành phần ${i+1}</label><input class="input" id="gl${i}" data-gl value="${esc(x.label)}" placeholder="Ví dụ: Giữa kỳ" style="flex:1"><label class="sr" for="gw${i}">Tỉ lệ thành phần ${i+1} (%)</label><input class="input" id="gw${i}" data-gw inputmode="numeric" value="${Math.round(x.weight*100)}" style="width:80px"><span class="small">%</span><button class="btn sm" type="button" data-grm aria-label="Bỏ thành phần ${i+1}">Bỏ</button></div>`;
+  const rawG = Array.isArray(c.grading) && c.grading.length ? c.grading : [{label:"Quá trình",weight:0.4},{label:"Cuối kỳ",weight:0.6}];
+  const g = rawG.map(x => ({
+    label: x.label || "",
+    pct: Math.round(Number(x.weight) > 1 ? Number(x.weight) : (Number(x.weight) || 0) * 100)
+  }));
+  const facOpt = DATA.faculties.map(x=>`<option value="${x.code}"${x.code===c.faculty?" selected":""}>${x.code}: ${esc(x.name)}</option>`).join("");
+  const row = (x, i) => `<div class="row" data-grow style="flex-wrap:nowrap;gap:6px;align-items:center"><label class="sr" for="gl${i}">Thành phần ${i+1}</label><input class="input" id="gl${i}" data-gl value="${esc(x.label)}" placeholder="Ví dụ: Giữa kỳ" style="flex:1" required><label class="sr" for="gw${i}">Tỉ lệ (%)</label><input class="input" id="gw${i}" data-gw type="text" inputmode="decimal" value="${x.pct}" style="width:80px;text-align:right" placeholder="50" required><span class="small" style="font-weight:700">%</span><button class="btn sm" type="button" data-grm aria-label="Bỏ thành phần ${i+1}" title="Xóa thành phần này">Bỏ</button></div>`;
   return `<form class="stack panel" data-form="cedit" novalidate style="max-width:720px;padding:18px;gap:14px">
-   <h2 class="h2" style="margin:0">Sửa học phần ${c.code}</h2>
+   <div class="row" style="justify-content:space-between;align-items:center"><h2 class="h2" style="margin:0">Sửa học phần ${esc(c.code)}</h2><span class="badge" style="font-weight:700">${esc(c.code)}</span></div>
    <div class="row" style="align-items:flex-start;gap:10px"><div class="field" style="flex:2;min-width:220px"><label for="ce-name">Tên học phần <span class="req">*</span></label><input class="input" id="ce-name" name="name" value="${esc(c.name)}"></div><div class="field" style="flex:1;min-width:160px"><label for="ce-short">Tên viết tắt</label><input class="input" id="ce-short" name="shortName" value="${esc(c.shortName||"")}"></div></div>
    <div class="row" style="align-items:flex-start;gap:10px"><div class="field" style="flex:2;min-width:220px"><label for="ce-en">Tên tiếng Anh</label><input class="input" id="ce-en" name="nameEn" value="${esc(c.nameEn||"")}"></div><div class="field" style="width:110px"><label for="ce-cr">Tín chỉ</label><input class="input" id="ce-cr" name="credits" inputmode="numeric" value="${c.credits??""}"></div></div>
    <div class="field"><label for="ce-fac">Viện, Trường <span class="req">*</span></label><select class="select" id="ce-fac" name="faculty">${facOpt}</select></div>
    <div class="field"><label for="ce-desc">Mô tả học phần</label><textarea class="textarea" id="ce-desc" name="description" rows="3" placeholder="Giới thiệu vắn tắt nội dung học phần, mục tiêu, kiến thức tiên quyết...">${esc(c.description||"")}</textarea></div>
-   <fieldset class="stack" style="border:0;padding:0;margin:0;gap:6px"><legend class="head small" style="padding:0;margin-bottom:6px">Cấu trúc điểm (tổng 100%)</legend><div class="stack" data-grows style="gap:6px">${g.map(row).join("")}</div><div><button class="btn sm" type="button" data-gadd>Thêm thành phần</button></div></fieldset>
+   <fieldset class="stack" style="border:1px solid var(--line);background:var(--sheet);padding:14px;margin:0;gap:8px">
+     <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+       <legend class="head small" style="padding:0;margin:0;display:flex;align-items:center;gap:8px"><b>Cấu trúc điểm học phần</b><span data-gsum-badge class="badge" style="font-size:12px;font-weight:700">Tổng: 100%</span></legend>
+       <div class="row" style="gap:4px"><span class="tiny muted" style="margin-right:2px">Mẫu chuẩn:</span><button class="btn sm" type="button" data-preset="40-60" style="padding:2px 8px;font-size:11px">40/60</button><button class="btn sm" type="button" data-preset="30-70" style="padding:2px 8px;font-size:11px">30/70</button><button class="btn sm" type="button" data-preset="20-30-50" style="padding:2px 8px;font-size:11px">20/30/50</button><button class="btn sm" type="button" data-preset="10-40-50" style="padding:2px 8px;font-size:11px">10/40/50</button></div>
+     </div>
+     <p class="tiny muted" style="margin:0">Nhập tỉ lệ % cho từng thành phần (tổng phải đạt 100%). Hỗ trợ cả số nguyên (50) hoặc số thập phân (0.5).</p>
+     <div class="stack" data-grows style="gap:6px">${g.map(row).join("")}</div>
+     <div><button class="btn sm" type="button" data-gadd>+ Thêm thành phần điểm</button></div>
+   </fieldset>
    <div class="field"><label for="ce-kw">Từ khóa tìm kiếm</label><input class="input" id="ce-kw" name="keywords" value="${esc((c.keywords||[]).join(", "))}"><span class="hint">Cách nhau bằng dấu phẩy, ví dụ: giai tich 1, calculus. Giúp tìm học phần khi gõ tên khác.</span></div>
    <p class="err" data-err hidden></p>
    <div class="row" style="gap:8px"><button class="btn primary" type="submit">Lưu thay đổi</button><a class="btn" href="#/hoc-phan/${c.code}">Hủy</a></div>
@@ -1699,19 +1712,109 @@ function courseEditForm(c){
 function mountCourseEdit(root,c){
   const f=root.querySelector('[data-form="cedit"]');if(!f)return;
   const rows=f.querySelector("[data-grows]");
-  const bindRm=()=>rows.querySelectorAll("[data-grm]").forEach(b=>{b.onclick=()=>{if(rows.children.length>1)b.closest("[data-grow]").remove();else toast("Cần ít nhất một thành phần điểm.")}});
+  const badge=f.querySelector("[data-gsum-badge]");
+
+  const calcSum=()=>{
+    let sum=0;
+    const items=[...rows.querySelectorAll("[data-grow]")];
+    items.forEach(r=>{
+      const raw=(r.querySelector("[data-gw]")?.value||"").trim().replace(",", ".").replace("%", "");
+      const val=Number(raw);
+      if(!isNaN(val)&&val>0){
+        sum += (val<=1&&val>0&&items.length>1?val*100:val);
+      }
+    });
+    sum=Math.round(sum*10)/10;
+    if(badge){
+      badge.textContent=`Tổng: ${sum}%${sum===100?" (Hợp lệ)":sum<100?` (Thiếu ${Math.round((100-sum)*10)/10}%)`:` (Thừa ${Math.round((sum-100)*10)/10}%)`}`;
+      if(sum===100){
+        badge.style.background="rgba(22, 101, 52, 0.12)";
+        badge.style.color="#166534";
+        badge.style.borderColor="#166534";
+      }else{
+        badge.style.background="rgba(255, 51, 75, 0.12)";
+        badge.style.color="var(--stamp)";
+        badge.style.borderColor="var(--stamp)";
+      }
+    }
+    return sum;
+  };
+
+  const bindRm=()=>{
+    rows.querySelectorAll("[data-grm]").forEach(b=>{
+      b.onclick=()=>{
+        if(rows.children.length>1){
+          b.closest("[data-grow]").remove();
+          calcSum();
+        }else{
+          toast("Cần ít nhất một thành phần điểm.");
+        }
+      };
+    });
+    rows.querySelectorAll("[data-gw]").forEach(inp=>{
+      inp.oninput=()=>calcSum();
+    });
+  };
   bindRm();
-  f.querySelector("[data-gadd]").addEventListener("click",()=>{const i=rows.children.length;rows.insertAdjacentHTML("beforeend",`<div class="row" data-grow style="flex-wrap:nowrap;gap:6px"><label class="sr" for="gl${i}">Thành phần ${i+1}</label><input class="input" id="gl${i}" data-gl placeholder="Ví dụ: Giữa kỳ" style="flex:1"><label class="sr" for="gw${i}">Tỉ lệ thành phần ${i+1} (%)</label><input class="input" id="gw${i}" data-gw inputmode="numeric" style="width:80px"><span class="small">%</span><button class="btn sm" type="button" data-grm aria-label="Bỏ thành phần ${i+1}">Bỏ</button></div>`);bindRm();rows.lastElementChild.querySelector("[data-gl]").focus()});
-  f.addEventListener("submit",(e)=>{e.preventDefault();const err=f.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false};
+  calcSum();
+
+  f.querySelector("[data-gadd]").addEventListener("click",()=>{
+    const i=rows.children.length;
+    rows.insertAdjacentHTML("beforeend",`<div class="row" data-grow style="flex-wrap:nowrap;gap:6px;align-items:center"><label class="sr" for="gl${i}">Thành phần ${i+1}</label><input class="input" id="gl${i}" data-gl placeholder="Ví dụ: Giữa kỳ" style="flex:1" required><label class="sr" for="gw${i}">Tỉ lệ (%)</label><input class="input" id="gw${i}" data-gw type="text" inputmode="decimal" value="0" style="width:80px;text-align:right" required><span class="small" style="font-weight:700">%</span><button class="btn sm" type="button" data-grm aria-label="Bỏ thành phần ${i+1}" title="Xóa thành phần này">Bỏ</button></div>`);
+    bindRm();
+    calcSum();
+    rows.lastElementChild.querySelector("[data-gl]").focus();
+  });
+
+  f.querySelectorAll("[data-preset]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const p=b.dataset.preset;
+      let defs=[];
+      if(p==="40-60") defs=[{label:"Quá trình",pct:40},{label:"Cuối kỳ",pct:60}];
+      else if(p==="30-70") defs=[{label:"Quá trình",pct:30},{label:"Cuối kỳ",pct:70}];
+      else if(p==="20-30-50") defs=[{label:"Chuyên cần",pct:20},{label:"Giữa kỳ",pct:30},{label:"Cuối kỳ",pct:50}];
+      else if(p==="10-40-50") defs=[{label:"Chuyên cần",pct:10},{label:"Giữa kỳ",pct:40},{label:"Cuối kỳ",pct:50}];
+      if(defs.length){
+        rows.innerHTML=defs.map((x,i)=>`<div class="row" data-grow style="flex-wrap:nowrap;gap:6px;align-items:center"><label class="sr" for="gl${i}">Thành phần ${i+1}</label><input class="input" id="gl${i}" data-gl value="${esc(x.label)}" placeholder="Ví dụ: Giữa kỳ" style="flex:1" required><label class="sr" for="gw${i}">Tỉ lệ (%)</label><input class="input" id="gw${i}" data-gw type="text" inputmode="decimal" value="${x.pct}" style="width:80px;text-align:right" required><span class="small" style="font-weight:700">%</span><button class="btn sm" type="button" data-grm aria-label="Bỏ thành phần ${i+1}" title="Xóa thành phần này">Bỏ</button></div>`).join("");
+        bindRm();
+        calcSum();
+      }
+    });
+  });
+
+  f.addEventListener("submit",(e)=>{
+    e.preventDefault();
+    const err=f.querySelector("[data-err]");
+    const fail=(m)=>{err.textContent=m;err.hidden=false};
     const u=me();
     if(!u||(!isAdmin(u)&&!isMod(u)&&!isSystemAdminEmail(u.email)))return fail("Bạn không có quyền sửa thông tin học phần.");
-    const fd=new FormData(f);const name=String(fd.get("name")||"").trim();if(name.length<2)return fail("Nhập tên học phần.");
-    const crRaw=String(fd.get("credits")||"").trim();const credits=crRaw===""?null:Number(crRaw);if(credits!==null&&!(Number.isInteger(credits)&&credits>=0&&credits<=20))return fail("Tín chỉ là số nguyên từ 0 đến 20.");
-    const fac=String(fd.get("faculty")||"");if(!faculty(fac))return fail("Chọn Viện, Trường.");
-    const grading=[...rows.querySelectorAll("[data-grow]")].map(r=>({label:r.querySelector("[data-gl]").value.trim(),pct:Number(r.querySelector("[data-gw]").value)}));
-    if(grading.some(x=>!x.label))return fail("Đặt tên cho mọi thành phần điểm.");if(grading.some(x=>!(x.pct>0&&x.pct<=100)))return fail("Tỉ lệ mỗi thành phần từ 1 đến 100%.");
-    const sum=grading.reduce((a,x)=>a+x.pct,0);if(Math.round(sum)!==100)return fail(`Tổng cấu trúc điểm đang là ${sum}%, cần đúng 100%.`);
+    const fd=new FormData(f);
+    const name=String(fd.get("name")||"").trim();
+    if(name.length<2)return fail("Nhập tên học phần.");
+    const crRaw=String(fd.get("credits")||"").trim();
+    const credits=crRaw===""?null:Number(crRaw);
+    if(credits!==null&&!(Number.isInteger(credits)&&credits>=0&&credits<=20))return fail("Tín chỉ là số nguyên từ 0 đến 20.");
+    const fac=String(fd.get("faculty")||"");
+    if(!faculty(fac))return fail("Chọn Viện, Trường.");
+
+    const rowItems=[...rows.querySelectorAll("[data-grow]")];
+    const grading=rowItems.map(r=>{
+      const l=r.querySelector("[data-gl]")?.value.trim()||"";
+      const raw=(r.querySelector("[data-gw]")?.value||"").trim().replace(",", ".").replace("%", "");
+      let val=Number(raw);
+      if(!isNaN(val)&&val>0&&val<=1&&rowItems.length>1){
+        val = val * 100;
+      }
+      return {label:l,pct:val};
+    });
+
+    if(grading.some(x=>!x.label))return fail("Vui lòng đặt tên cho tất cả các thành phần điểm.");
+    if(grading.some(x=>!(x.pct>0&&x.pct<=100)))return fail("Tỉ lệ mỗi thành phần phải từ 1 đến 100%.");
+    const sum=Math.round(grading.reduce((a,x)=>a+x.pct,0));
+    if(sum!==100)return fail(`Tổng cấu trúc điểm đang là ${sum}%, cần đúng 100%.`);
+
     const now=Date.now();
+    const updatedGrading=grading.map(x=>({label:x.label,weight:Math.round(x.pct)/100}));
     const updatedData={
       name,
       nameEn:String(fd.get("nameEn")||"").trim(),
@@ -1719,17 +1822,31 @@ function mountCourseEdit(root,c){
       description:String(fd.get("description")||"").trim(),
       credits,
       faculty:fac,
-      grading:grading.map(x=>({label:x.label,weight:Math.round(x.pct)/100})),
+      grading:updatedGrading,
       keywords:String(fd.get("keywords")||"").split(",").map(x=>x.trim()).filter(Boolean),
       updatedAt:now
     };
-    Object.assign(c,updatedData);
+
+    // Update in-memory course object
+    Object.assign(c, updatedData);
+
+    // CRITICAL: Also update directly in S.courses to avoid any detached-object reference issues!
+    const codeUpper = (c.code || "").toUpperCase();
+    if (!Array.isArray(S.courses)) S.courses = [];
+    const idx = S.courses.findIndex(x => (x.code || "").toUpperCase() === codeUpper);
+    if (idx >= 0) {
+      Object.assign(S.courses[idx], updatedData);
+    } else {
+      S.courses.push({ ...c, ...updatedData });
+    }
+
     if(u)audit("course.update",c.code);
     if(typeof aiIndexCache!=="undefined")aiIndexCache=null;
     save(true);
     triggerServerSync(0);
     toast(`Đã lưu học phần ${c.code}.`);
     go(`#/hoc-phan/${c.code}`);
+    render();
   });
 }
 views["/hoc-phan/:code"]=({code})=>{
@@ -1750,7 +1867,7 @@ views["/hoc-phan/:code"]=({code})=>{
    </h1>
    ${c.description?`<p class="small" style="max-width:640px;margin:0;line-height:1.6">${esc(c.description)}</p>`:""}
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Tín chỉ</span><span class="v">${c.credits??"–"}</span></div><div class="cell"><span class="l">Tài liệu</span><span class="v">${all.length}</span></div><div class="cell"><span class="l">Đơn vị</span><span class="v">${esc(f.shortName)}</span></div></div>
-   ${c.grading&&c.grading.length?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>g.weight+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(g.weight*100)}%</span></div>`).join("")}</div></div>`:""}
+   ${c.grading&&c.grading.length?`<div style="max-width:640px"><p class="tiny muted" style="margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">Cấu trúc điểm</p><div class="tb" style="grid-template-columns:${c.grading.map(g=>Math.max(1,Math.round(Number(g.weight)>1?Number(g.weight):Number(g.weight)*100))+"fr").join(" ")}">${c.grading.map((g,i)=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:6px 12px;${i===c.grading.length-1?"background:var(--fill);color:var(--on-fill)":""}"><span class="tiny">${esc(g.label)}</span><span class="code" style="font-size:18px">${Math.round(Number(g.weight)>1?Number(g.weight):Number(g.weight)*100)}%</span></div>`).join("")}</div></div>`:""}
    <div class="tb" style="grid-template-columns:repeat(3,1fr);max-width:640px"><div class="cell"><span class="l">Độ khó</span><span class="v">${fmt1(cs.difficulty)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Khối lượng</span><span class="v">${fmt1(cs.workload)}${cs.n?"/5":""}</span></div><div class="cell"><span class="l">Theo dõi</span><span class="v">${cs.followers}</span></div></div>
    <div class="row"><a class="btn primary" href="#/tai-len?hp=${c.code}">Đóng góp tài liệu cho học phần này</a><a class="btn" href="#/chat/${encodeURIComponent("c:"+c.code)}">Phòng chat</a><a class="btn" href="#/hoi-dap?hp=${encodeURIComponent(c.code)}">Hỏi đáp${typeof CM==="function"&&CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length?` (${CM().questions.filter(q=>q.course===c.code&&q.status==="VISIBLE").length})`:""}</a><button class="btn${follows(me(),c.code)?" ink":""}" type="button" data-follow="${c.code}" aria-pressed="${follows(me(),c.code)}">${follows(me(),c.code)?"Đang theo dõi":"Theo dõi"}</button>${canEdit?`<a class="btn ink" href="#/hoc-phan/${c.code}${p.get("sua")?"":"?sua=1"}" aria-expanded="${!!p.get("sua")}">${p.get("sua")?"Đóng chỉnh sửa":"Sửa học phần"}</a>`:""}</div>${canEdit&&p.get("sua")?courseEditForm(c):""}</div></section>
   <div class="wrap stack" style="padding-block:24px">
