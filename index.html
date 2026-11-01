@@ -955,7 +955,7 @@ function safeRender(){
       const activeTag=(document.activeElement&&document.activeElement.tagName)||"";
       const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA"||activeTag==="SELECT";
       const p=typeof currentPath==="function"?currentPath():"";
-      if(!isTyping&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so"))render();
+      if(!isTyping&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so")&&!p.startsWith("/tai-lieu/"))render();
     }catch(err){}
   }
 }
@@ -1569,6 +1569,8 @@ function loadPdfjs() {
 
 async function mountUploadedPreview(root,d){
   const box=root.querySelector("[data-file-preview]");if(!box)return;
+  if(box.dataset.mountedDocId===d.id&&box.querySelector("canvas, img"))return;
+  box.dataset.mountedDocId=d.id;
   let blob=await fileDB.get(d.id);
   if(!blob){
     try{
@@ -1589,7 +1591,7 @@ async function mountUploadedPreview(root,d){
       const pagesToRender=u?Math.min(pdf.numPages,PREVIEW_LIMIT):Math.min(GUEST_PAGES,pdf.numPages);
       const wrap=document.createElement("div");
       wrap.setAttribute("data-scale","");
-      wrap.style.cssText="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;user-select:none;-webkit-user-select:none";
+      wrap.style.cssText="width:100%;display:flex;flex-direction:column;gap:12px;align-items:center;user-select:none;-webkit-user-select:none;transition:width .15s ease";
       wrap.oncontextmenu=(e)=>e.preventDefault();
       box.innerHTML="";
       box.appendChild(wrap);
@@ -1603,13 +1605,13 @@ async function mountUploadedPreview(root,d){
         const cv=document.createElement("canvas");
         cv.width=vp.width;
         cv.height=vp.height;
-        cv.style.cssText="max-width:100%;height:auto;border:1px solid var(--line);box-shadow:2px 2px 0 var(--line);background:#fff;display:block";
+        cv.style.cssText="max-width:100%;height:auto;border:1px solid var(--line);box-shadow:2px 2px 0 var(--line);background:#fff;display:block;contain:layout paint";
         cv.setAttribute("role","img");
         cv.setAttribute("aria-label",`Trang ${i}/${pdf.numPages}`);
-        const ctx=cv.getContext("2d");
+        const ctx=cv.getContext("2d",{alpha:false});
         await page.render({canvasContext:ctx,viewport:vp}).promise;
         wrap.appendChild(cv);
-        await new Promise(r=>requestAnimationFrame(r));
+        await new Promise(r=>setTimeout(r,16));
       }
       if(pdf.numPages>pagesToRender){
         const note=document.createElement("div");
@@ -1632,7 +1634,25 @@ async function mountUploadedPreview(root,d){
 }
 
 views["/tai-lieu/:slug"]=({slug})=>{
-  const d=S.docs.find(x=>x.slug===slug);const u=me();if(!d)return views.notfound();const access=canSee(d,u);if(!access)return views.notfound();
+  const d=S.docs.find(x=>x.slug===slug);
+  const u=me();
+  if(!d){
+    if(isSyncingDocs){
+      return {
+        html:`<div class="wrap" style="padding-block:60px;text-align:center"><span class="spinner" style="display:inline-block;width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--stamp);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px"></span><h2 class="head">Đang tải thông tin tài liệu...</h2><p class="muted">Đang kết nối máy chủ hustdocu.id.vn</p></div>`,
+        mount(){
+          const check=setInterval(()=>{
+            if(!isSyncingDocs){
+              clearInterval(check);
+              render();
+            }
+          },300);
+        }
+      };
+    }
+    return views.notfound();
+  }
+  const access=canSee(d,u);if(!access)return views.notfound();
   const c=course(d.course),f=faculty(c.faculty),up=userBy(d.uploader);const mod=u&&canModerate(u,d);
   const showUp=!d.anonymous||access!=="public"||mod;
   if(access==="public"&&u?.email!==d.uploader){d.views++;if(u)logAct(u,d,"view");save()}
@@ -1721,9 +1741,36 @@ views["/tai-lieu/:slug"]=({slug})=>{
    root.querySelectorAll("[data-save]").forEach(b=>b.addEventListener("click",()=>{if(!u)return go(`#/dang-nhap?next=${encodeURIComponent("/tai-lieu/"+d.slug)}`);const l=S.saved[u.email]=S.saved[u.email]||[];const i=l.indexOf(d.id);if(i>=0){l.splice(i,1);toast("Đã bỏ lưu.")}else{l.push(d.id);toast("Đã lưu vào mục Đã lưu.")}save();render()}));
    mountComments(root,d,u);mountDocAi(root,d,u);
    const pages=root.querySelector("[data-pages]");
-   if(pages){let z=1;const sc=root.querySelector("[data-scale]"),lab=root.querySelector("[data-zoom-label]"),ind=root.querySelector("[data-page-ind]");
-    root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.zoom;z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));if(sc)sc.style.width=`${z*100}%`;if(lab)lab.textContent=`${Math.round(z*100)}%`}));
-    pages.addEventListener("scroll",()=>{if(!sc||!ind)return;const kids=[...sc.children].filter(k=>k.tagName==="CANVAS"||k.classList.contains("sheetpage"));if(!kids.length)return;const top=pages.scrollTop+pages.clientHeight/3;let i=0;kids.forEach((k,n)=>{if(k.offsetTop<=top)i=n});ind.textContent=`Trang ${i+1} / ${kids.length}`})}
+   if(pages){
+     let z=1;
+     const lab=root.querySelector("[data-zoom-label]");
+     const ind=root.querySelector("[data-page-ind]");
+     const getScaleEl=()=>root.querySelector("[data-scale]");
+     root.querySelectorAll("[data-zoom]").forEach(b=>b.addEventListener("click",()=>{
+       const k=+b.dataset.zoom;
+       z=k===0?1:Math.min(2.2,Math.max(.6,+(z+k*.2).toFixed(1)));
+       const targetSc=getScaleEl();
+       if(targetSc)targetSc.style.width=`${z*100}%`;
+       if(lab)lab.textContent=`${Math.round(z*100)}%`;
+     }));
+     let scrollDebounce=null;
+     pages.addEventListener("scroll",()=>{
+       if(scrollDebounce)return;
+       scrollDebounce=requestAnimationFrame(()=>{
+         scrollDebounce=null;
+         const targetSc=getScaleEl();
+         if(!targetSc||!ind)return;
+         const kids=[...targetSc.children].filter(k=>k.tagName==="CANVAS"||k.classList.contains("sheetpage"));
+         if(!kids.length)return;
+         const scrollerTop=pages.scrollTop+pages.clientHeight/3;
+         let activeIdx=0;
+         for(let n=0;n<kids.length;n++){
+           if(kids[n].offsetTop<=scrollerTop)activeIdx=n;
+         }
+         ind.textContent=`Trang ${activeIdx+1} / ${kids.length}`;
+       });
+     });
+   }
    const vEl=root.querySelector(".viewer");
    root.querySelector("[data-viewer-fullscreen]")?.addEventListener("click",()=>{if(vEl)vEl.classList.toggle("fullscreen")});
    root.querySelector('[data-form="report"]')?.addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);if(S.reports.some(r=>r.doc===d.id&&r.by===u.email&&r.status==="OPEN")){toast("Bạn đã báo cáo tài liệu này, kiểm duyệt viên đang xem xét.");return}S.reports.push({id:uid(),doc:d.id,by:u.email,reason:fd.get("reason"),details:fd.get("details"),status:"OPEN",t:Date.now()});save();e.target.closest("details").outerHTML='<p class="note">Đã gửi báo cáo. Cảm ơn bạn, kiểm duyệt viên sẽ xem xét.</p>'});
