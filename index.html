@@ -5880,7 +5880,7 @@ BADGES.push(
 );
 /** Tỉ lệ người dùng có huy hiệu (để biết độ hiếm). */
 function badgeRarity(b) {
-  const users = S.users.filter((x) => !/^(kdv|admin)\./.test(x.email));
+  const users = S.users.filter((x) => !/^(kdv|admin)\./.test(x.email) && !isSystemAdminEmail(x.email) && !isAdmin(x));
   const n = users.filter((x) => (x.badges || []).includes(b.id) || b.ok(x)).length;
   return users.length ? n / users.length : 0;
 }
@@ -5983,7 +5983,7 @@ views["/bang-xep-hang"] = () => {
   const scope = ["truong", "vien", "lop", "clb", "tap-the"].includes(p.get("pham-vi")) ? p.get("pham-vi") : "truong";
   const cm = CM();
   const from = ky === "tuan" ? periodOf("weekly").from : ky === "thang" ? Date.now() - 30 * D7 : 0;
-  const all = S.users.filter((x) => !/^(kdv|admin)\./.test(x.email));
+  const all = S.users.filter((x) => !/^(kdv|admin)\./.test(x.email) && !isSystemAdminEmail(x.email) && !isAdmin(x));
   const score = (x) =>
     by === "uy-tin" ? x.reputation : by === "tai-lieu" ? x.approved : cm.questions.filter((q) => q.accepted && q.t >= from && cm.answers.find((a) => a.id === q.accepted)?.by === x.email).length * 15 + cm.answers.filter((a) => a.by === x.email && a.t >= from).length * 5;
   const unit = { "uy-tin": "điểm uy tín", "tai-lieu": "tài liệu được duyệt", "hoi-dap": "điểm hỏi đáp" }[by];
