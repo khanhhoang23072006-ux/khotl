@@ -114,7 +114,7 @@ function http_get_ctt($url) {
         $opts = [
             'http' => [
                 'method' => 'GET',
-                'header' => "User-Agent: HUSTDOCU-feed/1.0 (+https://github.com/khanhhoang23072006-ux/khotl)\r\nAccept: text/html\r\n",
+                'header' => "User-Agent: HUSTDOCU-feed/1.0 (+https://hustdocu.id.vn)\r\nAccept: text/html\r\n",
                 'timeout' => 12
             ]
         ];
@@ -124,7 +124,7 @@ function http_get_ctt($url) {
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'HUSTDOCU-feed/1.0 (+https://github.com/khanhhoang23072006-ux/khotl)');
+    curl_setopt($ch, CURLOPT_USERAGENT, 'HUSTDOCU-feed/1.0 (+https://hustdocu.id.vn)');
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     $out = curl_exec($ch);

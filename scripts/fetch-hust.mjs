@@ -12,7 +12,7 @@ const SOURCES = [
   { path: "/DisplayWeb/DisplayQuyChe?tag=ĐTĐH", source: "Quy định đại học" },
 ];
 const OUT = new URL("../data/hust-feed.json", import.meta.url);
-const USER_AGENT = "HUSTDOCU-feed/1.0 (+https://github.com/khanhhoang23072006-ux/khotl)";
+const USER_AGENT = "HUSTDOCU-feed/1.0 (+https://hustdocu.id.vn)";
 const MAX_ITEMS = 300;
 
 /** Nhãn theo từ khóa trong tiêu đề (so khớp không dấu). */

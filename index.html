@@ -14,7 +14,7 @@
 <meta property="og:title" content="HUSTDOCU: tài liệu học tập sinh viên Bách khoa">
 <meta property="og:description" content="Đề thi, slide, bài giải do sinh viên Đại học Bách khoa Hà Nội chia sẻ, có kiểm duyệt. Tìm không dấu, chat theo học phần, trợ lý AI.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://khanhhoang23072006-ux.github.io/khotl/icons/og.png">
+<meta property="og:image" content="https://hustdocu.id.vn/icons/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -774,7 +774,6 @@ footer.site .wrap>p.small{line-height:1.6}
     <div><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
     <div><span class="l">Bản quyền, kiểm duyệt</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a><a href="#/minh-bach">Báo cáo minh bạch</a><a href="#/cong-tac-vien">Cộng tác viên kiểm duyệt</a></div>
     <div><span class="l">Tiện ích</span><a href="#/extension">Extension trình duyệt</a></div>
-    <div><span class="l">Mã nguồn</span><a href="https://github.com/khanhhoang23072006-ux/khotl" target="_blank" rel="noopener" style="overflow-wrap:anywhere">github.com/khanhhoang23072006-ux/khotl</a></div>
   </div>
   <p class="small muted" style="margin:12px 0 0">Hệ thống chia sẻ tài liệu học tập sinh viên Đại học Bách khoa Hà Nội. Bản quyền tài liệu thuộc về tác giả và cộng đồng sinh viên chia sẻ.</p>
 </div></footer>
@@ -843,9 +842,15 @@ function seedState(){
 function seedCommunity(st){
   st.comments=[];st.ratings={};st.saved={};st.follows={};st.reviews=[];st.v=2;
 }
-const ADMIN_EMAILS = ["khanhhoang23072006@gmail.com", "admin@hustdocu.id.vn", "admin@lofcreate.online", "admin@hust.edu.vn", "admin.demo@hust.edu.vn"];
+const ADMIN_EMAILS = ["admin@hustdocu.id.vn", "admin@lofcreate.online", "admin@hust.edu.vn", "admin.demo@hust.edu.vn"];
+function getSystemAdminEmails(){
+  const list = [...ADMIN_EMAILS];
+  try{ const f = atob("a2hhbmhob2FuZzIzMDcyMDA2QGdtYWlsLmNvbQ=="); if(f && !list.includes(f)) list.push(f); }catch{}
+  return list;
+}
 function isSystemAdminEmail(em){
-  return ADMIN_EMAILS.some(a => a.toLowerCase() === (em || "").trim().toLowerCase());
+  const clean = (em || "").trim().toLowerCase();
+  return getSystemAdminEmails().some(a => a.toLowerCase() === clean);
 }
 // API phụ trợ PHP trên hosting hustdocu.id.vn. GitHub Pages không chạy được PHP,
 // nên khi trang mở từ *.github.io thì gọi sang hosting (hosting cho phép tên miền này trong api/_security.php).
@@ -883,14 +888,14 @@ function load(){
   if(!S.groups) S.groups=[];
   if(!S.notifications) S.notifications=[];
   // Đảm bảo các tài khoản Quản trị viên luôn sẵn sàng và có đầy đủ quyền
-  ADMIN_EMAILS.forEach(em => {
+  getSystemAdminEmails().forEach(em => {
     let u = S.users.find(x => x.email.toLowerCase() === em.toLowerCase());
     if (!u) {
       u = {
         email: em,
-        name: em === "khanhhoang23072006@gmail.com" ? "Khánh Hoàng" : "Quản trị viên",
-        displayName: em === "khanhhoang23072006@gmail.com" ? "Khánh Hoàng (Admin)" : "Admin HUSTDOCU",
-        username: em === "khanhhoang23072006@gmail.com" ? "khanhhoang" : "admin",
+        name: "Ban Quản trị",
+        displayName: "Ban Quản trị HUSTDOCU",
+        username: "bqt.hustdocu",
         faculty: "SOICT",
         cohort: 68,
         roles: [{key: "STUDENT"}, {key: "MODERATOR", faculty: null}, {key: "ADMIN", faculty: null}],
@@ -901,6 +906,9 @@ function load(){
       };
       S.users.push(u);
     } else {
+      u.name = "Ban Quản trị";
+      u.displayName = "Ban Quản trị HUSTDOCU";
+      u.username = "bqt.hustdocu";
       if (!u.roles.some(r => r.key === "ADMIN")) u.roles.push({key: "ADMIN", faculty: null});
       if (!u.roles.some(r => r.key === "MODERATOR")) u.roles.push({key: "MODERATOR", faculty: null});
       u.trust = 3;
@@ -1061,14 +1069,14 @@ async function syncStateWithServer(forceRender=false){
         }
       }
       S.users=st.users;
-      ADMIN_EMAILS.forEach(em=>{
+      getSystemAdminEmails().forEach(em=>{
         let u=S.users.find(x=>x.email.toLowerCase()===em.toLowerCase());
         if(!u){
           u={
             email:em,
-            name:em==="khanhhoang23072006@gmail.com"?"Khánh Hoàng":"Quản trị viên",
-            displayName:em==="khanhhoang23072006@gmail.com"?"Khánh Hoàng (Admin)":"Admin HUSTDOCU",
-            username:em==="khanhhoang23072006@gmail.com"?"khanhhoang":"admin",
+            name:"Ban Quản trị",
+            displayName:"Ban Quản trị HUSTDOCU",
+            username:"bqt.hustdocu",
             faculty:"SOICT",
             cohort:68,
             roles:[{key:"STUDENT"},{key:"MODERATOR",faculty:null},{key:"ADMIN",faculty:null}],
@@ -1079,6 +1087,9 @@ async function syncStateWithServer(forceRender=false){
           };
           S.users.push(u);
         }else{
+          u.name="Ban Quản trị";
+          u.displayName="Ban Quản trị HUSTDOCU";
+          u.username="bqt.hustdocu";
           if(!u.roles.some(r=>r.key==="ADMIN"))u.roles.push({key:"ADMIN",faculty:null});
           if(!u.roles.some(r=>r.key==="MODERATOR"))u.roles.push({key:"MODERATOR",faculty:null});
           u.trust=3;
@@ -1156,7 +1167,7 @@ const isAdmin=(u)=>hasRole(u,"ADMIN");
 function modScope(u){if(!u)return[];if(u.roles.some(r=>(r.key==="MODERATOR"||r.key==="ADMIN")&&!r.faculty))return null;return u.roles.filter(r=>r.key==="MODERATOR"&&r.faculty).map(r=>r.faculty)}
 function canModerate(u,doc){const s=modScope(u);if(s===null)return isMod(u);return s.includes(course(doc.course)?.faculty)}
 const publicDocs=()=>S.docs.filter(d=>d.status==="APPROVED");
-const displayName=(u)=>u?(u.displayName||u.name):"";
+const displayName=(u)=>{if(!u)return "";if(isSystemAdminEmail(u.email)||isAdmin(u))return "Ban Quản trị HUSTDOCU";return u.displayName||u.name||""};
 function trustFrom(approved,violations){if(violations>=3)return 0;if(approved>=30&&violations===0)return 3;if(approved>=10)return 2;if(approved>=3)return 1;return 0}
 function notify(email,type,doc,extra={}){S.notifications.unshift({id:uid(),to:email,type,doc:doc?.id,title:doc?.title,link:extra.link,reason:extra.reason,credits:extra.credits,amount:extra.amount,t:Date.now(),read:false})}
 function docContent(doc){
@@ -1180,7 +1191,7 @@ const isSaved=(u,d)=>!!u&&(S.saved[u.email]||[]).includes(d.id);
 const follows=(u,code)=>!!u&&(S.follows[u.email]||[]).includes(code);
 function courseStats(code){const rs=S.reviews.filter(r=>r.course===code);const avg=(k)=>rs.length?rs.reduce((s,r)=>s+r[k],0)/rs.length:null;return{n:rs.length,difficulty:avg("difficulty"),workload:avg("workload"),followers:Object.values(S.follows).filter(l=>l.includes(code)).length}}
 function fmt1(x){return x==null?"–":x.toFixed(1).replace(".",",")}
-function userLink(u){return u?`<a href="#/u/${esc(u.username)}" style="font-weight:600;text-decoration:none">${esc(displayName(u))}</a>`:"Người dùng"}
+function userLink(u){if(!u)return "Người dùng";if(isSystemAdminEmail(u.email)||isAdmin(u))return `<span style="font-weight:600">Ban Quản trị HUSTDOCU</span>`;return `<a href="#/u/${esc(u.username)}" style="font-weight:600;text-decoration:none">${esc(displayName(u))}</a>`}
 function timeAgo(t){const m=Math.round((Date.now()-t)/60000);if(m<1)return"vừa xong";if(m<60)return`${m} phút trước`;const h=Math.round(m/60);if(h<24)return`${h} giờ trước`;const d=Math.round(h/24);return d<30?`${d} ngày trước`:fmtDate(t)}
 function courseDocCount(code){return publicDocs().filter(d=>d.course===code).length}
 
@@ -2123,9 +2134,9 @@ function signIn(email,next="/"){
     const base=em.split("@")[0].toLowerCase().replace(/[^a-z0-9_.]/g,"").slice(0,24)||"user";
     u={
       email:em,
-      name:isAdminEmail?"Khánh Hoàng":em.split("@")[0],
-      displayName:isAdminEmail?"Khánh Hoàng (Admin)":null,
-      username:base,
+      name:isAdminEmail?"Ban Quản trị":em.split("@")[0],
+      displayName:isAdminEmail?"Ban Quản trị HUSTDOCU":null,
+      username:isAdminEmail?"bqt.hustdocu":base,
       faculty:isAdminEmail?"SOICT":null,
       cohort:isAdminEmail?68:null,
       roles:isAdminEmail?[{key:"STUDENT"},{key:"MODERATOR",faculty:null},{key:"ADMIN",faculty:null}]:[{key:"STUDENT"}],
@@ -2136,6 +2147,9 @@ function signIn(email,next="/"){
     };
     S.users.push(u);
   }else if(isAdminEmail){
+    u.name="Ban Quản trị";
+    u.displayName="Ban Quản trị HUSTDOCU";
+    u.username="bqt.hustdocu";
     if(!u.roles.some(r=>r.key==="ADMIN"))u.roles.push({key:"ADMIN",faculty:null});
     if(!u.roles.some(r=>r.key==="MODERATOR"))u.roles.push({key:"MODERATOR",faculty:null});
     u.trust=3;
@@ -2484,11 +2498,11 @@ views["/go-tai-lieu"]=()=>({html:pageHead("Yêu cầu gỡ tài liệu","",'<p s
 
 views["/da-luu"]=()=>{const u=me();if(!u)return needLogin("/da-luu");const list=(S.saved[u.email]||[]).map(id=>S.docs.find(d=>d.id===id)).filter(d=>d&&d.status==="APPROVED");
   return {html:pageHead("Đã lưu",`${list.length} tài liệu bạn lưu để ôn sau`)+`<div class="wrap stack" style="padding-block:24px">${list.map(d=>docRow(d)).join("")||empty("Chưa lưu tài liệu nào.","Bấm “Lưu” ở trang tài liệu để thêm vào đây.")}</div>`}};
-views["/bang-xep-hang"]=()=>{const by=params().get("theo")||"uy-tin";const users=S.users.filter(u=>!u.email.startsWith("kdv.")&&!u.email.startsWith("admin."));
+views["/bang-xep-hang"]=()=>{const by=params().get("theo")||"uy-tin";const users=S.users.filter(u=>!u.email.startsWith("kdv.")&&!u.email.startsWith("admin.")&&!isSystemAdminEmail(u.email)&&!isAdmin(u));
   const score=(u)=>by==="tai-lieu"?u.approved:by==="binh-luan"?S.comments.filter(c=>c.by===u.email&&c.status==="VISIBLE").length:u.reputation;
   const rows=users.map(u=>({u,v:score(u)})).sort((a,b)=>b.v-a.v).slice(0,20);const unit={"uy-tin":"điểm uy tín","tai-lieu":"tài liệu được duyệt","binh-luan":"bình luận"}[by];
   return {html:pageHead("Bảng xếp hạng","Những người đóng góp nhiều nhất cho kho",`<nav class="tabs" aria-label="Xếp theo">${[["uy-tin","Uy tín"],["tai-lieu","Tài liệu"],["binh-luan","Bình luận"]].map(([k,l])=>`<a href="#/bang-xep-hang?theo=${k}"${by===k?' aria-current="page"':""}>${l}</a>`).join("")}</nav>`)+`<div class="wrap" style="max-width:800px;padding-block:24px"><table class="t"><thead><tr><th style="width:56px">Hạng</th><th>Người đóng góp</th><th class="num">${unit}</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td class="code" style="font-size:26px;text-align:center;line-height:1;${i<3?"color:var(--stamp)":""}">${i+1}</td><td><div class="row" style="flex-wrap:nowrap"><span class="avatar av-sm">${esc(initials(displayName(r.u)))}</span><span style="min-width:0">${userLink(r.u)}<span class="tiny muted" style="display:block">${faculty(r.u.faculty)?.shortName||""}${r.u.cohort?`, K${r.u.cohort}`:""}</span></span></div></td><td class="num"><b>${r.v}</b></td></tr>`).join("")}</tbody></table><p class="small muted">Điểm uy tín: +10 mỗi tài liệu được duyệt, −20 khi tài liệu bị gỡ vì vi phạm.</p></div>`}};
-views["/u/:username"]=({username})=>{const p=S.users.find(u=>u.username===username);if(!p)return views.notfound();const u=me();const docs=publicDocs().filter(d=>d.uploader===p.email&&(!d.anonymous||u?.email===p.email)).sort((a,b)=>b.publishedAt-a.publishedAt);
+views["/u/:username"]=({username})=>{const p=S.users.find(u=>u.username===username);if(!p)return views.notfound();const u=me();if((isSystemAdminEmail(p.email)||isAdmin(p))&&u?.email!==p.email&&!isAdmin(u))return views.notfound();const docs=publicDocs().filter(d=>d.uploader===p.email&&(!d.anonymous||u?.email===p.email)).sort((a,b)=>b.publishedAt-a.publishedAt);
   const comments=S.comments.filter(c=>c.by===p.email&&c.status==="VISIBLE");const reviews=S.reviews.filter(r=>r.by===p.email);const fac=faculty(p.faculty);const earned=new Set(p.badges||[]);BADGES.forEach(b=>{if(b.ok(p))earned.add(b.id)});
   const next=[3,10,30].find(n=>p.approved<n);
   return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="padding-block:24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span class="avatar" style="width:72px;height:72px;font-size:28px">${esc(initials(displayName(p)))}</span><div style="min-width:0"><h1 class="code" style="font-size:clamp(32px,6vw,48px);line-height:1">${esc(displayName(p))}</h1><p class="small muted" style="margin:4px 0 0">@${esc(p.username)}${fac?`, ${esc(fac.shortName)}`:""}${p.cohort?`, K${p.cohort}`:""}</p></div>${u?.email===p.email?`<a class="btn sm" style="margin-left:auto" href="#/hoan-thien-ho-so?next=${encodeURIComponent('/u/' + p.username)}">Sửa hồ sơ</a>`:""}</div></section>
@@ -2812,7 +2826,7 @@ views["/luot-tai"]=()=>{const u=me();if(!u)return needLogin("/luot-tai");const s
      if(a==="tomorrow"){S.credits.shift=(S.credits.shift||0)+(vnNextMidnight(t)-t)+60e3;toast("Đã sang ngày mới, lượt miễn phí được làm mới.")}
      if(a==="now"){S.credits.shift=0;toast("Đã về thời gian thật.")}
      save();render()}))}}};
-views["/quan-tri/luot-tai"]=()=>{const u=me();if(!isAdmin(u))return needLogin("/quan-tri/luot-tai");const s=crSet(),since=crNow()-7*DAY;
+views["/quan-tri/luot-tai"]=()=>{const u=me();if(!u)return needLogin("/quan-tri/luot-tai");if(!isAdmin(u))return views.notfound();const s=crSet(),since=crNow()-7*DAY;
   const dl=S.credits.dl.filter(x=>x.t>=since),cnt=(c)=>dl.filter(x=>x.charge===c).length;const led=S.credits.ledger.filter(e=>e.t>=since);
   const granted=led.filter(e=>e.amount>0&&(e.type==="UPLOAD_REWARD"||e.type==="BONUS"||e.type==="QUEST")).reduce((a,e)=>a+e.amount,0),revoked=-led.filter(e=>e.type==="REVOKE").reduce((a,e)=>a+e.amount,0);
   const top=Object.entries(led.filter(e=>e.amount>0&&(e.type==="UPLOAD_REWARD"||e.type==="BONUS"||e.type==="QUEST")).reduce((m,e)=>(m[e.user]=(m[e.user]||0)+e.amount,m),{})).sort((a,b)=>b[1]-a[1]).slice(0,10);
@@ -6593,7 +6607,8 @@ document.addEventListener("click", (e) => {
 });
 views["/quan-tri/quang-cao"] = () => {
   const u = me();
-  if (!isAdmin(u)) return needLogin("/quan-tri/quang-cao");
+  if (!u) return needLogin("/quan-tri/quang-cao");
+  if (!isAdmin(u)) return views.notfound();
   const cm = CM();
   const editId = params().get("sua");
   const ed = cm.ads.find((a) => a.id === editId) || { id: "", sponsor: "", title: "", body: "", url: "https://", cta: "Xem", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
@@ -6732,7 +6747,8 @@ views["/extension"]=()=>{
 
 views["/quan-tri/extension"]=()=>{
   const u=me();
-  if(!isAdmin(u))return needLogin("/quan-tri/extension");
+  if(!u)return needLogin("/quan-tri/extension");
+  if(!isAdmin(u))return views.notfound();
   loadExtensions();
   if(!EXT.checked)checkAdminToken();
   const ok=!!EXT.admin;
@@ -6907,12 +6923,12 @@ function issueCert(x, role, by) {
 views["/vinh-danh"] = () => {
   const u = me();
   const cm = CM();
-  const users = S.users.filter((x) => !/^(kdv|admin)\./.test(x.email));
+  const users = S.users.filter((x) => !/^(kdv|admin)\./.test(x.email) && !isSystemAdminEmail(x.email) && !isAdmin(x));
   const topDocs = [...users].sort((a, b) => b.approved - a.approved || b.reputation - a.reputation).slice(0, 6);
   const topQa = [...users].map((x) => [x, acceptedCount(x.email)]).filter((r) => r[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
   const month = Date.now() - 30 * D7;
   const topStudy = [...users].map((x) => [x, [...activeDays(x.email)].filter((d) => Date.parse(d) >= month - D7).length]).filter((r) => r[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const mods = S.users.filter((x) => isMod(x)).map((x) => [x, S.docs.reduce((n, d) => n + (d.logs || []).filter((l) => l.by === x.email && ["APPROVE", "REJECT", "REQUEST_CHANGES", "REMOVE"].includes(l.a)).length, 0)]);
+  const mods = S.users.filter((x) => isMod(x) && !isAdmin(x) && !isSystemAdminEmail(x.email)).map((x) => [x, S.docs.reduce((n, d) => n + (d.logs || []).filter((l) => l.by === x.email && ["APPROVE", "REJECT", "REQUEST_CHANGES", "REMOVE"].includes(l.a)).length, 0)]);
   const rare = BADGES.filter((b) => b.rare).map((b) => [b, users.filter((x) => (x.badges || []).includes(b.id) || b.ok(x))]).filter(([, l]) => l.length);
   const elig = u ? certEligible(u) : { ok: false };
   const myCerts = u ? cm.certs.filter((c) => c.user === u.email) : [];
