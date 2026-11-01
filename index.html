@@ -7040,7 +7040,7 @@ views["/quan-tri/quang-cao"] = () => {
   if (!isAdmin(u) && !isSystemAdminEmail(u?.email)) return views.notfound();
   const cm = CM();
   const editId = params().get("sua");
-  const ed = (editId ? cm.ads.find((a) => a.id === editId) : null) || { id: "", sponsor: "", title: "", body: "", image: "", url: "https://", cta: "Xem ưu đãi", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
+  const ed = (editId ? cm.ads.find((a) => a.id === editId) : null) || { id: "", sponsor: "", title: "", body: "", image: "", url: "", cta: "Xem ưu đãi", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
   const PL = { home: "Trang chủ", search: "Kết quả tìm kiếm", doc: "Trang tài liệu" };
   const isEditing = !!(editId && ed.id);
 
@@ -7113,11 +7113,11 @@ views["/quan-tri/quang-cao"] = () => {
   return {
     html: `<div class="wrap stack" style="padding-block:20px;gap:24px">${adminTabs("ad")}
      <p class="note" style="margin:0">Nguyên tắc: luôn ghi “Quảng cáo” và tên nhà tài trợ; không đặt trong trình xem tài liệu; không ảnh hưởng thứ hạng tìm kiếm; chỉ nhắm theo Viện, không dùng lịch sử xem/tải; không nhận quảng cáo dịch vụ làm bài hộ, bán đề thi, vay tiền.</p>
-     ${isEditing ? formHtml : ""}
+     ${formHtml}
      <section class="stack" style="gap:12px">
        <div class="row" style="justify-content:space-between;align-items:center">
          <h2 class="h2" style="margin:0">Danh sách chiến dịch (${cm.ads.length})</h2>
-         ${!isEditing ? `<a class="btn sm primary" href="#form-ad">+ Tạo chiến dịch mới</a>` : ""}
+         <button class="btn sm primary" type="button" id="btn-scroll-form">+ Tạo chiến dịch mới</button>
        </div>
        <div style="overflow-x:auto"><table class="t" style="min-width:720px"><thead><tr><th style="width:54px">Ảnh</th><th>Chiến dịch</th><th>Vị trí</th><th>Thời gian</th><th class="num">Hiển thị</th><th class="num">Nhấp</th><th class="num">CTR</th><th>Trạng thái</th><th></th></tr></thead><tbody>${cm.ads
          .map((a) => `<tr style="${a.id === editId ? "background:rgba(255,43,68,0.06);outline:2px solid var(--stamp)" : ""}">
@@ -7132,13 +7132,21 @@ views["/quan-tri/quang-cao"] = () => {
            <td class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" type="button" data-toggle="${a.id}">${a.active ? "Dừng" : "Chạy"}</button><a class="btn sm${a.id === editId ? " ink" : ""}" href="#/quan-tri/quang-cao?sua=${a.id}">Sửa</a><button class="btn sm ghost" type="button" data-delad="${a.id}">Xóa</button></td></tr>`)
          .join("")}</tbody></table></div>
      </section>
-     ${!isEditing ? formHtml : ""}
     </div>`,
     mount(root) {
       if (isEditing) {
         root.querySelector("#form-ad")?.scrollIntoView({ behavior: "smooth", block: "start" });
         root.querySelector("#ad-t")?.focus();
       }
+
+      root.querySelector("#btn-scroll-form")?.addEventListener("click", () => {
+        if (isEditing) {
+          go("#/quan-tri/quang-cao");
+          return;
+        }
+        root.querySelector("#form-ad")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        root.querySelector("#ad-s")?.focus();
+      });
 
       // Real-time live preview binder
       const bindPreview = () => {
@@ -7279,14 +7287,21 @@ views["/quan-tri/quang-cao"] = () => {
         e.preventDefault();
         const v = (sel) => root.querySelector(sel)?.value.trim() || "";
         const err = root.querySelector("[data-err]");
-        const fail = (m) => ((err.textContent = tr(m)), (err.hidden = false));
+        const fail = (m) => {
+          if (err) {
+            err.textContent = tr(m);
+            err.hidden = false;
+            err.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+          toast(m);
+        };
 
         let url = v("#ad-u");
-        if (url && !url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("#/")) {
-          url = "https://" + url;
+        if (!url || url === "https://" || url === "http://") {
+          return fail("Vui lòng nhập liên kết quảng cáo (URL website hoặc route nội bộ #/...).");
         }
-        if (!url || (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("#/"))) {
-          return fail("Liên kết quảng cáo không hợp lệ (cần https:// hoặc đường dẫn hợp lệ).");
+        if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("#/")) {
+          url = "https://" + url;
         }
 
         const now = Date.now();
@@ -7306,8 +7321,9 @@ views["/quan-tri/quang-cao"] = () => {
           updatedAt: now
         };
 
-        if (!data.sponsor || data.title.length < 3) return fail("Vui lòng nhập tên nhà tài trợ và tiêu đề quảng cáo.");
-        if (!data.placements.length) return fail("Chọn ít nhất một vị trí hiển thị.");
+        if (!data.sponsor) return fail("Vui lòng nhập tên nhà tài trợ / đơn vị.");
+        if (!data.title || data.title.length < 3) return fail("Vui lòng nhập tiêu đề quảng cáo (tối thiểu 3 ký tự).");
+        if (!data.placements.length) return fail("Vui lòng chọn ít nhất một vị trí hiển thị (Trang chủ, Tìm kiếm, Tài liệu).");
         if (data.to < data.from) return fail("Ngày kết thúc phải sau ngày bắt đầu.");
         if (/lam bai ho|ban de|vay tien|thi ho/.test(norm(`${data.title} ${data.body}`))) return fail("Nội dung quảng cáo không phù hợp quy định.");
 
@@ -7323,9 +7339,13 @@ views["/quan-tri/quang-cao"] = () => {
         S.audit.unshift({ t: now, by: u.email, action: ed.id ? "ad.update" : "ad.create", detail: `${data.sponsor}: ${data.title}` });
         save(true);
         triggerServerSync(0);
-        toast(ed.id ? `Đã lưu cập nhật chiến dịch "${data.title}".` : "Đã tạo chiến dịch quảng cáo mới.");
-        go("#/quan-tri/quang-cao");
-        render();
+        toast(ed.id ? `Đã lưu cập nhật chiến dịch "${data.title}".` : `Đã tạo thành công chiến dịch "${data.title}"!`);
+        if (isEditing) {
+          go("#/quan-tri/quang-cao");
+        } else {
+          render();
+          root.querySelector("#form-ad")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       });
     },
   };
