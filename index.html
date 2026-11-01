@@ -538,6 +538,11 @@ table.t tbody tr:hover td{background:var(--hi);color:#111}
 .cards>.rec:hover{background:var(--hi);color:#111}
 .rec .why{border:2px solid var(--line);color:var(--ink);background:var(--hi);color:#111;font-weight:800}
 .ad{border:var(--bw) dashed var(--line)}
+.ad-carousel-wrap .panel{border:2px solid var(--line);background:var(--sheet);transition:all .2s ease}
+.ad-card{scroll-snap-align:start;border:2px dashed var(--pencil)!important;background:var(--paper)!important;transition:transform .15s ease,box-shadow .15s ease}
+.ad-card:hover{transform:translateY(-2px);box-shadow:2px 2px 0 var(--line)}
+@media (max-width:900px){.ad-card{flex:0 0 calc(50% - 8px)!important;min-width:260px!important}}
+@media (max-width:600px){.ad-card{flex:0 0 85%!important;min-width:250px!important;max-width:90%!important}}
 .fc-card{border:var(--bw) solid var(--line);box-shadow:6px 6px 0 var(--line)}
 .badge-item{border:var(--bw) solid var(--line)}
 .badge-item .ic{border:var(--bw) solid var(--line);background:var(--hi);color:#111}
@@ -904,6 +909,25 @@ function load(){
     }
   });
   try{const ss=sessionStorage.getItem(KEY+"-session");if(ss!==null)S.session=ss||null}catch{}
+  if(S.cm&&Array.isArray(S.cm.ads)){
+    const existing=new Set(S.cm.ads.map(a=>a.id));
+    const now=Date.now();
+    const D7=7*86400000;
+    const defaults=[
+      {id:"ad1",sponsor:"Nhà sách Bách Việt (mẫu)",title:"Giảm 20% giáo trình đại cương",body:"Giáo trình Giải tích, Đại số, Vật lý cho tân sinh viên. Áp dụng khi xuất trình thẻ sinh viên.",url:"https://example.com/nha-sach",cta:"Xem ưu đãi",placements:["home","search","doc"],faculties:[],from:vnDate(now-10*D7),to:vnDate(now+30*D7),active:true,cap:3,imp:1240,clicks:37},
+      {id:"ad2",sponsor:"Trung tâm Luyện thi IELTS ABC (mẫu)",title:"Thi thử IELTS miễn phí cho sinh viên",body:"Đăng ký thi thử, nhận nhận xét kỹ năng Viết và Nói.",url:"https://example.com/ielts",cta:"Đăng ký",placements:["home","doc"],faculties:[],from:vnDate(now-3*D7),to:vnDate(now+20*D7),active:true,cap:2,imp:610,clicks:22},
+      {id:"ad3",sponsor:"Phòng lab Điện tử XYZ (mẫu)",title:"Tuyển thực tập sinh nhúng",body:"Dành cho sinh viên Điện - Điện tử năm 3, năm 4.",url:"https://example.com/lab",cta:"Ứng tuyển",placements:["home","search","doc"],faculties:[],from:vnDate(now-5*D7),to:vnDate(now+15*D7),active:true,cap:3,imp:210,clicks:9},
+      {id:"ad4",sponsor:"The Study Hub KTX Bách Khoa",title:"Giảm 15% đồ uống & không gian tự học 24/7",body:"Không gian yên tĩnh, bàn nhóm và ổ cắm sạc đầy đủ ngay cổng phụ KTX Bách Khoa.",url:"https://example.com/studyhub",cta:"Nhận ưu đãi",placements:["home","doc"],faculties:[],from:vnDate(now-2*D7),to:vnDate(now+25*D7),active:true,cap:3,imp:450,clicks:18},
+      {id:"ad5",sponsor:"Học viện Lập trình TechBK",title:"Học bổng 50% khóa Lập trình Fullstack & AI",body:"Đào tạo dự án thực chiến dành riêng cho sinh viên IT Bách Khoa, cam kết thực tập.",url:"https://example.com/techbk",cta:"Xem lộ trình",placements:["home","search"],faculties:[],from:vnDate(now-1*D7),to:vnDate(now+30*D7),active:true,cap:3,imp:520,clicks:29}
+    ];
+    defaults.forEach(d=>{
+      if(!existing.has(d.id))S.cm.ads.push(d);
+      else{
+        const found=S.cm.ads.find(x=>x.id===d.id);
+        if(found&&!found.placements.includes("home"))found.placements.push("home");
+      }
+    });
+  }
 }
 let syncServerTimer=null;
 function triggerServerSync(delay=300){
@@ -1409,6 +1433,8 @@ views["/"]=()=>{
     </dl>
   </div></section>
 
+  ${typeof adHomeCarousel==="function"?adHomeCarousel():""}
+
   <div class="wrap home-grid" style="padding-block:36px;gap:36px">
     <div class="stack" style="gap:32px">
       ${u&&typeof recSection==="function"?recSection(u):""}
@@ -1438,7 +1464,9 @@ views["/"]=()=>{
         ${most.length?`<ol class="rank-m">${most.map((d,i)=>`<li><a href="#/tai-lieu/${esc(d.slug)}"><span class="n" style="${i===0?"color:var(--stamp)":""}">${i+1}</span><span style="display:flex;flex-direction:column;min-width:0"><b style="font-size:14px">${esc(d.title)}</b><span class="tiny muted">${d.course}</span></span><b class="small">${fmtCount(d.downloads)}</b></a></li>`).join("")}</ol>`:`<p class="hand" style="margin:0;font-size:19px">Chưa có lượt tải nào. Tài liệu đầu tiên được tải sẽ lên bảng ở đây.</p>`}
       </section>
     </div>
-  </div>`};
+  </div>`,mount(root){
+    if(typeof mountHomeAds==="function")mountHomeAds(root);
+  }};
 };
 
 views["/tim-kiem"]=()=>{
@@ -5668,7 +5696,9 @@ function seedCm() {
   cm.ads.push(
     { id: "ad1", sponsor: "Nhà sách Bách Việt (mẫu)", title: "Giảm 20% giáo trình đại cương", body: "Giáo trình Giải tích, Đại số, Vật lý cho tân sinh viên. Áp dụng khi xuất trình thẻ sinh viên.", url: "https://example.com/nha-sach", cta: "Xem ưu đãi", placements: ["home", "search", "doc"], faculties: [], from: vnDate(now - 10 * D7), to: vnDate(now + 30 * D7), active: true, cap: 3, imp: 1240, clicks: 37 },
     { id: "ad2", sponsor: "Trung tâm Luyện thi IELTS ABC (mẫu)", title: "Thi thử IELTS miễn phí cho sinh viên", body: "Đăng ký thi thử, nhận nhận xét kỹ năng Viết và Nói.", url: "https://example.com/ielts", cta: "Đăng ký", placements: ["home", "doc"], faculties: [], from: vnDate(now - 3 * D7), to: vnDate(now + 20 * D7), active: true, cap: 2, imp: 610, clicks: 22 },
-    { id: "ad3", sponsor: "Phòng lab Điện tử XYZ (mẫu)", title: "Tuyển thực tập sinh nhúng", body: "Dành cho sinh viên Điện - Điện tử năm 3, năm 4.", url: "https://example.com/lab", cta: "Ứng tuyển", placements: ["search", "doc"], faculties: ["SEEE"], from: vnDate(now - 5 * D7), to: vnDate(now + 15 * D7), active: true, cap: 3, imp: 210, clicks: 9 },
+    { id: "ad3", sponsor: "Phòng lab Điện tử XYZ (mẫu)", title: "Tuyển thực tập sinh nhúng", body: "Dành cho sinh viên Điện - Điện tử năm 3, năm 4.", url: "https://example.com/lab", cta: "Ứng tuyển", placements: ["home", "search", "doc"], faculties: [], from: vnDate(now - 5 * D7), to: vnDate(now + 15 * D7), active: true, cap: 3, imp: 210, clicks: 9 },
+    { id: "ad4", sponsor: "The Study Hub KTX Bách Khoa", title: "Giảm 15% đồ uống & không gian tự học 24/7", body: "Không gian yên tĩnh, bàn nhóm và ổ cắm sạc đầy đủ ngay cổng phụ KTX Bách Khoa.", url: "https://example.com/studyhub", cta: "Nhận ưu đãi", placements: ["home", "doc"], faculties: [], from: vnDate(now - 2 * D7), to: vnDate(now + 25 * D7), active: true, cap: 3, imp: 450, clicks: 18 },
+    { id: "ad5", sponsor: "Học viện Lập trình TechBK", title: "Học bổng 50% khóa Lập trình Fullstack & AI", body: "Đào tạo dự án thực chiến dành riêng cho sinh viên IT Bách Khoa, cam kết thực tập.", url: "https://example.com/techbk", cta: "Xem lộ trình", placements: ["home", "search"], faculties: [], from: vnDate(now - 1 * D7), to: vnDate(now + 30 * D7), active: true, cap: 3, imp: 520, clicks: 29 },
   );
   return cm;
 }
@@ -6374,6 +6404,143 @@ views["/khong-gian/:id"] = ({ id }) => {
 };
 
 /* ===================== Quảng cáo ===================== */
+function adHomeCarousel() {
+  if (!S) return "";
+  const u = me();
+  const cm = CM();
+  const today = vnDate(Date.now());
+  const who = u?.email || "guest";
+  if (!cm.adHidden) cm.adHidden = {};
+  if (!cm.adSeen) cm.adSeen = {};
+  const hidden = cm.adHidden[who] || [];
+  const seen = (cm.adSeen[`${who}|${today}`] = cm.adSeen[`${who}|${today}`] || {});
+
+  const list = cm.ads.filter(
+    (a) => a.active && a.from <= today && a.to >= today &&
+           a.placements.includes("home") &&
+           (!a.faculties.length || (u && a.faculties.includes(u.faculty))) &&
+           !hidden.includes(a.id)
+  );
+
+  if (!list.length) return "";
+
+  list.forEach((a) => {
+    seen[a.id] = (seen[a.id] || 0) + 1;
+    a.imp++;
+  });
+
+  return `<section class="wrap ad-carousel-wrap" style="padding-top:24px" aria-label="Góc đối tác & quảng cáo">
+    <div class="panel" style="border:2px solid var(--line);background:var(--sheet);padding:16px 20px;position:relative;box-shadow:4px 4px 0 var(--line)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="stamp" style="font-size:11px;padding:2px 8px;transform:none">ĐỐI TÁC ĐỒNG HÀNH</span>
+          <h2 class="h2" style="margin:0;font-size:16px">Góc nhà tài trợ & Ưu đãi học tập</h2>
+          <span class="tiny muted" style="display:inline-block;padding:1px 6px;border:1px solid var(--line);border-radius:2px;font-size:11px">${list.length} đối tác</span>
+        </div>
+        <div class="row" style="gap:6px;align-items:center">
+          <button type="button" class="btn sm" data-ad-prev aria-label="Quảng cáo trước" title="Quảng cáo trước" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">‹</button>
+          <span class="tiny muted" data-ad-counter style="font-weight:600;min-width:44px;text-align:center">1 / ${list.length}</span>
+          <button type="button" class="btn sm" data-ad-next aria-label="Quảng cáo tiếp" title="Quảng cáo tiếp theo" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">›</button>
+        </div>
+      </div>
+
+      <div data-ad-track style="display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px">
+        ${list.map((a, idx) => `
+          <article class="ad-card" data-ad-card-id="${a.id}" data-ad-idx="${idx}" style="flex:0 0 calc(33.333% - 10px);min-width:280px;max-width:380px;scroll-snap-align:start;border:2px dashed var(--pencil);background:var(--paper);padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-sizing:border-box">
+            <div class="stack" style="gap:6px">
+              <div class="row" style="justify-content:space-between;align-items:center;gap:6px">
+                <span class="tiny" style="border:1px solid var(--pencil);padding:1px 6px;color:var(--pencil);font-weight:600;font-size:10px">Quảng cáo</span>
+                <span class="tiny muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px" title="${esc(a.sponsor)}">Tài trợ: ${esc(a.sponsor)}</span>
+              </div>
+              <h3 class="head" style="margin:2px 0 0;font-size:15px;line-height:1.35;color:var(--ink)">${esc(a.title)}</h3>
+              <p class="small" style="margin:0;color:var(--ink);opacity:.85;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${esc(a.body)}</p>
+            </div>
+            <div class="row" style="justify-content:space-between;align-items:center;gap:8px;margin-top:6px;border-top:1px dashed var(--line);padding-top:10px">
+              <button type="button" class="tiny" data-adhide="${a.id}" style="all:unset;cursor:pointer;color:var(--pencil);text-decoration:underline;font-size:11px">Ẩn tin này</button>
+              <a class="btn primary sm" href="${esc(a.url)}" target="_blank" rel="sponsored noopener" data-adclick="${a.id}" style="height:32px;padding:0 12px;font-size:12px;display:inline-flex;align-items:center;gap:4px">
+                <span>${esc(a.cta || "Xem ưu đãi")}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+    </div>
+  </section>`;
+}
+
+function mountHomeAds(root) {
+  const wrap = root.querySelector(".ad-carousel-wrap");
+  if (!wrap) return;
+  const track = wrap.querySelector("[data-ad-track]");
+  const prevBtn = wrap.querySelector("[data-ad-prev]");
+  const nextBtn = wrap.querySelector("[data-ad-next]");
+  const counter = wrap.querySelector("[data-ad-counter]");
+  const cards = wrap.querySelectorAll(".ad-card");
+  if (!track || !cards.length) return;
+
+  const total = cards.length;
+  let currentIdx = 0;
+
+  const updateCounter = () => {
+    if (!counter) return;
+    const scrollLeft = track.scrollLeft;
+    let bestIdx = 0;
+    let minDiff = Infinity;
+    cards.forEach((c, i) => {
+      const diff = Math.abs(c.offsetLeft - track.offsetLeft - scrollLeft);
+      if (diff < minDiff) {
+        minDiff = diff;
+        bestIdx = i;
+      }
+    });
+    currentIdx = bestIdx;
+    counter.textContent = `${currentIdx + 1} / ${total}`;
+  };
+
+  const scrollToIdx = (idx) => {
+    currentIdx = (idx + total) % total;
+    const targetCard = cards[currentIdx];
+    if (targetCard) {
+      track.scrollTo({
+        left: targetCard.offsetLeft - track.offsetLeft,
+        behavior: "smooth"
+      });
+      if (counter) counter.textContent = `${currentIdx + 1} / ${total}`;
+    }
+  };
+
+  prevBtn?.addEventListener("click", () => scrollToIdx(currentIdx - 1));
+  nextBtn?.addEventListener("click", () => scrollToIdx(currentIdx + 1));
+
+  let scrollTimeout = null;
+  track.addEventListener("scroll", () => {
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(updateCounter, 80);
+  });
+
+  let autoTimer = null;
+  const startAuto = () => {
+    if (autoTimer || total <= 1) return;
+    autoTimer = setInterval(() => {
+      scrollToIdx(currentIdx + 1);
+    }, 5500);
+  };
+  const stopAuto = () => {
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+    }
+  };
+
+  wrap.addEventListener("mouseenter", stopAuto);
+  wrap.addEventListener("mouseleave", startAuto);
+  wrap.addEventListener("touchstart", stopAuto, { passive: true });
+  wrap.addEventListener("touchend", startAuto, { passive: true });
+
+  startAuto();
+}
+
 /**
  * Mỗi chỗ đặt (trang chủ, kết quả tìm kiếm, trang tài liệu) hiện tối đa một quảng cáo, luôn ghi rõ "Quảng cáo"
  * và nhà tài trợ, không xen vào nội dung tài liệu, không ảnh hưởng thứ hạng tìm kiếm. Nhắm theo Viện là tùy chọn;
@@ -6420,7 +6587,7 @@ document.addEventListener("click", (e) => {
     const cm = CM();
     cm.adHidden[who] = [...(cm.adHidden[who] || []), h.dataset.adhide];
     save();
-    h.closest(".ad")?.remove();
+    h.closest(".ad, .ad-card")?.remove();
     toast("Đã ẩn quảng cáo này.");
   }
 });

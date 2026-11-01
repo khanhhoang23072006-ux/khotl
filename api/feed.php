@@ -216,3 +216,4 @@ function plain_vn($str) {
     $str = preg_replace("/(Đ)/u", 'd', $str);
     return strtolower($str);
 }
+
