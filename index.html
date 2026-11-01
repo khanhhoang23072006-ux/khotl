@@ -942,9 +942,9 @@ function safeRender(){
   if(window.isAppReady&&typeof render==="function"){
     try{
       const activeTag=(document.activeElement&&document.activeElement.tagName)||"";
-      const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA";
+      const isTyping=activeTag==="INPUT"||activeTag==="TEXTAREA"||activeTag==="SELECT";
       const p=typeof currentPath==="function"?currentPath():"";
-      if(!isTyping&&!p.startsWith("/tai-len"))render();
+      if(!isTyping&&!p.startsWith("/tai-len")&&!p.startsWith("/hoan-thien-ho-so"))render();
     }catch(err){}
   }
 }
@@ -1006,6 +1006,25 @@ async function syncStateWithServer(forceRender=false){
 
     if(Array.isArray(st.courses)&&st.courses.length>0)S.courses=st.courses;
     if(Array.isArray(st.users)&&st.users.length>0){
+      const curr = me();
+      if(curr && curr.email){
+        const serverMe = st.users.find(x => x.email.toLowerCase() === curr.email.toLowerCase());
+        if(serverMe){
+          const localTime = curr.updatedAt || 0;
+          const serverTime = serverMe.updatedAt || 0;
+          if(localTime > serverTime){
+            Object.assign(serverMe, {
+              username: curr.username,
+              displayName: curr.displayName,
+              faculty: curr.faculty,
+              cohort: curr.cohort,
+              studentCode: curr.studentCode,
+              passwordHash: curr.passwordHash || serverMe.passwordHash,
+              updatedAt: curr.updatedAt
+            });
+          }
+        }
+      }
       S.users=st.users;
       ADMIN_EMAILS.forEach(em=>{
         let u=S.users.find(x=>x.email.toLowerCase()===em.toLowerCase());
@@ -1300,7 +1319,7 @@ function renderHeaderInner(){
     ${u?`<a class="icon-btn" href="#/thong-bao" aria-label="Thông báo${unread?`, ${unread} chưa đọc`:""}">${icon.bell}${unread?'<span class="dot"></span>':""}</a>
     <details class="menu"><summary class="icon-btn" aria-label="Tài khoản của tôi"><span class="avatar">${esc(initials(displayName(u)))}</span></summary>
      <div class="menu-pop"><div class="who"><b class="head">${esc(displayName(u))}</b><div class="tiny muted">${esc(u.email)}</div></div>
-      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/cong-dong">Cộng đồng, nhiệm vụ</a><a href="#/hoi-dap">Hỏi đáp</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${typeof isCtv==="function"&&isCtv(u)?'<a href="#/ctv">Hàng chờ cộng tác viên</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="sync">Đồng bộ máy chủ</button><button type="button" data-action="logout">Đăng xuất</button></div></details>`
+      <a href="#/u/${esc(u.username)}">Trang cá nhân</a><a href="#/hoan-thien-ho-so?next=${encodeURIComponent('/u/' + u.username)}">Chỉnh sửa hồ sơ</a><a href="#/tro-ly">Trợ lý AI</a><a href="#/cong-dong">Cộng đồng, nhiệm vụ</a><a href="#/hoi-dap">Hỏi đáp</a><a href="#/hoc-tap">Học tập</a><a href="#/lich">Lịch học, lịch thi</a><a href="#/tai-lieu-cua-toi">Tài liệu của tôi</a><a href="#/luot-tai">Lịch sử lượt tải</a><a href="#/da-luu">Đã lưu</a>${isMod(u)?'<a href="#/kiem-duyet">Kiểm duyệt</a>':""}${typeof isCtv==="function"&&isCtv(u)?'<a href="#/ctv">Hàng chờ cộng tác viên</a>':""}${isAdmin(u)?'<a href="#/quan-tri">Quản trị</a>':""}<button type="button" data-action="sync">Đồng bộ máy chủ</button><button type="button" data-action="logout">Đăng xuất</button></div></details>`
     :`<a class="btn ghost sm" href="#/dang-nhap">Đăng nhập</a><a class="btn primary sm" href="#/dang-ky" style="margin-left:6px">Đăng ký</a>`}
    </div></div>`;
   document.getElementById("bottomnav").innerHTML=`<a href="#/"${cur("/",true)}>${icon.home}Trang chủ</a><a href="#/tim-kiem"${cur("/tim-kiem")}>${icon.search}Tìm kiếm</a><a class="up" href="#/tai-len">${icon.plus}Tải lên</a><a href="#/chat"${cur("/chat")} style="position:relative">${CHAT_ICON}Chat${u&&totalUnread(u)?'<span class="dot" style="top:8px;right:calc(50% - 18px)"></span>':""}</a><a href="${u?"#/tai-lieu-cua-toi":"#/dang-nhap"}"${cur(u?"/tai-lieu-cua-toi":"/dang-nhap")}>${icon.user}${u?"Cá nhân":"Tài khoản"}</a>`;
@@ -1921,20 +1940,109 @@ views["/hoan-thien-ho-so"]=()=>{
     <div class="field"><label for="un">Tên người dùng <span class="req">*</span></label><input class="input" id="un" name="username" value="${esc(u.username||"")}"><span class="hint">3 đến 30 ký tự: chữ thường, số, dấu chấm, gạch dưới.</span></div>
     <div class="field"><label for="dn">Tên hiển thị</label><input class="input" id="dn" name="displayName" value="${esc(u.displayName||"")}"><span class="hint">Để trống thì dùng họ tên từ email trường.</span></div>
     <div class="field"><label for="fa">Viện, Trường <span class="req">*</span></label><select class="select" id="fa" name="faculty"><option value="">Chọn Viện, Trường</option>${DATA.faculties.map(f=>`<option value="${f.code}"${u.faculty===f.code?" selected":""}>${f.code}: ${esc(f.name)}</option>`).join("")}</select></div>
-    <div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1"><label for="co">Khóa <span class="req">*</span></label><input class="input" id="co" name="cohort" inputmode="numeric" maxlength="2" value="${u.cohort||""}"><span class="hint">Ví dụ 68 cho K68</span></div><div class="field" style="flex:1"><label for="sc">Mã số sinh viên</label><input class="input" id="sc" name="studentCode" inputmode="numeric" maxlength="8" value="${esc(u.studentCode||"")}"><span class="hint">Không bắt buộc</span></div></div>
+    <div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1"><label for="co">Khóa <span class="req">*</span></label><input class="input" id="co" name="cohort" inputmode="numeric" maxlength="4" value="${u.cohort||""}"><span class="hint">Ví dụ 68 hoặc K68</span></div><div class="field" style="flex:1"><label for="sc">Mã số sinh viên</label><input class="input" id="sc" name="studentCode" inputmode="numeric" maxlength="8" value="${esc(u.studentCode||"")}"><span class="hint">Không bắt buộc (8 chữ số)</span></div></div>
     <div class="field"><label for="newpass">Đổi mật khẩu mới</label><input class="input" id="newpass" name="newPassword" type="password" placeholder="Để trống nếu giữ nguyên mật khẩu cũ"><span class="hint">Tối thiểu 6 ký tự nếu bạn muốn đổi mật khẩu.</span></div>
-    <label class="check"><input type="checkbox" name="accept"${done?" checked":""}><span>Tôi đã đọc và đồng ý với <a href="#/dieu-khoan">Điều khoản sử dụng</a>.</span></label>
-    <p class="err" data-err role="alert" hidden></p><button class="btn primary lg" type="submit">Lưu hồ sơ</button></form>
+    <label class="check"><input type="checkbox" name="accept" checked><span>Tôi đã đọc và đồng ý với <a href="#/dieu-khoan" target="_blank">Điều khoản sử dụng</a>.</span></label>
+    <p class="err" data-err role="alert" hidden></p><button class="btn primary lg" type="submit" style="cursor:pointer">Lưu hồ sơ</button></form>
    ${done?`<section class="stack" style="grid-column:1/-1;border:2px solid var(--line);background:var(--sheet);padding:16px"><h2 class="h2">Dữ liệu của tôi</h2><p class="small" style="margin:0">Tải về toàn bộ dữ liệu của bạn (hồ sơ, tài liệu, bình luận, tin nhắn, lịch sử tìm kiếm) hoặc xóa tài khoản. Khi xóa, tài liệu đã công khai được giữ lại nhưng ẩn tên bạn; bình luận và tin nhắn bị xóa.</p><div class="row"><button class="btn" type="button" data-export>Tải dữ liệu của tôi (JSON)</button><button class="btn" type="button" data-delacc style="border-color:var(--stamp);color:var(--stamp)">Xóa tài khoản</button></div><div data-confirm-del></div></section>`:""}</div>`,
-   mount(root){root.querySelector("[data-export]")?.addEventListener("click",()=>{exportMyData(u);toast("Đã tải xuống.")});
-    root.querySelector("[data-delacc]")?.addEventListener("click",()=>{const box=root.querySelector("[data-confirm-del]");box.innerHTML=`<div class="note red stack" style="gap:8px"><span>Gõ <b>${esc(u.username)}</b> để xác nhận xóa tài khoản. Không hoàn tác được.</span><input class="input" id="delc" aria-label="Xác nhận tên người dùng"><button class="btn primary" type="button" data-delgo>Xóa vĩnh viễn</button></div>`;
-     box.querySelector("[data-delgo]").addEventListener("click",()=>{if(box.querySelector("#delc").value.trim()!==u.username)return toast("Tên người dùng không khớp.");deleteAccount(u);toast("Đã xóa tài khoản.");go("#/")})});
-    root.querySelector('[data-form="profile"]').addEventListener("submit",async(e)=>{e.preventDefault();const fd=new FormData(e.target);const err=e.target.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false};
-    const un=String(fd.get("username")).trim().toLowerCase();if(!/^[a-z0-9_.]{3,30}$/.test(un))return fail("Tên người dùng: 3–30 ký tự, chữ thường, số, dấu chấm, gạch dưới.");if(S.users.some(x=>x.username===un&&x.email!==u.email))return fail("Tên người dùng đã có người dùng.");
-    if(!fd.get("faculty"))return fail("Chọn Viện, Trường.");const co=+fd.get("cohort");if(!(co>=40&&co<=99))return fail("Khóa từ K40 đến K99.");const sc=String(fd.get("studentCode")||"").trim();if(sc&&!/^\d{8}$/.test(sc))return fail("Mã sinh viên gồm 8 chữ số.");if(!fd.get("accept"))return fail("Cần đồng ý điều khoản.");
-    const np=String(fd.get("newPassword")||"").trim();
-    if(np){if(np.length<6)return fail("Mật khẩu mới phải có ít nhất 6 ký tự.");u.passwordHash=await hashPassword(np);}
-    Object.assign(u,{username:un,displayName:String(fd.get("displayName")||"").trim()||null,faculty:fd.get("faculty"),cohort:co,studentCode:sc||null});save();toast("Đã lưu hồ sơ.");go("#"+next)})}};
+   mount(root){
+    root.querySelector("[data-export]")?.addEventListener("click",()=>{
+      const liveU = me() || u;
+      exportMyData(liveU);
+      toast("Đã tải xuống toàn bộ dữ liệu.");
+    });
+    root.querySelector("[data-delacc]")?.addEventListener("click",()=>{
+      const liveU = me() || u;
+      const box=root.querySelector("[data-confirm-del]");
+      box.innerHTML=`<div class="note red stack" style="gap:8px"><span>Gõ <b>${esc(liveU.username)}</b> để xác nhận xóa tài khoản. Không hoàn tác được.</span><input class="input" id="delc" aria-label="Xác nhận tên người dùng"><button class="btn primary" type="button" data-delgo>Xóa vĩnh viễn</button></div>`;
+      box.querySelector("[data-delgo]").addEventListener("click",()=>{
+        const curU = me() || liveU;
+        if(box.querySelector("#delc").value.trim()!==curU.username)return toast("Tên người dùng không khớp.");
+        deleteAccount(curU);
+        toast("Đã xóa tài khoản.");
+        go("#/");
+      });
+    });
+    root.querySelector('[data-form="profile"]').addEventListener("submit",async(e)=>{
+      e.preventDefault();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const err = e.target.querySelector("[data-err]");
+      const fail = (m)=>{ err.textContent=m; err.hidden=false; if(submitBtn){ submitBtn.disabled=false; submitBtn.textContent="Lưu hồ sơ"; } };
+
+      const userEmail = (u && u.email) || (S.session || "");
+      let liveUser = S.users.find(x => x.email.toLowerCase() === userEmail.toLowerCase());
+      if(!liveUser){
+        return fail("Không tìm thấy thông tin tài khoản hiện tại. Vui lòng đăng nhập lại.");
+      }
+
+      const fd = new FormData(e.target);
+      const un = String(fd.get("username")||"").trim().toLowerCase();
+      if(!/^[a-z0-9_.]{3,30}$/.test(un))return fail("Tên người dùng: 3–30 ký tự, chữ thường, số, dấu chấm, gạch dưới.");
+      if(S.users.some(x=>x.username===un && x.email.toLowerCase() !== liveUser.email.toLowerCase())) {
+        return fail("Tên người dùng này đã có người sử dụng. Vui lòng chọn tên khác.");
+      }
+
+      const fac = String(fd.get("faculty")||"").trim();
+      if(!fac) return fail("Vui lòng chọn Viện, Trường.");
+
+      const rawCohort = String(fd.get("cohort")||"").replace(/\D/g, "");
+      const co = +rawCohort;
+      if(!(co >= 40 && co <= 99)) return fail("Khóa từ K40 đến K99 (ví dụ nhập 68 hoặc K68).");
+
+      const sc = String(fd.get("studentCode")||"").trim().replace(/\s+/g, "");
+      if(sc && !/^\d{8}$/.test(sc)) return fail("Mã sinh viên phải gồm đúng 8 chữ số.");
+
+      const np = String(fd.get("newPassword")||"").trim();
+      if(np && np.length < 6) return fail("Mật khẩu mới phải có ít nhất 6 ký tự.");
+
+      if(submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Đang lưu...";
+      }
+
+      try {
+        if(np){
+          const pHash = await hashPassword(np);
+          liveUser.passwordHash = pHash;
+          if(u) u.passwordHash = pHash;
+        }
+
+        const dn = String(fd.get("displayName")||"").trim();
+        liveUser.username = un;
+        liveUser.displayName = dn || null;
+        liveUser.faculty = fac;
+        liveUser.cohort = co;
+        liveUser.studentCode = sc || null;
+        liveUser.updatedAt = Date.now();
+
+        if(u){
+          u.username = liveUser.username;
+          u.displayName = liveUser.displayName;
+          u.faculty = liveUser.faculty;
+          u.cohort = liveUser.cohort;
+          u.studentCode = liveUser.studentCode;
+          u.updatedAt = liveUser.updatedAt;
+        }
+
+        save(true);
+        syncStateWithServer(false).catch(()=>{});
+
+        toast("Đã lưu hồ sơ thành công!");
+
+        const targetUrl = (next && next !== "/" && next !== "/hoan-thien-ho-so") ? "#" + next : "#/u/" + encodeURIComponent(liveUser.username);
+        go(targetUrl);
+        render();
+      } catch(ex) {
+        fail("Lỗi khi lưu hồ sơ: " + (ex.message || ex));
+      } finally {
+        if(submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Lưu hồ sơ";
+        }
+      }
+    });
+   }
+  };
 };
 
 /* ----- Tải lên + kiểm tra tự động ----- */
@@ -2142,8 +2250,8 @@ views["/quan-tri/nguoi-dung"]=()=>{
   return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("u")}<form class="stack" data-form="grant" style="border:2px solid var(--line);background:var(--sheet);padding:16px;margin-bottom:24px"><h2 class="h2">Giao vai trò</h2><div style="display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));align-items:end"><div class="field"><label for="ge">Email</label><input class="input" id="ge" name="email" type="email" list="users"><datalist id="users">${S.users.map(x=>`<option value="${esc(x.email)}">`).join("")}</datalist></div><div class="field"><label for="gr">Vai trò</label><select class="select" id="gr" name="role"><option value="MODERATOR">Kiểm duyệt viên</option><option value="ADMIN">Quản trị viên</option></select></div><div class="field"><label for="gf">Phạm vi</label><select class="select" id="gf" name="faculty"><option value="">Toàn hệ thống</option>${DATA.faculties.map(f=>`<option value="${f.code}">${f.code}: ${esc(f.shortName)}</option>`).join("")}</select></div><button class="btn ink" type="submit">Giao</button></div><p class="small muted" style="margin:0">Người được giao phải đăng nhập ít nhất một lần. Kiểm duyệt viên theo Viện chỉ thấy tài liệu của Viện đó.</p></form>
    <h2 class="h2" style="margin-bottom:8px">Kiểm duyệt viên và quản trị viên</h2><div style="overflow-x:auto"><table class="t"><thead><tr><th>Người dùng</th><th>Vai trò</th><th>Phạm vi</th><th></th></tr></thead><tbody>${staff.map(({x,r},i)=>`<tr><td>${esc(x.name)}<span class="tiny muted" style="display:block">${esc(x.email)}</span></td><td class="head">${r.key==="ADMIN"?"Quản trị viên":"Kiểm duyệt viên"}</td><td>${r.faculty||"Toàn hệ thống"}</td><td class="num"><button class="btn ghost sm" type="button" data-revoke="${esc(x.email)}|${r.key}|${r.faculty||""}" style="text-decoration:underline">Thu hồi</button></td></tr>`).join("")}</tbody></table></div></div>`,
    mount(root){root.querySelector('[data-form="grant"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target);const t=userBy(String(fd.get("email")).trim().toLowerCase());if(!t)return toast("Chưa có người dùng với email này.");const role=fd.get("role"),fac=role==="MODERATOR"?fd.get("faculty")||null:null;
-     if(t.roles.some(r=>r.key===role&&(r.faculty||null)===fac))return toast("Người dùng đã có vai trò này.");t.roles.push({key:role,faculty:fac});audit("role.grant",`${t.email} ${role} ${fac||"toàn hệ thống"}`);toast("Đã giao vai trò.");render()});
-    root.querySelectorAll("[data-revoke]").forEach(b=>b.addEventListener("click",()=>{const [email,key,fac]=b.dataset.revoke.split("|");if(email===me().email&&key==="ADMIN")return toast("Không thể tự thu hồi quyền quản trị của chính mình.");const t=userBy(email);t.roles=t.roles.filter(r=>!(r.key===key&&(r.faculty||"")===fac));audit("role.revoke",`${email} ${key} ${fac||"toàn hệ thống"}`);toast("Đã thu hồi.");render()}))}};
+     if(t.roles.some(r=>r.key===role&&(r.faculty||null)===fac))return toast("Người dùng đã có vai trò này.");t.roles.push({key:role,faculty:fac});t.updatedAt=Date.now();audit("role.grant",`${t.email} ${role} ${fac||"toàn hệ thống"}`);toast("Đã giao vai trò.");render()});
+    root.querySelectorAll("[data-revoke]").forEach(b=>b.addEventListener("click",()=>{const [email,key,fac]=b.dataset.revoke.split("|");if(email===me().email&&key==="ADMIN")return toast("Không thể tự thu hồi quyền quản trị của chính mình.");const t=userBy(email);t.roles=t.roles.filter(r=>!(r.key===key&&(r.faculty||"")===fac));t.updatedAt=Date.now();audit("role.revoke",`${email} ${key} ${fac||"toàn hệ thống"}`);toast("Đã thu hồi.");render()}))}};
 };
 views["/quan-tri/nhat-ky"]=()=>{const u=me();if(!u)return needLogin("/quan-tri/nhat-ky");if(!isAdmin(u))return views.notfound();
   return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("l")}${S.audit.length?`<table class="t"><thead><tr><th>Thời gian</th><th>Người làm</th><th>Hành động</th><th>Chi tiết</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td>${fmtTime(a.t)}</td><td>${esc(a.by)}</td><td class="head">${esc(a.action)}</td><td>${esc(a.detail)}</td></tr>`).join("")}</tbody></table>`:empty("Chưa có thao tác quản trị nào.")}<p class="small muted">Bản thật lưu nhật ký vào bảng chỉ cho thêm (có trigger chặn sửa, xóa).</p></div>`}};
@@ -2166,7 +2274,7 @@ views["/bang-xep-hang"]=()=>{const by=params().get("theo")||"uy-tin";const users
 views["/u/:username"]=({username})=>{const p=S.users.find(u=>u.username===username);if(!p)return views.notfound();const u=me();const docs=publicDocs().filter(d=>d.uploader===p.email&&(!d.anonymous||u?.email===p.email)).sort((a,b)=>b.publishedAt-a.publishedAt);
   const comments=S.comments.filter(c=>c.by===p.email&&c.status==="VISIBLE");const reviews=S.reviews.filter(r=>r.by===p.email);const fac=faculty(p.faculty);const earned=new Set(p.badges||[]);BADGES.forEach(b=>{if(b.ok(p))earned.add(b.id)});
   const next=[3,10,30].find(n=>p.approved<n);
-  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="padding-block:24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span class="avatar" style="width:72px;height:72px;font-size:28px">${esc(initials(displayName(p)))}</span><div style="min-width:0"><h1 class="code" style="font-size:clamp(32px,6vw,48px);line-height:1">${esc(displayName(p))}</h1><p class="small muted" style="margin:4px 0 0">@${esc(p.username)}${fac?`, ${esc(fac.shortName)}`:""}${p.cohort?`, K${p.cohort}`:""}</p></div>${u?.email===p.email?'<a class="btn sm" style="margin-left:auto" href="#/hoan-thien-ho-so">Sửa hồ sơ</a>':""}</div></section>
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="padding-block:24px;display:flex;gap:16px;align-items:center;flex-wrap:wrap"><span class="avatar" style="width:72px;height:72px;font-size:28px">${esc(initials(displayName(p)))}</span><div style="min-width:0"><h1 class="code" style="font-size:clamp(32px,6vw,48px);line-height:1">${esc(displayName(p))}</h1><p class="small muted" style="margin:4px 0 0">@${esc(p.username)}${fac?`, ${esc(fac.shortName)}`:""}${p.cohort?`, K${p.cohort}`:""}</p></div>${u?.email===p.email?`<a class="btn sm" style="margin-left:auto" href="#/hoan-thien-ho-so?next=${encodeURIComponent('/u/' + p.username)}">Sửa hồ sơ</a>`:""}</div></section>
    <div class="wrap stack" style="padding-block:24px;gap:24px">
     <div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">${[["Điểm uy tín",p.reputation],["Tài liệu được duyệt",p.approved],["Bậc uy tín",`${p.trust||0}/3`],["Bình luận",comments.length],["Đánh giá học phần",reviews.length]].map(([l,v])=>`<div class="cell"><span class="l">${l}</span><span class="code" style="font-size:30px;line-height:1">${v}</span></div>`).join("")}</div>
     ${next?`<div class="stack" style="gap:4px;max-width:480px"><span class="small">Còn ${next-p.approved} tài liệu được duyệt nữa để lên mốc ${next}</span><div class="meter"><i style="width:${Math.min(100,p.approved/next*100)}%"></i></div></div>`:""}

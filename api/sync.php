@@ -149,12 +149,20 @@ function merge_users(array $serverUsers, array $clientUsers): array
             // Mật khẩu & hash
             $passHash = !empty($cu['passwordHash']) ? $cu['passwordHash'] : ($su['passwordHash'] ?? null);
 
-            $mergedUser = array_merge($su, $cu);
+            $sTime = (int)($su['updatedAt'] ?? $su['createdAt'] ?? 0);
+            $cTime = (int)($cu['updatedAt'] ?? $cu['createdAt'] ?? 0);
+
+            if ($cTime >= $sTime) {
+                $mergedUser = array_merge($su, $cu);
+            } else {
+                $mergedUser = array_merge($cu, $su);
+            }
             $mergedUser['roles'] = array_values($rolesMap);
             if ($passHash) $mergedUser['passwordHash'] = $passHash;
             $mergedUser['reputation'] = max((int)($su['reputation'] ?? 0), (int)($cu['reputation'] ?? 0));
             $mergedUser['approved'] = max((int)($su['approved'] ?? 0), (int)($cu['approved'] ?? 0));
             $mergedUser['trust'] = max((int)($su['trust'] ?? 1), (int)($cu['trust'] ?? 1));
+            $mergedUser['updatedAt'] = max($sTime, $cTime);
 
             $map[$em] = $mergedUser;
         } else {
