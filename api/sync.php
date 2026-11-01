@@ -84,7 +84,7 @@ function merge_entities_by_key(array $serverList, array $clientList, string $key
     $map = [];
     foreach ($serverList as $item) {
         if (!is_array($item)) continue;
-        $k = strtolower(trim((string)($item[$keyField] ?? '')));
+        $k = strtolower(preg_replace('/[\s\-_]+/', '', (string)($item[$keyField] ?? '')));
         if ($k !== '') {
             $map[$k] = $item;
         }
@@ -92,7 +92,7 @@ function merge_entities_by_key(array $serverList, array $clientList, string $key
 
     foreach ($clientList as $item) {
         if (!is_array($item)) continue;
-        $k = strtolower(trim((string)($item[$keyField] ?? '')));
+        $k = strtolower(preg_replace('/[\s\-_]+/', '', (string)($item[$keyField] ?? '')));
         if ($k === '') continue;
 
         if (isset($map[$k])) {
