@@ -919,6 +919,7 @@ function load(){
   try{const ss=sessionStorage.getItem(KEY+"-session");if(ss!==null)S.session=ss||null}catch{}
   if(S.cm&&Array.isArray(S.cm.ads)){
     const existing=new Set(S.cm.ads.map(a=>a.id));
+    const deleted=new Set(S.cm.deletedAds||[]);
     const now=Date.now();
     const D7=7*86400000;
     const defaults=[
@@ -929,7 +930,7 @@ function load(){
       {id:"ad5",sponsor:"Học viện Lập trình TechBK",title:"Học bổng 50% khóa Lập trình Fullstack & AI",body:"Đào tạo dự án thực chiến dành riêng cho sinh viên IT Bách Khoa, cam kết thực tập.",url:"https://example.com/techbk",cta:"Xem lộ trình",placements:["home","search"],faculties:[],from:vnDate(now-1*D7),to:vnDate(now+30*D7),active:true,cap:3,imp:520,clicks:29}
     ];
     defaults.forEach(d=>{
-      if(!existing.has(d.id))S.cm.ads.push(d);
+      if(!existing.has(d.id)&&!deleted.has(d.id))S.cm.ads.push(d);
     });
   }
 }
@@ -1171,23 +1172,23 @@ async function syncStateWithServer(forceRender=false){
           });
         }
       });
-      const adMap = new Map((currentCm.ads || []).map(a => [a.id, a]));
-      for (const sAd of (st.cm.ads || [])) {
-        if (!sAd || !sAd.id) continue;
+      const deletedAds = new Set([
+        ...(currentCm.deletedAds || []),
+        ...((st.cm && st.cm.deletedAds) || [])
+      ]);
+      const adMap = new Map((currentCm.ads || []).filter(a => !deletedAds.has(a.id)).map(a => [a.id, a]));
+      for (const sAd of ((st.cm && st.cm.ads) || [])) {
+        if (!sAd || !sAd.id || deletedAds.has(sAd.id) || sAd.deleted) continue;
         const lAd = adMap.get(sAd.id);
         if (!lAd) {
-          if (!sAd.deleted) adMap.set(sAd.id, sAd);
+          adMap.set(sAd.id, sAd);
         } else {
-          if (sAd.deleted || lAd.deleted) {
-            adMap.delete(sAd.id);
+          const sTime = sAd.updatedAt || 0;
+          const lTime = lAd.updatedAt || 0;
+          if (lTime >= sTime) {
+            Object.assign(lAd, sAd, lAd);
           } else {
-            const sTime = sAd.updatedAt || 0;
-            const lTime = lAd.updatedAt || 0;
-            if (lTime >= sTime) {
-              Object.assign(lAd, sAd, lAd);
-            } else {
-              Object.assign(lAd, sAd);
-            }
+            Object.assign(lAd, sAd);
           }
         }
       }
@@ -1198,6 +1199,7 @@ async function syncStateWithServer(forceRender=false){
         questions: Array.from(qMap.values()),
         answers: Array.from(aMap.values()),
         ads: Array.from(adMap.values()),
+        deletedAds: Array.from(deletedAds),
         adSeen: { ...(currentCm.adSeen || {}), ...(st.cm.adSeen || {}) },
         adHidden: { ...(currentCm.adHidden || {}), ...(st.cm.adHidden || {}) }
       };
@@ -6005,6 +6007,7 @@ function CM() {
   if (!Array.isArray(S.cm.log)) S.cm.log = [];
   if (!Array.isArray(S.cm.spaces)) S.cm.spaces = [];
   if (!Array.isArray(S.cm.ads)) S.cm.ads = [];
+  if (!Array.isArray(S.cm.deletedAds)) S.cm.deletedAds = [];
   if (!S.cm.adSeen || typeof S.cm.adSeen !== "object") S.cm.adSeen = {};
   if (!S.cm.adHidden || typeof S.cm.adHidden !== "object") S.cm.adHidden = {};
   if (S.cm.questions.length === 0) {
@@ -6012,7 +6015,7 @@ function CM() {
     S.cm.questions = fresh.questions;
     S.cm.answers = fresh.answers;
     if (!S.cm.spaces.length) S.cm.spaces = fresh.spaces;
-    if (!S.cm.ads.length) S.cm.ads = fresh.ads;
+    if (!S.cm.ads.length && !S.cm.deletedAds.length) S.cm.ads = fresh.ads;
   }
   return S.cm;
 }
@@ -6884,6 +6887,7 @@ function adHomeCarousel() {
         ${list.map((a, idx) => `
           <article class="ad-card" data-ad-card-id="${a.id}" data-ad-idx="${idx}" style="flex:0 0 calc(33.333% - 10px);min-width:280px;max-width:380px;scroll-snap-align:start;border:2px dashed var(--pencil);background:var(--paper);padding:14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-sizing:border-box">
             <div class="stack" style="gap:6px">
+              ${a.image ? `<div style="width:100%;height:130px;overflow:hidden;border:1px solid var(--line);background:var(--sheet);margin-bottom:4px;border-radius:2px"><img src="${esc(a.image)}" alt="${esc(a.title)}" style="width:100%;height:100%;object-fit:cover;display:block"></div>` : ""}
               <div class="row" style="justify-content:space-between;align-items:center;gap:6px">
                 <span class="tiny" style="border:1px solid var(--pencil);padding:1px 6px;color:var(--pencil);font-weight:600;font-size:10px">Quảng cáo</span>
                 <span class="tiny muted" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px" title="${esc(a.sponsor)}">Tài trợ: ${esc(a.sponsor)}</span>
@@ -7008,7 +7012,7 @@ function adSlot(placement) {
     a.imp++;
     adCache[ck] = { id: a.id, t: Date.now() };
   }
-  return `<aside class="ad" aria-label="Quảng cáo"><div class="row" style="justify-content:space-between;gap:8px"><span class="tiny" style="border:1px solid var(--pencil);padding:0 6px;color:var(--pencil)">Quảng cáo</span><button type="button" class="tiny" data-adhide="${a.id}" style="all:unset;cursor:pointer;color:var(--pencil);text-decoration:underline">Ẩn quảng cáo này</button></div><b class="head" style="font-size:15px">${esc(a.title)}</b><span class="small">${esc(a.body)}</span><span class="row" style="justify-content:space-between;gap:8px"><span class="tiny muted">Tài trợ bởi ${esc(a.sponsor)}</span><a class="btn sm" href="${esc(a.url)}" target="_blank" rel="sponsored noopener" data-adclick="${a.id}">${esc(a.cta || "Xem")}</a></span></aside>`;
+  return `<aside class="ad" aria-label="Quảng cáo"><div class="row" style="justify-content:space-between;gap:8px"><span class="tiny" style="border:1px solid var(--pencil);padding:0 6px;color:var(--pencil)">Quảng cáo</span><button type="button" class="tiny" data-adhide="${a.id}" style="all:unset;cursor:pointer;color:var(--pencil);text-decoration:underline">Ẩn quảng cáo này</button></div>${a.image ? `<div style="width:100%;max-height:140px;overflow:hidden;border:1px solid var(--line);margin:6px 0;border-radius:2px"><img src="${esc(a.image)}" alt="${esc(a.title)}" style="width:100%;height:auto;object-fit:cover;display:block"></div>` : ""}<b class="head" style="font-size:15px">${esc(a.title)}</b><span class="small">${esc(a.body)}</span><span class="row" style="justify-content:space-between;gap:8px"><span class="tiny muted">Tài trợ bởi ${esc(a.sponsor)}</span><a class="btn sm" href="${esc(a.url)}" target="_blank" rel="sponsored noopener" data-adclick="${a.id}">${esc(a.cta || "Xem")}</a></span></aside>`;
 }
 document.addEventListener("click", (e) => {
   const c = e.target.closest("[data-adclick]");
@@ -7036,7 +7040,7 @@ views["/quan-tri/quang-cao"] = () => {
   if (!isAdmin(u) && !isSystemAdminEmail(u?.email)) return views.notfound();
   const cm = CM();
   const editId = params().get("sua");
-  const ed = (editId ? cm.ads.find((a) => a.id === editId) : null) || { id: "", sponsor: "", title: "", body: "", url: "https://", cta: "Xem ưu đãi", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
+  const ed = (editId ? cm.ads.find((a) => a.id === editId) : null) || { id: "", sponsor: "", title: "", body: "", image: "", url: "https://", cta: "Xem ưu đãi", placements: ["home"], faculties: [], from: vnDate(Date.now()), to: vnDate(Date.now() + 30 * D7), active: true, cap: 3 };
   const PL = { home: "Trang chủ", search: "Kết quả tìm kiếm", doc: "Trang tài liệu" };
   const isEditing = !!(editId && ed.id);
 
@@ -7050,6 +7054,26 @@ views["/quan-tri/quang-cao"] = () => {
         <div class="field"><label for="ad-s">Nhà tài trợ / Đơn vị <span class="req">*</span></label><input class="input" id="ad-s" value="${esc(ed.sponsor)}" maxlength="80" placeholder="Ví dụ: Nhà sách Bách Việt" required></div>
         <div class="field"><label for="ad-t">Tiêu đề chiến dịch <span class="req">*</span></label><input class="input" id="ad-t" value="${esc(ed.title)}" maxlength="90" placeholder="Ví dụ: Giảm 20% giáo trình đại cương" required></div>
         <div class="field" style="grid-column:1/-1"><label for="ad-b">Nội dung quảng cáo</label><textarea class="textarea" id="ad-b" maxlength="250" style="min-height:64px" placeholder="Mô tả ưu đãi, đối tượng áp dụng...">${esc(ed.body)}</textarea></div>
+
+        <!-- Hình ảnh banner quảng cáo -->
+        <div class="field" style="grid-column:1/-1">
+          <label style="font-weight:700">Hình ảnh banner / Logo nhà tài trợ (tùy chọn)</label>
+          <div class="row" style="gap:14px;align-items:center;flex-wrap:wrap">
+            <div id="ad-img-preview-wrap" style="width:160px;height:90px;border:1.5px dashed var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;border-radius:2px">
+              ${ed.image ? `<img id="ad-img-preview" src="${esc(ed.image)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="Preview">` : `<span class="tiny muted" id="ad-img-placeholder" style="text-align:center;padding:6px">Chưa chọn ảnh</span>`}
+            </div>
+            <div class="stack" style="gap:8px;flex:1;min-width:220px">
+              <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
+                <input type="file" id="ad-img-file" accept="image/png,image/jpeg,image/webp" style="display:none">
+                <button class="btn sm" type="button" id="ad-img-btn">Tải ảnh từ máy...</button>
+                <button class="btn sm ghost" type="button" id="ad-img-del" ${!ed.image ? 'style="display:none"' : ""}>Gỡ ảnh</button>
+              </div>
+              <input type="hidden" id="ad-img-data" value="${esc(ed.image || "")}">
+              <span class="tiny muted">Hỗ trợ ảnh PNG, JPG, WebP. Tự động co giãn tối ưu để hiển thị nổi bật trên carousel trang chủ và các vị trí banner.</span>
+            </div>
+          </div>
+        </div>
+
         <div class="field"><label for="ad-u">Liên kết (URL hoặc route nội bộ) <span class="req">*</span></label><input class="input" id="ad-u" value="${esc(ed.url)}" placeholder="https://example.com hoặc #/..." required></div>
         <div class="field"><label for="ad-c">Nhãn nút hành động (CTA)</label><input class="input" id="ad-c" value="${esc(ed.cta || "Xem ưu đãi")}" maxlength="25" placeholder="Xem ưu đãi"></div>
         <div class="field"><label for="ad-f">Từ ngày</label><input class="input" id="ad-f" type="date" value="${ed.from}"></div>
@@ -7065,6 +7089,9 @@ views["/quan-tri/quang-cao"] = () => {
         <div class="row" style="justify-content:space-between;align-items:center">
           <span class="tiny muted" style="font-weight:700;text-transform:uppercase;letter-spacing:.04em">Xem trước hiển thị thực tế (Live Preview)</span>
           <span class="tiny" style="border:1px solid var(--pencil);padding:1px 6px;color:var(--pencil);font-weight:600">Quảng cáo</span>
+        </div>
+        <div id="ad-prev-img-wrap" style="width:100%;max-height:160px;border:1px solid var(--line);background:var(--sheet);display:${ed.image ? "block" : "none"};overflow:hidden;border-radius:2px">
+          <img id="ad-prev-img" src="${esc(ed.image || "")}" style="width:100%;max-height:160px;object-fit:cover;display:block" alt="Banner preview">
         </div>
         <div class="tiny muted" id="ad-prev-sponsor">Tài trợ: ${esc(ed.sponsor || "Tên đơn vị")}</div>
         <div class="head" id="ad-prev-title" style="font-size:16px;line-height:1.3;color:var(--ink)">${esc(ed.title || "Tiêu đề chiến dịch quảng cáo")}</div>
@@ -7092,8 +7119,17 @@ views["/quan-tri/quang-cao"] = () => {
          <h2 class="h2" style="margin:0">Danh sách chiến dịch (${cm.ads.length})</h2>
          ${!isEditing ? `<a class="btn sm primary" href="#form-ad">+ Tạo chiến dịch mới</a>` : ""}
        </div>
-       <div style="overflow-x:auto"><table class="t" style="min-width:720px"><thead><tr><th>Chiến dịch</th><th>Vị trí</th><th>Thời gian</th><th class="num">Hiển thị</th><th class="num">Nhấp</th><th class="num">CTR</th><th>Trạng thái</th><th></th></tr></thead><tbody>${cm.ads
-         .map((a) => `<tr style="${a.id === editId ? "background:rgba(255,43,68,0.06);outline:2px solid var(--stamp)" : ""}"><td><div class="row" style="gap:6px;align-items:center"><b style="font-weight:600">${esc(a.title)}</b>${a.id === editId ? '<span class="badge" style="font-size:10px;padding:1px 6px">Đang sửa</span>' : ""}</div><span class="tiny muted" style="display:block">${esc(a.sponsor)}${(a.faculties || []).length ? `, nhắm ${a.faculties.join(", ")}` : ""}</span></td><td class="small">${(a.placements || []).map((p) => PL[p] || p).join(", ")}</td><td class="small">${fmtDate(Date.parse(a.from))} đến ${fmtDate(Date.parse(a.to))}</td><td class="num">${fmtCount(a.imp || 0)}</td><td class="num">${a.clicks || 0}</td><td class="num">${a.imp ? (((a.clicks || 0) / a.imp) * 100).toFixed(1).replace(".", ",") : "0"}%</td><td><span class="badge ${a.active ? "APPROVED" : "REMOVED"}" style="font-size:10px;height:20px;padding:0 6px">${a.active ? "Đang chạy" : "Tạm dừng"}</span></td><td class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" type="button" data-toggle="${a.id}">${a.active ? "Dừng" : "Chạy"}</button><a class="btn sm${a.id === editId ? " ink" : ""}" href="#/quan-tri/quang-cao?sua=${a.id}">Sửa</a><button class="btn sm ghost" type="button" data-delad="${a.id}">Xóa</button></td></tr>`)
+       <div style="overflow-x:auto"><table class="t" style="min-width:720px"><thead><tr><th style="width:54px">Ảnh</th><th>Chiến dịch</th><th>Vị trí</th><th>Thời gian</th><th class="num">Hiển thị</th><th class="num">Nhấp</th><th class="num">CTR</th><th>Trạng thái</th><th></th></tr></thead><tbody>${cm.ads
+         .map((a) => `<tr style="${a.id === editId ? "background:rgba(255,43,68,0.06);outline:2px solid var(--stamp)" : ""}">
+           <td style="vertical-align:middle">${a.image ? `<img src="${esc(a.image)}" style="width:48px;height:30px;object-fit:cover;border:1px solid var(--line);border-radius:2px;display:block" alt="Banner">` : `<span class="tiny muted" style="display:inline-block;padding:2px 4px;border:1px dashed var(--line);border-radius:2px;font-size:9px">Chữ</span>`}</td>
+           <td><div class="row" style="gap:6px;align-items:center"><b style="font-weight:600">${esc(a.title)}</b>${a.id === editId ? '<span class="badge" style="font-size:10px;padding:1px 6px">Đang sửa</span>' : ""}</div><span class="tiny muted" style="display:block">${esc(a.sponsor)}${(a.faculties || []).length ? `, nhắm ${a.faculties.join(", ")}` : ""}</span></td>
+           <td class="small">${(a.placements || []).map((p) => PL[p] || p).join(", ")}</td>
+           <td class="small">${fmtDate(Date.parse(a.from))} đến ${fmtDate(Date.parse(a.to))}</td>
+           <td class="num">${fmtCount(a.imp || 0)}</td>
+           <td class="num">${a.clicks || 0}</td>
+           <td class="num">${a.imp ? (((a.clicks || 0) / a.imp) * 100).toFixed(1).replace(".", ",") : "0"}%</td>
+           <td><span class="badge ${a.active ? "APPROVED" : "REMOVED"}" style="font-size:10px;height:20px;padding:0 6px">${a.active ? "Đang chạy" : "Tạm dừng"}</span></td>
+           <td class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" type="button" data-toggle="${a.id}">${a.active ? "Dừng" : "Chạy"}</button><a class="btn sm${a.id === editId ? " ink" : ""}" href="#/quan-tri/quang-cao?sua=${a.id}">Sửa</a><button class="btn sm ghost" type="button" data-delad="${a.id}">Xóa</button></td></tr>`)
          .join("")}</tbody></table></div>
      </section>
      ${!isEditing ? formHtml : ""}
@@ -7121,6 +7157,96 @@ views["/quan-tri/quang-cao"] = () => {
         inp.addEventListener("input", bindPreview);
       });
 
+      // Image upload handling
+      const fileInp = root.querySelector("#ad-img-file");
+      const btnPick = root.querySelector("#ad-img-btn");
+      const btnDel = root.querySelector("#ad-img-del");
+      const dataInp = root.querySelector("#ad-img-data");
+      const previewWrap = root.querySelector("#ad-img-preview-wrap");
+      const livePrevWrap = root.querySelector("#ad-prev-img-wrap");
+      const livePrevImg = root.querySelector("#ad-prev-img");
+
+      if (btnPick && fileInp) {
+        btnPick.addEventListener("click", () => fileInp.click());
+      }
+
+      if (fileInp) {
+        fileInp.addEventListener("change", (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          if (!file.type.startsWith("image/")) {
+            toast("Vui lòng chọn file hình ảnh (PNG, JPG, WebP).");
+            return;
+          }
+          if (file.size > 8 * 1024 * 1024) {
+            toast("Dung lượng ảnh tối đa 8MB.");
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (re) => {
+            const img = new Image();
+            img.onload = () => {
+              const maxW = 800;
+              const maxH = 500;
+              let w = img.width;
+              let h = img.height;
+              if (w > maxW || h > maxH) {
+                const ratio = Math.min(maxW / w, maxH / h);
+                w = Math.round(w * ratio);
+                h = Math.round(h * ratio);
+              }
+              const canvas = document.createElement("canvas");
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, w, h);
+              let dataUrl = "";
+              try {
+                dataUrl = canvas.toDataURL("image/webp", 0.82);
+              } catch {
+                dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+              }
+              if (dataInp) dataInp.value = dataUrl;
+              if (previewWrap) previewWrap.innerHTML = `<img id="ad-img-preview" src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block" alt="Preview">`;
+              if (livePrevWrap && livePrevImg) {
+                livePrevImg.src = dataUrl;
+                livePrevWrap.style.display = "block";
+              }
+              if (btnDel) btnDel.style.display = "inline-block";
+            };
+            img.src = re.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (btnDel) {
+        btnDel.addEventListener("click", () => {
+          if (dataInp) dataInp.value = "";
+          if (fileInp) fileInp.value = "";
+          if (previewWrap) previewWrap.innerHTML = `<span class="tiny muted" id="ad-img-placeholder" style="text-align:center;padding:6px">Chưa chọn ảnh</span>`;
+          if (livePrevWrap && livePrevImg) {
+            livePrevImg.src = "";
+            livePrevWrap.style.display = "none";
+          }
+          btnDel.style.display = "none";
+        });
+      }
+
+      root.querySelector('[data-form="ad"]')?.addEventListener("reset", () => {
+        setTimeout(() => {
+          if (dataInp) dataInp.value = "";
+          if (fileInp) fileInp.value = "";
+          if (previewWrap) previewWrap.innerHTML = `<span class="tiny muted" id="ad-img-placeholder" style="text-align:center;padding:6px">Chưa chọn ảnh</span>`;
+          if (livePrevWrap && livePrevImg) {
+            livePrevImg.src = "";
+            livePrevWrap.style.display = "none";
+          }
+          if (btnDel) btnDel.style.display = "none";
+          bindPreview();
+        }, 10);
+      });
+
       root.querySelectorAll("[data-toggle]").forEach((b) => b.addEventListener("click", () => {
         const ad = cm.ads.find((a) => a.id === b.dataset.toggle);
         if (ad) {
@@ -7133,16 +7259,19 @@ views["/quan-tri/quang-cao"] = () => {
       }));
 
       root.querySelectorAll("[data-delad]").forEach((b) => b.addEventListener("click", () => {
-        const ad = cm.ads.find((a) => a.id === b.dataset.delad);
+        const adId = b.dataset.delad;
+        const ad = cm.ads.find((a) => a.id === adId);
         if (!ad) return;
         if (!confirm(`Bạn có chắc muốn xóa vĩnh viễn chiến dịch "${ad.title}" của ${ad.sponsor}?`)) return;
+        if (!Array.isArray(cm.deletedAds)) cm.deletedAds = [];
+        if (!cm.deletedAds.includes(adId)) cm.deletedAds.push(adId);
         ad.deleted = true;
         ad.updatedAt = Date.now();
-        save(true);
-        cm.ads = cm.ads.filter((a) => a.id !== b.dataset.delad);
+        cm.ads = cm.ads.filter((a) => a.id !== adId);
+        S.audit.unshift({ t: Date.now(), by: u.email, action: "ad.delete", detail: `${ad.sponsor}: ${ad.title}` });
         save(true);
         triggerServerSync(0);
-        toast("Đã xóa chiến dịch.");
+        toast("Đã xóa vĩnh viễn chiến dịch.");
         render();
       }));
 
@@ -7165,6 +7294,7 @@ views["/quan-tri/quang-cao"] = () => {
           sponsor: v("#ad-s"),
           title: v("#ad-t"),
           body: v("#ad-b"),
+          image: root.querySelector("#ad-img-data")?.value.trim() || "",
           url,
           cta: v("#ad-c") || "Xem ưu đãi",
           from: v("#ad-f") || vnDate(now),

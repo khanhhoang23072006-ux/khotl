@@ -251,6 +251,12 @@ function merge_mod(array $serverMod, array $clientMod): array
 function merge_cm(array $serverCm, array $clientCm): array
 {
     $base = array_merge($serverCm, $clientCm);
+    $deletedAds = array_unique(array_merge(
+        (array)($serverCm['deletedAds'] ?? []),
+        (array)($clientCm['deletedAds'] ?? [])
+    ));
+    $deletedSet = array_flip($deletedAds);
+
     $ads = merge_entities_by_key(
         (array)($serverCm['ads'] ?? []),
         (array)($clientCm['ads'] ?? []),
@@ -264,7 +270,13 @@ function merge_cm(array $serverCm, array $clientCm): array
             return array_merge($cAd, $sAd);
         }
     );
-    $ads = array_values(array_filter($ads, fn($a) => empty($a['deleted'])));
+    $ads = array_values(array_filter($ads, function ($a) use ($deletedSet) {
+        if (empty($a['id'])) return false;
+        if (!empty($a['deleted'])) return false;
+        return !isset($deletedSet[$a['id']]);
+    }));
+    $base['ads'] = $ads;
+    $base['deletedAds'] = array_values($deletedAds);
     $spaces = merge_entities_by_key((array)($serverCm['spaces'] ?? []), (array)($clientCm['spaces'] ?? []), 'id');
     $spaces = array_values(array_filter($spaces, fn($s) => empty($s['deleted'])));
 
