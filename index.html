@@ -97,7 +97,7 @@ mark{background:transparent;color:inherit;text-decoration:underline 2px var(--st
 h1,h2,h3{margin:0;text-wrap:balance}
 .h2{font-variation-settings:"wdth" 75;font-weight:700;font-size:18px}
 .sechead{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
-.sechead a{font-size:13px;font-weight:600}
+.sechead a{font-size:13px;font-weight:600;white-space:nowrap}
 /* Đầu trang */
 .demo-bar{display:none!important}
 .demo-bar .wrap{display:flex;gap:8px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding-block:6px}
@@ -152,7 +152,7 @@ footer.site{border-top:2px solid var(--line);margin-top:48px;padding-bottom:76px
  .doc.nocc .title{grid-column:1/-1}
  .doc.nocc .last{grid-column:span 2}
 }
-.badge{display:inline-flex;align-items:center;height:24px;padding:0 8px;border:2px solid var(--line);font-variation-settings:"wdth" 75;font-weight:700;font-size:12px}
+.badge{display:inline-flex;align-items:center;height:24px;padding:0 8px;border:2px solid var(--line);font-variation-settings:"wdth" 75;font-weight:700;font-size:12px;white-space:nowrap}
 .badge.APPROVED{border-color:var(--stamp);color:var(--stamp)}
 .badge.CHANGES_REQUESTED{border-color:var(--stamp);background:var(--stamp);color:#fff}
 .badge.REJECTED,.badge.REMOVED{border-color:var(--pencil);color:var(--pencil)}
@@ -7290,8 +7290,17 @@ function feedWidget() {
   loadFeed();
   if (!hustFeed?.items?.length) return "";
   const items = hustFeed.items.filter((x) => x.date).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4);
-  return `<section class="panel stack" style="gap:10px;padding:20px">
-    <div class="sechead"><div style="display:flex;align-items:center;gap:8px"><h2 class="h2" style="margin:0">Tin vắn từ trường</h2><span class="badge" style="font-size:10px;padding:2px 6px">Cập nhật mỗi 30 phút</span></div><a href="#/thong-bao-truong" style="font-weight:700">Xem tất cả</a></div>
+  return `<section class="panel stack" style="gap:12px;padding:20px">
+    <div style="display:flex;flex-direction:column;gap:8px;border-bottom:var(--bw) solid var(--line);padding-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <h2 class="h2" style="margin:0;font-size:20px;text-transform:uppercase;letter-spacing:.04em;line-height:1.2">Tin vắn từ trường</h2>
+        <a href="#/thong-bao-truong" style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap">Xem tất cả ${icon.arrowRight}</a>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span class="badge" style="font-size:10px;padding:0 6px;height:20px;line-height:18px;white-space:nowrap;font-weight:700;letter-spacing:.03em">Cập nhật mỗi 30 phút</span>
+        <span class="tiny muted" style="white-space:nowrap">ctt.hust.edu.vn</span>
+      </div>
+    </div>
     <ol class="news">
       ${items.map((x, i) => {
         let tag = "THÔNG BÁO";
