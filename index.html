@@ -2635,30 +2635,101 @@ async function runChecks(file,meta){const buf=await file.arrayBuffer();const byt
   checks.content={s:r.score>=60?"warn":"pass",d:`Điểm rủi ro ${r.score}/100`,reasons:r.reasons};
   return{checks,hash,kind,pages,risk:r.score}}
 
-function uploadForm(mode,init){return `<form class="stack" data-form="upload" novalidate style="gap:20px">
-  <div class="dropzone" data-drop>${icon.file}<p class="head" style="margin:0">${mode==="edit"?"Muốn thay file? Kéo thả file mới vào đây (không bắt buộc)":"Kéo thả file vào đây hoặc bấm để chọn"}</p><p class="small muted" style="margin:0">PDF, DOCX, PPTX, XLSX, ảnh JPG/PNG/WebP, ZIP. Tối đa 50 MB mỗi file, ZIP tối đa 100 MB.</p><input type="file" id="file" class="sr" accept=".pdf,.docx,.pptx,.xlsx,.jpg,.jpeg,.png,.webp,.zip"><button class="btn ink" type="button" data-pick>Chọn file</button></div>
+function uploadForm(mode,init){const isCreate=mode==="create";return `<form class="stack" data-form="upload" novalidate style="gap:20px">
+  <div class="dropzone" data-drop>${icon.file}<p class="head" style="margin:0">${mode==="edit"?"Muốn thay file? Kéo thả file mới vào đây (không bắt buộc)":"Kéo thả một hoặc nhiều file vào đây, hoặc bấm để chọn"}</p><p class="small muted" style="margin:0">PDF, DOCX, PPTX, XLSX, ảnh JPG/PNG/WebP, ZIP. Tối đa 50 MB mỗi file (ZIP 100 MB). ${isCreate?"Có thể chọn nhiều file cùng lúc.":""}</p><input type="file" id="file" class="sr" accept=".pdf,.docx,.pptx,.xlsx,.jpg,.jpeg,.png,.webp,.zip"${isCreate?" multiple":""}><button class="btn ink" type="button" data-pick>${isCreate?"Chọn file từ máy (chọn nhiều)":"Chọn file"}</button></div>
   <div data-filebox></div>
-  <fieldset class="stack" style="border:0;padding:0;margin:0;gap:16px"><legend class="h2" style="margin-bottom:8px">Thông tin tài liệu</legend>
+  <fieldset class="stack" style="border:0;padding:0;margin:0;gap:16px"><legend class="h2" style="margin-bottom:8px">${isCreate?"Thông tin chung cho đợt tải":"Thông tin tài liệu"}</legend>
    <div class="field"><label for="cp">Học phần <span class="req">*</span></label><div style="position:relative" data-course-wrap><input class="input" id="cp" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="cpl" placeholder="Gõ mã hoặc tên học phần, ví dụ IT3011" value="${init.course?`${init.course.code} ${esc(init.course.name)}`:""}"><div class="sugg" id="cpl" role="listbox" hidden></div></div><input type="hidden" name="course" value="${init.course?.code||""}"></div>
-   <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div class="field" style="flex:1"><label for="ty">Loại tài liệu <span class="req">*</span></label><select class="select" id="ty" name="type"><option value="">Chọn loại</option>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${init.type===k?" selected":""}>${v}</option>`).join("")}</select></div>
+   <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div class="field" style="flex:1"><label for="ty">Loại tài liệu ${isCreate?"mặc định ":""}<span class="req">*</span></label><select class="select" id="ty" name="type"><option value="">Chọn loại</option>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${init.type===k?" selected":""}>${v}</option>`).join("")}</select></div>
     <div class="field" style="flex:1"><label for="te">Kỳ học</label><select class="select" id="te" name="term"><option value="">Không rõ</option>${recentTerms(12).map(t=>`<option${init.term===t?" selected":""}>${t}</option>`).join("")}</select></div></div>
-   <div class="field"><label for="ti">Tiêu đề <span class="req">*</span></label><input class="input" id="ti" name="title" maxlength="200" value="${esc(init.title||"")}"><span class="hint">Ví dụ: Đề thi cuối kỳ IT3011 kỳ 20241, có đáp án</span></div>
-   <div class="field"><label for="de">Mô tả</label><textarea class="textarea" id="de" name="description" maxlength="2000">${esc(init.description||"")}</textarea></div>
+   <div class="field" data-single-title><label for="ti">Tiêu đề ${isCreate?"(áp dụng khi tải 1 file) ":""}<span class="req">*</span></label><input class="input" id="ti" name="title" maxlength="200" value="${esc(init.title||"")}"><span class="hint">Ví dụ: Đề thi cuối kỳ IT3011 kỳ 20241, có đáp án</span></div>
+   <div class="field"><label for="de">Mô tả</label><textarea class="textarea" id="de" name="description" maxlength="2000" placeholder="Mô tả tóm tắt tài liệu...">${esc(init.description||"")}</textarea></div>
    <div class="field"><label for="tg">Thẻ</label><input class="input" id="tg" name="tags" value="${esc((init.tags||[]).join(", "))}"><span class="hint">Cách nhau bằng dấu phẩy, tối đa 10 thẻ.</span></div>
    <label class="check"><input type="checkbox" name="anonymous"${init.anonymous?" checked":""}><span>Ẩn tên tôi với người xem<br><span class="tiny muted">Kiểm duyệt viên vẫn thấy người đăng.</span></span></label>
    <label class="check"><input type="checkbox" name="copyright"><span>Tôi xác nhận có quyền chia sẻ tài liệu này và đồng ý với <a href="#/dieu-khoan">Điều khoản bản quyền</a>.</span></label>
   </fieldset>
   <p class="note red" data-err role="alert" hidden></p>
-  <div class="stack" style="gap:8px"><button class="btn primary lg" type="submit">${mode==="edit"?"Gửi lại kiểm duyệt":"Gửi kiểm duyệt"}</button><p class="small muted" style="margin:0">Bạn sẽ nhận thông báo khi có kết quả kiểm duyệt.</p></div></form>`}
+  <div class="stack" style="gap:8px">
+    <div data-upload-progress hidden style="border:2px solid var(--line);background:var(--sheet);padding:12px;border-radius:4px" class="stack">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px"><b class="head small" data-progress-txt>Đang chuẩn bị tải lên...</b><span class="code" data-progress-pct style="font-size:16px">0%</span></div>
+      <div class="progress" role="progressbar" aria-label="Tiến độ tổng quát"><i style="width:0%" data-progress-bar></i></div>
+    </div>
+    <button class="btn primary lg" type="submit" data-submit-btn>${mode==="edit"?"Gửi lại kiểm duyệt":"Gửi kiểm duyệt"}</button>
+    <p class="small muted" style="margin:0">Bạn sẽ nhận thông báo khi có kết quả kiểm duyệt.</p>
+  </div></form>`}
 function mountUpload(root,{mode,doc,onDone}){
-  const form=root.querySelector('[data-form="upload"]');let file=null;
+  const form=root.querySelector('[data-form="upload"]');
   const input=form.querySelector("#file"),box=form.querySelector("[data-filebox]"),drop=form.querySelector("[data-drop]");
-  const setFile=(f)=>{const ext=f.name.split(".").pop().toLowerCase();if(!ALLOWED_EXT[ext]){box.innerHTML=`<p class="note red">Định dạng .${esc(ext)} không được hỗ trợ.</p>`;file=null;return}
-   file=f;let p=0;box.innerHTML=`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:8px 12px"><p style="margin:0;font-weight:600;font-size:14px">${esc(f.name)}</p><p class="tiny muted" style="margin:0">${fmtSize(f.size/1024)}</p><div class="progress" role="progressbar" aria-label="Tiến độ tải lên" style="margin-top:6px"><i style="width:0"></i></div></div><div class="head small" style="display:flex;align-items:center;padding:0 12px" data-st>0%</div></div>`;
-   const bar=box.querySelector("i"),st=box.querySelector("[data-st]");const tick=setInterval(()=>{p=Math.min(100,p+20+Math.random()*25);bar.style.width=p+"%";st.textContent=p>=100?"Xong":Math.round(p)+"%";if(p>=100)clearInterval(tick)},180);
-   const ti=form.querySelector("#ti");if(!ti.value){const b=f.name.replace(/\.[^.]+$/,"").replace(/[_-]+/g," ").trim();ti.value=b.charAt(0).toUpperCase()+b.slice(1)}};
-  form.querySelector("[data-pick]").addEventListener("click",()=>input.click());input.addEventListener("change",()=>{if(input.files[0])setFile(input.files[0]);input.value=""});
-  drop.addEventListener("dragover",(e)=>{e.preventDefault();drop.classList.add("on")});drop.addEventListener("dragleave",()=>drop.classList.remove("on"));drop.addEventListener("drop",(e)=>{e.preventDefault();drop.classList.remove("on");if(e.dataTransfer.files[0])setFile(e.dataTransfer.files[0])});
+  const submitBtn=form.querySelector("[data-submit-btn]"),singleTitleWrap=form.querySelector("[data-single-title]");
+  const tiInput=form.querySelector("#ti"),err=form.querySelector("[data-err]");
+  const progressBox=form.querySelector("[data-upload-progress]"),progressTxt=form.querySelector("[data-progress-txt]"),progressPct=form.querySelector("[data-progress-pct]"),progressBar=form.querySelector("[data-progress-bar]");
+  let fileList=[];
+  const cleanTitle=(name)=>{const b=name.replace(/\.[^.]+$/,"").replace(/[_\-\.]+/g," ").replace(/\s+/g," ").trim();return b.charAt(0).toUpperCase()+b.slice(1)};
+  const updateSubmitBtn=()=>{
+    if(mode==="edit"){submitBtn.textContent="Gửi lại kiểm duyệt";return}
+    const n=fileList.length;submitBtn.textContent=n===0?"Gửi kiểm duyệt":n===1?"Gửi kiểm duyệt (1 tài liệu)":`Gửi kiểm duyệt (${n} tài liệu)`;
+  };
+  const renderFileBox=()=>{
+    if(fileList.length===0){box.innerHTML="";if(singleTitleWrap)singleTitleWrap.style.display="";updateSubmitBtn();return}
+    const totalBytes=fileList.reduce((acc,it)=>acc+it.file.size,0);const u=me();const q=quota(u);const overQuota=!isMod(u)&&mode==="create"&&fileList.length>q.left;
+    if(fileList.length===1){
+      if(singleTitleWrap)singleTitleWrap.style.display="";
+      const it=fileList[0];if(!tiInput.value)tiInput.value=it.title;
+      box.innerHTML=`<div class="tb" style="grid-template-columns:1fr auto;margin-bottom:8px">
+        <div style="padding:10px 14px"><div class="row" style="gap:8px"><span class="badge">${it.file.name.split(".").pop().toUpperCase()}</span><b style="font-size:14px">${esc(it.file.name)}</b><span class="tiny muted">${fmtSize(it.file.size/1024)}</span></div><div data-file-status="${it.id}" style="margin-top:4px"></div></div>
+        <div style="display:flex;align-items:center;padding:0 12px"><button class="btn sm ghost" style="color:var(--stamp)" type="button" data-del-file="${it.id}">✕ Bỏ file</button></div>
+      </div>${overQuota?`<p class="note red" style="margin:4px 0 12px">⚠️ Bạn chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bớt file.</p>`:""}`;
+    }else{
+      if(singleTitleWrap)singleTitleWrap.style.display="none";
+      box.innerHTML=`<div class="tb" style="margin-bottom:8px">
+        <div style="padding:10px 14px;background:var(--wash);border-bottom:2px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <b style="font-size:14px">📁 Đã chọn ${fileList.length} file (Tổng: ${fmtSize(totalBytes/1024)})</b>
+          <div class="row" style="gap:6px"><button class="btn sm" type="button" data-pick-more>+ Thêm file khác</button><button class="btn sm ghost" type="button" data-clear-files>Xóa tất cả</button></div>
+        </div>
+        ${overQuota?`<div style="padding:8px 14px"><p class="note red" style="margin:0">⚠️ Bạn đã chọn ${fileList.length} file nhưng chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bỏ bớt ${fileList.length-q.left} file trước khi gửi.</p></div>`:""}
+        <div style="display:flex;flex-direction:column">
+          ${fileList.map((it,idx)=>`
+            <div style="padding:10px 14px;border-bottom:${idx===fileList.length-1?"none":"1px solid var(--wash)"};display:flex;flex-direction:column;gap:8px">
+              <div class="row" style="justify-content:space-between;align-items:center">
+                <div class="row" style="gap:8px;min-width:0"><span class="badge">${it.file.name.split(".").pop().toUpperCase()}</span><span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px">${esc(it.file.name)}</span><span class="tiny muted">${fmtSize(it.file.size/1024)}</span></div>
+                <button class="btn sm ghost" style="color:var(--stamp);padding:2px 6px" type="button" data-del-file="${it.id}">✕ Bỏ file</button>
+              </div>
+              <div class="row" style="gap:10px;align-items:center">
+                <div style="flex:2"><input class="input sm" data-file-title="${it.id}" value="${esc(it.title)}" placeholder="Tiêu đề tài liệu này (bắt buộc)"></div>
+                <div style="flex:1"><select class="select sm" data-file-type="${it.id}"><option value="">Theo loại chung bên dưới</option>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${it.type===k?" selected":""}>${v}</option>`).join("")}</select></div>
+              </div>
+              <div data-file-status="${it.id}"></div>
+            </div>
+          `).join("")}
+        </div>
+      </div>`;
+    }
+    updateSubmitBtn();
+    box.querySelectorAll("[data-del-file]").forEach(b=>b.addEventListener("click",()=>{fileList=fileList.filter(x=>x.id!==b.dataset.delFile);renderFileBox()}));
+    box.querySelector("[data-pick-more]")?.addEventListener("click",()=>input.click());
+    box.querySelector("[data-clear-files]")?.addEventListener("click",()=>{fileList=[];renderFileBox()});
+    box.querySelectorAll("[data-file-title]").forEach(inp=>inp.addEventListener("input",(e)=>{const it=fileList.find(x=>x.id===inp.dataset.fileTitle);if(it)it.title=e.target.value}));
+    box.querySelectorAll("[data-file-type]").forEach(sel=>sel.addEventListener("change",(e)=>{const it=fileList.find(x=>x.id===sel.dataset.fileType);if(it)it.type=e.target.value}));
+  };
+  const addFiles=(files)=>{
+    err.hidden=true;const errors=[];if(mode==="edit")fileList=[];
+    for(const f of files){
+      const ext=f.name.split(".").pop().toLowerCase();
+      if(!ALLOWED_EXT[ext]){errors.push(`File “${f.name}” (.${ext}) không được hỗ trợ.`);continue}
+      const max=(ALLOWED_EXT[ext]==="ZIP"?100:50)*1024*1024;
+      if(f.size>max){errors.push(`File “${f.name}” vượt quá dung lượng cho phép (${fmtSize(max/1024)}).`);continue}
+      if(fileList.some(x=>x.file.name===f.name&&x.file.size===f.size))continue;
+      fileList.push({id:"f"+uid(),file:f,title:cleanTitle(f.name),type:""});
+      if(mode==="edit")break;
+    }
+    if(errors.length){err.innerHTML=errors.map(esc).join("<br>");err.hidden=false}
+    renderFileBox();
+  };
+  form.querySelector("[data-pick]").addEventListener("click",()=>input.click());
+  input.addEventListener("change",()=>{if(input.files&&input.files.length){addFiles(Array.from(input.files));input.value=""}});
+  drop.addEventListener("dragover",(e)=>{e.preventDefault();drop.classList.add("on")});
+  drop.addEventListener("dragleave",()=>drop.classList.remove("on"));
+  drop.addEventListener("drop",(e)=>{e.preventDefault();drop.classList.remove("on");if(e.dataTransfer.files&&e.dataTransfer.files.length){addFiles(Array.from(e.dataTransfer.files))}});
   // Ô chọn học phần
   const cp=form.querySelector("#cp"),cl=form.querySelector("#cpl"),hidden=form.querySelector('[name="course"]');let items=[],act=0;
   const show=()=>{items=searchCourses(cp.value,8);act=0;cl.hidden=!items.length;cp.setAttribute("aria-expanded",String(!!items.length));cl.innerHTML=items.map((c,i)=>`<div role="option" id="cpo${i}" aria-selected="${i===act}" data-code="${c.code}"><span class="code" style="font-size:18px;line-height:1">${c.code}</span><span class="small">${esc(c.name)}</span></div>`).join("")};
@@ -2666,21 +2737,72 @@ function mountUpload(root,{mode,doc,onDone}){
   cp.addEventListener("input",()=>{hidden.value="";show()});cp.addEventListener("blur",()=>setTimeout(()=>{cl.hidden=true},150));
   cp.addEventListener("keydown",(e)=>{if(cl.hidden)return;if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();act=(act+(e.key==="ArrowDown"?1:items.length-1))%items.length;cl.querySelectorAll("[role=option]").forEach((o,i)=>o.setAttribute("aria-selected",String(i===act)))}else if(e.key==="Enter"){e.preventDefault();choose(items[act].code)}else if(e.key==="Escape")cl.hidden=true});
   cl.addEventListener("mousedown",(e)=>{const o=e.target.closest("[data-code]");if(o){e.preventDefault();choose(o.dataset.code)}});
-  form.addEventListener("submit",async(e)=>{e.preventDefault();const u=me();const fd=new FormData(form);const err=form.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false;err.scrollIntoView({block:"center"})};
-   if(mode==="create"&&!file)return fail("Chọn file trước khi gửi.");if(!hidden.value)return fail("Chọn học phần trong danh sách gợi ý.");if(!fd.get("type"))return fail("Chọn loại tài liệu.");
-   const title=String(fd.get("title")).trim();if(title.length<5)return fail("Tiêu đề quá ngắn (ít nhất 5 ký tự).");if(!fd.get("copyright"))return fail("Cần xác nhận quyền chia sẻ tài liệu.");
-   if(mode==="create"&&quota(u).left<=0)return fail(`Bạn đã dùng hết ${quota(u).limit} lượt tải lên hôm nay.`);
-   const meta={title,description:String(fd.get("description")||"").trim(),tags:String(fd.get("tags")||"").split(",").map(t=>t.trim().replace(/^#+/,"").toLowerCase()).filter(t=>t.length>=2).slice(0,10)};
-   const d=doc||{id:"u"+uid(),slug:slugify(title)+"-"+uid().slice(0,4),uploaded:true,uploader:u.email,downloads:0,views:0,ratingCount:0,ratingSum:0,publishedAt:null,createdAt:Date.now(),logs:[]};
-   Object.assign(d,{title,description:meta.description,tags:meta.tags,course:hidden.value,type:fd.get("type"),term:fd.get("term")||null,anonymous:!!fd.get("anonymous"),priority:(u.trust||0)*10});
-   if(!file){if(!isMod(u)||d.status!=="APPROVED")d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người dùng chỉnh sửa thông tin tài liệu"});if(isMod(u)&&d.status!=="APPROVED")staffPublish(d,u);save();apiPost("docs.php?action=save",{doc:d}).catch(()=>{});onDone(d);return}
-   d.status="PROCESSING";d.fileName=file.name;d.sizeKb=file.size/1024;d.uploaded=true;if(!S.docs.includes(d))S.docs.push(d);save();
-   form.querySelector('[type="submit"]').disabled=true;
-   const r=await runChecks(file,{...meta,id:d.id});d.checks=r.checks;d.kind=r.kind||"PDF";d.sha256=r.hash;d.pages=r.pages||(r.kind==="PDF"?1:null);d.risk=r.risk||0;
-   if(r.reject){d.status="REJECTED";d.reviewNote=r.reject;d.logs.unshift({t:Date.now(),a:"AUTO_REJECTED",reason:r.reject});notify(u.email,"DOCUMENT_REJECTED",d,{reason:r.reject,link:"#/tai-lieu-cua-toi"});apiPost("docs.php?action=save",{doc:d}).catch(()=>{});}
-   else{d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"AUTO_CHECK_PASSED",meta:`Điểm rủi ro ${d.risk}`});await fileDB.put(d.id,file);if(isMod(u))staffPublish(d,u);if(typeof modAfterUpload==="function")await modAfterUpload(d,file,u);try{const ufd=new FormData();ufd.append("file",file);ufd.append("doc",JSON.stringify(d));fetch(API_BASE+"/api/docs.php?action=upload_file",{method:"POST",body:ufd}).catch(()=>{});}catch{}}
-   if(mode==="edit")d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người đăng gửi lại kèm file mới"});
-   save();onDone(d,r)})}
+  form.addEventListener("submit",async(e)=>{
+    e.preventDefault();const u=me();const fd=new FormData(form);
+    const fail=(m)=>{err.textContent=m;err.hidden=false;err.scrollIntoView({block:"center"})};
+    if(mode==="create"&&fileList.length===0)return fail("Chọn ít nhất một file trước khi gửi.");
+    if(!hidden.value)return fail("Chọn học phần trong danh sách gợi ý.");
+    if(!fd.get("type"))return fail("Chọn loại tài liệu mặc định.");
+    if(!fd.get("copyright"))return fail("Cần xác nhận quyền chia sẻ tài liệu.");
+    const q=quota(u);
+    if(mode==="create"){
+      if(q.left<=0)return fail(`Bạn đã dùng hết ${q.limit} lượt tải lên hôm nay.`);
+      if(!isMod(u)&&fileList.length>q.left)return fail(`Bạn đã chọn ${fileList.length} file nhưng chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bỏ bớt file.`);
+    }
+    // Chỉnh sửa tài liệu đơn không thay file
+    if(mode==="edit"&&fileList.length===0){
+      const title=String(fd.get("title")||"").trim();if(title.length<5)return fail("Tiêu đề quá ngắn (ít nhất 5 ký tự).");
+      const meta={title,description:String(fd.get("description")||"").trim(),tags:String(fd.get("tags")||"").split(",").map(t=>t.trim().replace(/^#+/,"").toLowerCase()).filter(t=>t.length>=2).slice(0,10)};
+      Object.assign(doc,{title,description:meta.description,tags:meta.tags,course:hidden.value,type:fd.get("type"),term:fd.get("term")||null,anonymous:!!fd.get("anonymous"),priority:(u.trust||0)*10});
+      if(!isMod(u)||doc.status!=="APPROVED")doc.status="PENDING_REVIEW";
+      doc.reviewNote=null;doc.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người dùng chỉnh sửa thông tin tài liệu"});
+      if(isMod(u)&&doc.status!=="APPROVED")staffPublish(doc,u);
+      save();apiPost("docs.php?action=save",{doc}).catch(()=>{});
+      onDone([{doc,checks:doc.checks||{},success:true}]);return;
+    }
+    // Kiểm tra tiêu đề tất cả các file
+    for(const it of fileList){
+      const t=(fileList.length===1&&tiInput.value.trim())?tiInput.value.trim():it.title.trim();
+      if(t.length<5)return fail(`Tiêu đề file “${it.file.name}” quá ngắn (ít nhất 5 ký tự).`);
+      it.title=t;
+    }
+    submitBtn.disabled=true;err.hidden=true;
+    if(progressBox){progressBox.hidden=false;progressTxt.textContent=`Đang chuẩn bị xử lý ${fileList.length} tài liệu...`;progressPct.textContent="0%";progressBar.style.width="0%"}
+    const commonMeta={course:hidden.value,defaultType:fd.get("type"),term:fd.get("term")||null,description:String(fd.get("description")||"").trim(),tags:String(fd.get("tags")||"").split(",").map(t=>t.trim().replace(/^#+/,"").toLowerCase()).filter(t=>t.length>=2).slice(0,10),anonymous:!!fd.get("anonymous")};
+    const results=[];const total=fileList.length;
+    for(let i=0;i<total;i++){
+      const it=fileList[i];const percent=Math.round((i/total)*100);
+      if(progressTxt)progressTxt.textContent=`Đang xử lý ${i+1}/${total}: ${it.file.name}...`;
+      if(progressPct)progressPct.textContent=`${percent}%`;if(progressBar)progressBar.style.width=`${percent}%`;
+      const stEl=box.querySelector(`[data-file-status="${it.id}"]`);
+      if(stEl)stEl.innerHTML=`<span class="tiny muted">⏳ Đang kiểm tra định dạng & SHA-256...</span>`;
+      const fileType=it.type||commonMeta.defaultType;
+      const fileMeta={title:it.title,description:commonMeta.description,tags:commonMeta.tags,course:commonMeta.course,type:fileType,term:commonMeta.term,anonymous:commonMeta.anonymous};
+      const d=(mode==="edit"&&doc)?doc:{id:"u"+uid(),slug:slugify(it.title)+"-"+uid().slice(0,4),uploaded:true,uploader:u.email,downloads:0,views:0,ratingCount:0,ratingSum:0,publishedAt:null,createdAt:Date.now()+i*10,logs:[]};
+      Object.assign(d,{title:it.title,description:fileMeta.description,tags:fileMeta.tags,course:fileMeta.course,type:fileMeta.type,term:fileMeta.term,anonymous:fileMeta.anonymous,priority:(u.trust||0)*10,status:"PROCESSING",fileName:it.file.name,sizeKb:it.file.size/1024,uploaded:true});
+      if(!S.docs.some(x=>x.id===d.id))S.docs.push(d);save();
+      const r=await runChecks(it.file,{...fileMeta,id:d.id});
+      d.checks=r.checks;d.kind=r.kind||"PDF";d.sha256=r.hash;d.pages=r.pages||(r.kind==="PDF"?1:null);d.risk=r.risk||0;
+      if(r.reject){
+        d.status="REJECTED";d.reviewNote=r.reject;d.logs.unshift({t:Date.now(),a:"AUTO_REJECTED",reason:r.reject});
+        notify(u.email,"DOCUMENT_REJECTED",d,{reason:r.reject,link:"#/tai-lieu-cua-toi"});apiPost("docs.php?action=save",{doc:d}).catch(()=>{});
+        if(stEl)stEl.innerHTML=`<span class="tiny" style="color:var(--stamp)">❌ Bị từ chối: ${esc(r.reject)}</span>`;
+      }else{
+        d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"AUTO_CHECK_PASSED",meta:`Điểm rủi ro ${d.risk}`});
+        await fileDB.put(d.id,it.file);
+        if(isMod(u))staffPublish(d,u);
+        if(typeof modAfterUpload==="function")await modAfterUpload(d,it.file,u);
+        try{const ufd=new FormData();ufd.append("file",it.file);ufd.append("doc",JSON.stringify(d));await fetch(API_BASE+"/api/docs.php?action=upload_file",{method:"POST",body:ufd})}catch(uploadErr){console.warn("Upload failed:",uploadErr)}
+        if(stEl)stEl.innerHTML=`<span class="tiny" style="color:#0a0">✅ Đã kiểm tra (${d.status==="APPROVED"?"Đã duyệt":"Chờ duyệt"})</span>`;
+      }
+      if(mode==="edit")d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người đăng gửi lại kèm file mới"});
+      save();results.push({doc:d,checks:r,success:!r.reject,file:it.file});
+    }
+    if(progressBar)progressBar.style.width="100%";if(progressPct)progressPct.textContent="100%";
+    if(progressTxt)progressTxt.textContent=`Hoàn thành ${total}/${total} tài liệu!`;
+    syncAllWithServer(true);onDone(results);
+  });
+}
 
 /** Kiểm duyệt viên, quản trị viên đăng: công khai ngay sau kiểm tra tự động, không vào hàng chờ. */
 function staffPublish(d,u){const first=!d.publishedAt;if(first)cmApproved(d);d.status="APPROVED";d.reviewNote=null;d.publishedAt=d.publishedAt||Date.now();d.logs.unshift({t:Date.now(),a:"APPROVE",by:u.email,note:"Tự động công khai: người đăng là kiểm duyệt viên hoặc quản trị viên"});
@@ -2688,10 +2810,52 @@ function staffPublish(d,u){const first=!d.publishedAt;if(first)cmApproved(d);d.s
 views["/tai-len"]=()=>{
   const u=me();if(!u)return needLogin("/tai-len"+(params().get("hp")?`?hp=${params().get("hp")}`:""));if(!(u.faculty&&u.cohort)){go("#/hoan-thien-ho-so?next=/tai-len");return{html:""}}
   const q=quota(u);const hp=params().get("hp");
-  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="max-width:800px;padding-block:24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px"><div><h1 class="code" style="font-size:48px;line-height:.95">Tải tài liệu lên</h1><p style="margin:8px 0 0;max-width:520px;font-size:14px">${isMod(u)?"Bạn là kiểm duyệt viên hoặc quản trị viên: tài liệu được kiểm tra tự động rồi công khai ngay, không cần chờ duyệt.":"Tài liệu được kiểm tra tự động rồi chuyển cho kiểm duyệt viên. Bạn nhận thông báo khi có kết quả."}</p></div><div class="tb"><div class="cell"><span class="l">Hôm nay còn</span><span class="code" style="font-size:30px;line-height:1">${q.left}/${q.limit}</span></div></div></div></section>
-   <div class="wrap" style="max-width:800px;padding-block:24px" data-upload-root>${q.left<=0?`<p class="note">Bạn đã dùng hết ${q.limit} lượt tải lên hôm nay. Quay lại vào ngày mai nhé.</p>`:`<p class="small muted" style="margin:0 0 16px">Hạn mức mỗi ngày tăng khi tài liệu của bạn được duyệt. Thử tải file .pdf thật để thấy bước kiểm tra; file đổi đuôi (ví dụ ảnh đặt tên .pdf) hoặc file chứa chuỗi kiểm thử EICAR sẽ bị từ chối tự động.</p>`+uploadForm("create",{course:hp?course(hp.toUpperCase()):null})}</div>`,
-   mount(root){if(!root.querySelector('[data-form="upload"]'))return;mountUpload(root,{mode:"create",onDone:(d,r)=>{const box=root.querySelector("[data-upload-root]");const rows=Object.entries(d.checks||{}).map(([k,c])=>checkRow(k,c)).join("");
-    box.innerHTML=`<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:20px;align-items:flex-start"><span class="stamp">${d.status==="REJECTED"?"Bị từ chối":d.status==="APPROVED"?"Đã duyệt":"Đã gửi"}</span><h2 class="head" style="font-size:22px">${d.status==="REJECTED"?"Tài liệu bị từ chối tự động":"Đã nhận tài liệu của bạn"}</h2><p style="margin:0;font-size:14px">${d.status==="REJECTED"?esc(d.reviewNote):d.status==="APPROVED"?`File đã qua kiểm tra tự động và được công khai ngay ${isMod(u)?"vì bạn là kiểm duyệt viên hoặc quản trị viên":"nhờ cơ chế tự duyệt: bạn là người đóng góp uy tín và tài liệu đạt mọi kiểm tra"}. <a href="#/tai-lieu/${d.slug}">Xem tài liệu</a>`:"File đã qua kiểm tra tự động và đang chờ kiểm duyệt viên. Thử vào nhanh bằng tài khoản Kiểm duyệt viên (thanh trên cùng) để duyệt."}</p><div class="tb" style="width:100%">${rows}</div><div class="row"><a class="btn ink" href="#/tai-len">Tải thêm tài liệu khác</a><a class="btn" href="#/tai-lieu-cua-toi">Xem tài liệu của tôi</a></div></div>`;renderHeader()}})}};
+  return {html:`<section class="gridpaper" style="border-bottom:2px solid var(--line)"><div class="wrap" style="max-width:800px;padding-block:24px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px"><div><h1 class="code" style="font-size:48px;line-height:.95">Tải tài liệu lên</h1><p style="margin:8px 0 0;max-width:520px;font-size:14px">${isMod(u)?"Bạn là kiểm duyệt viên hoặc quản trị viên: tài liệu được kiểm tra tự động rồi công khai ngay, không cần chờ duyệt.":"Tài liệu được kiểm tra tự động rồi chuyển cho kiểm duyệt viên. Hỗ trợ chọn và tải lên nhiều file cùng lúc."}</p></div><div class="tb"><div class="cell"><span class="l">Hôm nay còn</span><span class="code" style="font-size:30px;line-height:1">${q.left}/${q.limit}</span></div></div></div></section>
+   <div class="wrap" style="max-width:800px;padding-block:24px" data-upload-root>${q.left<=0?`<p class="note">Bạn đã dùng hết ${q.limit} lượt tải lên hôm nay. Quay lại vào ngày mai nhé.</p>`:`<p class="small muted" style="margin:0 0 16px">Hạn mức mỗi ngày tăng khi tài liệu của bạn được duyệt. Bạn có thể chọn nhiều file để tải lên cùng lúc. File đổi đuôi hoặc chứa chuỗi EICAR sẽ bị từ chối tự động.</p>`+uploadForm("create",{course:hp?course(hp.toUpperCase()):null})}</div>`,
+   mount(root){if(!root.querySelector('[data-form="upload"]'))return;mountUpload(root,{mode:"create",onDone:(results)=>{
+     const box=root.querySelector("[data-upload-root]");if(!box)return;
+     const list=Array.isArray(results)?results:[results];
+     const okCount=list.filter(x=>x.doc&&x.doc.status!=="REJECTED").length;
+     const rejCount=list.length-okCount;
+     if(list.length===1){
+       const {doc:d}=list[0];const rows=Object.entries(d.checks||{}).map(([k,c])=>checkRow(k,c)).join("");
+       box.innerHTML=`<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:20px;align-items:flex-start"><span class="stamp">${d.status==="REJECTED"?"Bị từ chối":d.status==="APPROVED"?"Đã duyệt":"Đã gửi"}</span><h2 class="head" style="font-size:22px">${d.status==="REJECTED"?"Tài liệu bị từ chối tự động":"Đã nhận tài liệu của bạn"}</h2><p style="margin:0;font-size:14px">${d.status==="REJECTED"?esc(d.reviewNote):d.status==="APPROVED"?`File đã qua kiểm tra tự động và được công khai ngay ${isMod(u)?"vì bạn là kiểm duyệt viên hoặc quản trị viên":"nhờ cơ chế tự duyệt: bạn là người đóng góp uy tín và tài liệu đạt mọi kiểm tra"}. <a href="#/tai-lieu/${d.slug}">Xem tài liệu</a>`:"File đã qua kiểm tra tự động và đang chờ kiểm duyệt viên. Thử vào nhanh bằng tài khoản Kiểm duyệt viên (thanh trên cùng) để duyệt."}</p><div class="tb" style="width:100%">${rows}</div><div class="row" style="gap:10px"><a class="btn ink" href="#/tai-len">Tải thêm tài liệu khác</a><a class="btn primary" href="#/tai-lieu-cua-toi">Xem tài liệu của tôi</a></div></div>`;
+     }else{
+       box.innerHTML=`<div class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:20px;align-items:flex-start;gap:16px">
+         <div class="row" style="justify-content:space-between;width:100%;align-items:flex-start">
+           <div>
+             <span class="stamp">${rejCount===0?"Thành công":okCount>0?"Hoàn thành một phần":"Bị từ chối"}</span>
+             <h2 class="head" style="font-size:22px;margin:8px 0 4px">Đã xử lý xong ${list.length} tài liệu</h2>
+             <p style="margin:0;font-size:14px">${okCount} tài liệu đã gửi thành công${rejCount>0?`, ${rejCount} tài liệu không đạt kiểm tra tự động`:""}. ${isMod(u)?"Các tài liệu đã được duyệt và công khai ngay.":"Các tài liệu đã chuyển tới hàng chờ kiểm duyệt."}</p>
+           </div>
+         </div>
+         <div class="tb" style="width:100%">
+           ${list.map(({doc:d})=>{
+             const rows=Object.entries(d.checks||{}).map(([k,c])=>checkRow(k,c)).join("");
+             return `<div style="padding:12px 14px;border-bottom:1px solid var(--wash);display:flex;flex-direction:column;gap:6px">
+               <div class="row" style="justify-content:space-between;align-items:flex-start">
+                 <div>
+                   ${d.status==="APPROVED"?`<a href="#/tai-lieu/${d.slug}" style="font-weight:700;font-size:15px;color:var(--ink)">${esc(d.title)}</a>`:`<b style="font-size:15px">${esc(d.title)}</b>`}
+                   <div class="tiny muted" style="margin-top:2px">${esc(d.course)}, ${TYPES[d.type]||d.type} · ${esc(d.fileName)} (${fmtSize(d.sizeKb)})</div>
+                 </div>
+                 <span class="badge ${d.status}">${STATUS[d.status]||d.status}</span>
+               </div>
+               ${d.reviewNote&&d.status==="REJECTED"?`<p class="note red" style="margin:4px 0 0;font-size:12px"><b>Lý do:</b> ${esc(d.reviewNote)}</p>`:""}
+               <details style="margin-top:4px">
+                 <summary class="tiny muted" style="cursor:pointer">Xem chi tiết các bước kiểm tra tự động (${Object.keys(d.checks||{}).length} bước)</summary>
+                 <div class="tb" style="margin-top:6px;width:100%">${rows}</div>
+               </details>
+             </div>`;
+           }).join("")}
+         </div>
+         <div class="row" style="gap:10px">
+           <a class="btn ink" href="#/tai-len">Tải thêm tài liệu khác</a>
+           <a class="btn primary" href="#/tai-lieu-cua-toi">Xem tài liệu của tôi (${list.length} tài liệu)</a>
+         </div>
+       </div>`;
+     }
+     renderHeader();
+   }})}};
 };
 const CHECK_LABEL={similar:"Nội dung giống",format:"Định dạng",size:"Dung lượng",duplicate:"Trùng lặp",virus:"Mã độc",convert:"Chuyển PDF",integrity:"Mở file",text:"Trích văn bản",archive:"Tệp nén",content:"Nội dung"};
 const CHECK_ST={pass:"Đạt",fail:"Không đạt",warn:"Lưu ý",skipped:"Bỏ qua"};
