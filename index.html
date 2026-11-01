@@ -1193,16 +1193,15 @@ async function syncStateWithServer(forceRender=false){
         }
       }
 
-      S.cm = {
-        ...currentCm,
-        ...st.cm,
+      if (!S.cm || typeof S.cm !== "object") S.cm = {};
+      Object.assign(S.cm, currentCm, st.cm, {
         questions: Array.from(qMap.values()),
         answers: Array.from(aMap.values()),
         ads: Array.from(adMap.values()),
         deletedAds: Array.from(deletedAds),
         adSeen: { ...(currentCm.adSeen || {}), ...(st.cm.adSeen || {}) },
         adHidden: { ...(currentCm.adHidden || {}), ...(st.cm.adHidden || {}) }
-      };
+      });
     }
     if(Array.isArray(st.comments)){
       const localMap=new Map((S.comments||[]).map(c=>[c.id,c]));
@@ -7058,18 +7057,23 @@ views["/quan-tri/quang-cao"] = () => {
         <!-- Hình ảnh banner quảng cáo -->
         <div class="field" style="grid-column:1/-1">
           <label style="font-weight:700">Hình ảnh banner / Logo nhà tài trợ (tùy chọn)</label>
-          <div class="row" style="gap:14px;align-items:center;flex-wrap:wrap">
-            <div id="ad-img-preview-wrap" style="width:160px;height:90px;border:1.5px dashed var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;border-radius:2px">
-              ${ed.image ? `<img id="ad-img-preview" src="${esc(ed.image)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="Preview">` : `<span class="tiny muted" id="ad-img-placeholder" style="text-align:center;padding:6px">Chưa chọn ảnh</span>`}
+          <div class="row" style="gap:14px;align-items:flex-start;flex-wrap:wrap">
+            <div id="ad-img-preview-wrap" style="width:160px;height:95px;border:2px dashed var(--line);background:var(--paper);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;flex-shrink:0;border-radius:2px;cursor:pointer" title="Bấm để chọn ảnh từ máy hoặc kéo thả ảnh vào đây">
+              ${ed.image ? `<img id="ad-img-preview" src="${esc(ed.image)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="Preview">` : `<div class="stack" style="align-items:center;gap:2px;padding:6px;text-align:center"><span class="tiny muted" id="ad-img-placeholder">Chưa chọn ảnh</span><span class="tiny" style="color:var(--pencil);font-size:10px">Tải hoặc kéo ảnh</span></div>`}
             </div>
-            <div class="stack" style="gap:8px;flex:1;min-width:220px">
+            <div class="stack" style="gap:8px;flex:1;min-width:240px">
               <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
-                <input type="file" id="ad-img-file" accept="image/png,image/jpeg,image/webp" style="display:none">
-                <button class="btn sm" type="button" id="ad-img-btn">Tải ảnh từ máy...</button>
+                <input type="file" id="ad-img-file" accept="image/*" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0">
+                <label for="ad-img-file" class="btn sm" id="ad-img-btn" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:0">Tải ảnh từ máy...</label>
                 <button class="btn sm ghost" type="button" id="ad-img-del" ${!ed.image ? 'style="display:none"' : ""}>Gỡ ảnh</button>
+                <span class="tiny" id="ad-img-status" style="display:none;color:var(--stamp);font-weight:600">Đang xử lý ảnh...</span>
               </div>
               <input type="hidden" id="ad-img-data" value="${esc(ed.image || "")}">
-              <span class="tiny muted">Hỗ trợ ảnh PNG, JPG, WebP. Tự động co giãn tối ưu để hiển thị nổi bật trên carousel trang chủ và các vị trí banner.</span>
+              <div class="row" style="gap:6px;align-items:center;max-width:460px">
+                <input class="input" id="ad-img-url-input" placeholder="Hoặc dán trực tiếp link ảnh (https://...)" style="font-size:12px;height:32px;flex:1" value="${ed.image && ed.image.startsWith("http") ? esc(ed.image) : ""}">
+                <button class="btn sm" type="button" id="ad-img-url-btn" style="height:32px;padding:0 10px;font-size:11px;white-space:nowrap">Áp dụng link</button>
+              </div>
+              <span class="tiny muted">Hỗ trợ PNG, JPG, WebP. Tự động co giãn tối ưu để hiển thị nổi bật trên carousel trang chủ và các vị trí banner.</span>
             </div>
           </div>
         </div>
@@ -7167,77 +7171,128 @@ views["/quan-tri/quang-cao"] = () => {
 
       // Image upload handling
       const fileInp = root.querySelector("#ad-img-file");
-      const btnPick = root.querySelector("#ad-img-btn");
       const btnDel = root.querySelector("#ad-img-del");
       const dataInp = root.querySelector("#ad-img-data");
       const previewWrap = root.querySelector("#ad-img-preview-wrap");
       const livePrevWrap = root.querySelector("#ad-prev-img-wrap");
       const livePrevImg = root.querySelector("#ad-prev-img");
+      const imgStatus = root.querySelector("#ad-img-status");
+      const urlInput = root.querySelector("#ad-img-url-input");
+      const urlBtn = root.querySelector("#ad-img-url-btn");
 
-      if (btnPick && fileInp) {
-        btnPick.addEventListener("click", () => fileInp.click());
-      }
+      const applyImageData = (dataUrl) => {
+        if (dataInp) dataInp.value = dataUrl;
+        if (previewWrap) previewWrap.innerHTML = `<img id="ad-img-preview" src="${esc(dataUrl)}" style="width:100%;height:100%;object-fit:cover;display:block" alt="Preview">`;
+        if (livePrevWrap && livePrevImg) {
+          livePrevImg.src = dataUrl;
+          livePrevWrap.style.display = "block";
+        }
+        if (btnDel) btnDel.style.display = "inline-block";
+        if (imgStatus) imgStatus.style.display = "none";
+      };
+
+      const processFile = (file) => {
+        if (!file) return;
+        if (!file.type.startsWith("image/") && !/\.(png|jpe?g|webp|gif|bmp|heic|heif)$/i.test(file.name)) {
+          toast("Vui lòng chọn file hình ảnh (PNG, JPG, WebP).");
+          return;
+        }
+        if (file.size > 12 * 1024 * 1024) {
+          toast("Dung lượng ảnh tối đa 12MB.");
+          return;
+        }
+        if (imgStatus) {
+          imgStatus.textContent = "Đang nén ảnh...";
+          imgStatus.style.display = "inline-block";
+        }
+        const reader = new FileReader();
+        reader.onload = (re) => {
+          const img = new Image();
+          img.onload = () => {
+            const maxW = 800;
+            const maxH = 500;
+            let w = img.width;
+            let h = img.height;
+            if (w > maxW || h > maxH) {
+              const ratio = Math.min(maxW / w, maxH / h);
+              w = Math.round(w * ratio);
+              h = Math.round(h * ratio);
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            let dataUrl = "";
+            try {
+              dataUrl = canvas.toDataURL("image/webp", 0.82);
+            } catch {
+              dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+            }
+            applyImageData(dataUrl);
+            toast("Đã nén và chọn ảnh thành công!");
+          };
+          img.onerror = () => {
+            if (imgStatus) imgStatus.style.display = "none";
+            toast("Không thể giải mã file ảnh, vui lòng thử ảnh khác.");
+          };
+          img.src = re.target.result;
+        };
+        reader.onerror = () => {
+          if (imgStatus) imgStatus.style.display = "none";
+          toast("Lỗi đọc file ảnh từ máy.");
+        };
+        reader.readAsDataURL(file);
+      };
 
       if (fileInp) {
         fileInp.addEventListener("change", (e) => {
           const file = e.target.files?.[0];
-          if (!file) return;
-          if (!file.type.startsWith("image/")) {
-            toast("Vui lòng chọn file hình ảnh (PNG, JPG, WebP).");
-            return;
-          }
-          if (file.size > 8 * 1024 * 1024) {
-            toast("Dung lượng ảnh tối đa 8MB.");
-            return;
-          }
-          const reader = new FileReader();
-          reader.onload = (re) => {
-            const img = new Image();
-            img.onload = () => {
-              const maxW = 800;
-              const maxH = 500;
-              let w = img.width;
-              let h = img.height;
-              if (w > maxW || h > maxH) {
-                const ratio = Math.min(maxW / w, maxH / h);
-                w = Math.round(w * ratio);
-                h = Math.round(h * ratio);
-              }
-              const canvas = document.createElement("canvas");
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext("2d");
-              ctx.drawImage(img, 0, 0, w, h);
-              let dataUrl = "";
-              try {
-                dataUrl = canvas.toDataURL("image/webp", 0.82);
-              } catch {
-                dataUrl = canvas.toDataURL("image/jpeg", 0.82);
-              }
-              if (dataInp) dataInp.value = dataUrl;
-              if (previewWrap) previewWrap.innerHTML = `<img id="ad-img-preview" src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block" alt="Preview">`;
-              if (livePrevWrap && livePrevImg) {
-                livePrevImg.src = dataUrl;
-                livePrevWrap.style.display = "block";
-              }
-              if (btnDel) btnDel.style.display = "inline-block";
-            };
-            img.src = re.target.result;
-          };
-          reader.readAsDataURL(file);
+          if (file) processFile(file);
         });
       }
+
+      if (urlBtn && urlInput) {
+        urlBtn.addEventListener("click", () => {
+          const u = urlInput.value.trim();
+          if (!u) return toast("Vui lòng nhập đường link ảnh hợp lệ.");
+          applyImageData(u);
+          toast("Đã gắn link ảnh thành công!");
+        });
+      }
+
+      if (previewWrap) {
+        previewWrap.addEventListener("click", () => fileInp?.click());
+        previewWrap.addEventListener("dragover", (e) => { e.preventDefault(); previewWrap.style.borderColor = "var(--stamp)"; });
+        previewWrap.addEventListener("dragleave", () => { previewWrap.style.borderColor = "var(--line)"; });
+        previewWrap.addEventListener("drop", (e) => {
+          e.preventDefault();
+          previewWrap.style.borderColor = "var(--line)";
+          const f = e.dataTransfer?.files?.[0];
+          if (f) processFile(f);
+        });
+      }
+
+      root.querySelector("#form-ad")?.addEventListener("paste", (e) => {
+        const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith("image/"));
+        if (item) {
+          const f = item.getAsFile();
+          if (f) processFile(f);
+        }
+      });
 
       if (btnDel) {
         btnDel.addEventListener("click", () => {
           if (dataInp) dataInp.value = "";
           if (fileInp) fileInp.value = "";
-          if (previewWrap) previewWrap.innerHTML = `<span class="tiny muted" id="ad-img-placeholder" style="text-align:center;padding:6px">Chưa chọn ảnh</span>`;
+          if (urlInput) urlInput.value = "";
+          if (previewWrap) previewWrap.innerHTML = `<div class="stack" style="align-items:center;gap:2px;padding:6px;text-align:center"><span class="tiny muted" id="ad-img-placeholder">Chưa chọn ảnh</span><span class="tiny" style="color:var(--pencil);font-size:10px">Tải hoặc kéo ảnh</span></div>`;
           if (livePrevWrap && livePrevImg) {
             livePrevImg.src = "";
             livePrevWrap.style.display = "none";
           }
           btnDel.style.display = "none";
+          if (imgStatus) imgStatus.style.display = "none";
         });
       }
 
@@ -7245,18 +7300,21 @@ views["/quan-tri/quang-cao"] = () => {
         setTimeout(() => {
           if (dataInp) dataInp.value = "";
           if (fileInp) fileInp.value = "";
-          if (previewWrap) previewWrap.innerHTML = `<span class="tiny muted" id="ad-img-placeholder" style="text-align:center;padding:6px">Chưa chọn ảnh</span>`;
+          if (urlInput) urlInput.value = "";
+          if (previewWrap) previewWrap.innerHTML = `<div class="stack" style="align-items:center;gap:2px;padding:6px;text-align:center"><span class="tiny muted" id="ad-img-placeholder">Chưa chọn ảnh</span><span class="tiny" style="color:var(--pencil);font-size:10px">Tải hoặc kéo ảnh</span></div>`;
           if (livePrevWrap && livePrevImg) {
             livePrevImg.src = "";
             livePrevWrap.style.display = "none";
           }
           if (btnDel) btnDel.style.display = "none";
+          if (imgStatus) imgStatus.style.display = "none";
           bindPreview();
         }, 10);
       });
 
       root.querySelectorAll("[data-toggle]").forEach((b) => b.addEventListener("click", () => {
-        const ad = cm.ads.find((a) => a.id === b.dataset.toggle);
+        const liveCm = CM();
+        const ad = liveCm.ads.find((a) => a.id === b.dataset.toggle);
         if (ad) {
           ad.active = !ad.active;
           ad.updatedAt = Date.now();
@@ -7268,14 +7326,15 @@ views["/quan-tri/quang-cao"] = () => {
 
       root.querySelectorAll("[data-delad]").forEach((b) => b.addEventListener("click", () => {
         const adId = b.dataset.delad;
-        const ad = cm.ads.find((a) => a.id === adId);
+        const liveCm = CM();
+        const ad = liveCm.ads.find((a) => a.id === adId);
         if (!ad) return;
         if (!confirm(`Bạn có chắc muốn xóa vĩnh viễn chiến dịch "${ad.title}" của ${ad.sponsor}?`)) return;
-        if (!Array.isArray(cm.deletedAds)) cm.deletedAds = [];
-        if (!cm.deletedAds.includes(adId)) cm.deletedAds.push(adId);
+        if (!Array.isArray(liveCm.deletedAds)) liveCm.deletedAds = [];
+        if (!liveCm.deletedAds.includes(adId)) liveCm.deletedAds.push(adId);
         ad.deleted = true;
         ad.updatedAt = Date.now();
-        cm.ads = cm.ads.filter((a) => a.id !== adId);
+        liveCm.ads = liveCm.ads.filter((a) => a.id !== adId);
         S.audit.unshift({ t: Date.now(), by: u.email, action: "ad.delete", detail: `${ad.sponsor}: ${ad.title}` });
         save(true);
         triggerServerSync(0);
@@ -7309,7 +7368,7 @@ views["/quan-tri/quang-cao"] = () => {
           sponsor: v("#ad-s"),
           title: v("#ad-t"),
           body: v("#ad-b"),
-          image: root.querySelector("#ad-img-data")?.value.trim() || "",
+          image: root.querySelector("#ad-img-data")?.value.trim() || root.querySelector("#ad-img-url-input")?.value.trim() || "",
           url,
           cta: v("#ad-c") || "Xem ưu đãi",
           from: v("#ad-f") || vnDate(now),
@@ -7327,19 +7386,21 @@ views["/quan-tri/quang-cao"] = () => {
         if (data.to < data.from) return fail("Ngày kết thúc phải sau ngày bắt đầu.");
         if (/lam bai ho|ban de|vay tien|thi ho/.test(norm(`${data.title} ${data.body}`))) return fail("Nội dung quảng cáo không phù hợp quy định.");
 
-        const existingIdx = ed.id ? cm.ads.findIndex((a) => a.id === ed.id) : -1;
+        const liveCm = CM();
+        const targetId = isEditing ? editId : null;
+        const existingIdx = targetId ? liveCm.ads.findIndex((a) => a.id === targetId) : -1;
         if (existingIdx >= 0) {
-          Object.assign(cm.ads[existingIdx], data);
-        } else if (ed.id) {
-          cm.ads.unshift({ id: ed.id, imp: 0, clicks: 0, ...data });
+          Object.assign(liveCm.ads[existingIdx], data);
+        } else if (targetId) {
+          liveCm.ads.unshift({ id: targetId, imp: 0, clicks: 0, ...data });
         } else {
-          cm.ads.unshift({ id: `ad${uid()}`, imp: 0, clicks: 0, ...data });
+          liveCm.ads.unshift({ id: `ad${uid()}`, imp: 0, clicks: 0, ...data });
         }
 
-        S.audit.unshift({ t: now, by: u.email, action: ed.id ? "ad.update" : "ad.create", detail: `${data.sponsor}: ${data.title}` });
+        S.audit.unshift({ t: now, by: u.email, action: targetId ? "ad.update" : "ad.create", detail: `${data.sponsor}: ${data.title}` });
         save(true);
         triggerServerSync(0);
-        toast(ed.id ? `Đã lưu cập nhật chiến dịch "${data.title}".` : `Đã tạo thành công chiến dịch "${data.title}"!`);
+        toast(targetId ? `Đã lưu cập nhật chiến dịch "${data.title}".` : `Đã tạo thành công chiến dịch "${data.title}"!`);
         if (isEditing) {
           go("#/quan-tri/quang-cao");
         } else {
