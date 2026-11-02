@@ -22,5 +22,5 @@ Allow: /favicon*.png
 Allow: /apple-touch-icon.png
 Allow: /icons/
 
-Sitemap: https://www.hustdocu.id.vn/
+Sitemap: https://www.hustdocu.id.vn/sitemap.xml
 

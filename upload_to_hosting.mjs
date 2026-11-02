@@ -32,6 +32,8 @@ const filesToUpload = [
   'favicon-48.png',
   'apple-touch-icon.png',
   'robots.txt',
+  'sitemap.xml',
+  'api/sitemap.php',
   'icons/favicon-16.png',
   'icons/favicon-32.png',
   'icons/favicon-48.png',
