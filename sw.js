@@ -1,6 +1,22 @@
 // Service worker HUSTDOCU: trang chính luôn lấy mạng trực tiếp, mất mạng thì dùng bản đã lưu.
-const CACHE = "hustdocu-v34";
-const CORE = ["./", "./index.html", "./manifest.webmanifest", "./favicon.ico", "./icons/favicon-32.png", "./icons/favicon-16.png", "./icons/apple-touch-icon.png", "./icons/icon.svg", "./icons/icon-192.png", "./icons/icon-512.png"];
+const CACHE = "hustdocu-v35";
+const CORE = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./robots.txt",
+  "./favicon.ico",
+  "./favicon.png",
+  "./favicon-48.png",
+  "./icons/favicon-48.png",
+  "./icons/favicon-96.png",
+  "./icons/favicon-32.png",
+  "./icons/favicon-16.png",
+  "./icons/apple-touch-icon.png",
+  "./icons/icon.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
+];
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();

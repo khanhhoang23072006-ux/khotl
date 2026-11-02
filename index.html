@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HUSTDOCU</title>
 <meta name="description" content="Hệ thống chia sẻ và tra cứu tài liệu học tập sinh viên Đại học Bách khoa Hà Nội (HUSTDOCU): tìm kiếm tiếng Việt, xem trực tiếp, tải lên, kiểm duyệt chất lượng.">
+<!-- Google Search & Browser Favicons (Google requires square icons with multiples of 48px) -->
+<link rel="icon" href="favicon.ico" sizes="48x48 32x32 16x16">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="icon" type="image/png" sizes="96x96" href="icons/favicon-96.png">
+<link rel="icon" type="image/png" sizes="144x144" href="icons/favicon-144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
@@ -17,8 +23,30 @@
 <meta property="og:title" content="HUSTDOCU: tài liệu học tập sinh viên Bách khoa">
 <meta property="og:description" content="Đề thi, slide, bài giải do sinh viên Đại học Bách khoa Hà Nội chia sẻ, có kiểm duyệt. Tìm không dấu, chat theo học phần, trợ lý AI.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://hustdocu.id.vn/icons/og.png">
+<meta property="og:image" content="https://www.hustdocu.id.vn/icons/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "HUSTDOCU",
+  "alternateName": ["HUST DOCU", "Kho tài liệu sinh viên Bách khoa"],
+  "url": "https://www.hustdocu.id.vn/",
+  "description": "Hệ thống chia sẻ và tra cứu tài liệu học tập sinh viên Đại học Bách khoa Hà Nội (HUSTDOCU): tìm kiếm tiếng Việt, xem trực tiếp, tải lên, kiểm duyệt chất lượng.",
+  "image": "https://www.hustdocu.id.vn/icons/icon-512.png"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "HUSTDOCU",
+  "url": "https://www.hustdocu.id.vn/",
+  "logo": "https://www.hustdocu.id.vn/icons/icon-512.png"
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Patrick+Hand&display=swap">
@@ -1598,7 +1626,7 @@ function renderHeaderInner(){
   const u=me(),path=currentPath(),unread=u?S.notifications.filter(n=>n.to===u.email&&!n.read).length:0;
   const cur=(p,exact)=>(exact?path===p:path===p||path.startsWith(p+"/"))?' aria-current="page"':"";
   document.getElementById("header").innerHTML=`<div class="wrap">
-   <a class="logo" href="#/"><b>HUSTDOCU</b><span class="vol" aria-hidden="true">TẬP ${new Date().getFullYear()%100}</span></a>
+   <a class="logo" href="#/"><img src="icons/favicon-32.png" alt="Logo" class="logo-mark" width="28" height="28" style="flex-shrink:0;border:1.5px solid var(--line);border-radius:4px;display:block"><b>HUSTDOCU</b><span class="vol" aria-hidden="true">TẬP ${new Date().getFullYear()%100}</span></a>
    <nav class="main" aria-label="Điều hướng chính"><a href="#/tim-kiem"${cur("/tim-kiem")}>Tìm kiếm</a><a href="#/hoc-tap"${["/hoc-tap","/lich","/xep-lich","/on-tap","/flashcard","/hoc-chung"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Học tập</a><a href="#/vien"${cur("/vien")}>Viện</a><a href="#/tro-ly"${cur("/tro-ly")}>Trợ lý AI</a><a href="#/chat"${cur("/chat")}>Chat${u&&totalUnread(u)?` <span class="cnt" style="margin-left:6px">${totalUnread(u)}</span>`:""}</a><a href="#/cong-dong"${["/cong-dong","/bang-xep-hang","/hoi-dap","/khong-gian","/thong-bao-truong","/vinh-danh","/chung-nhan"].some(p=>path===p||path.startsWith(p+"/"))?' aria-current="page"':""}>Cộng đồng</a><a href="#/extension"${cur("/extension")}>Extension</a>${isMod(u)?`<a href="#/kiem-duyet"${cur("/kiem-duyet")}>Kiểm duyệt</a>`:""}${isAdmin(u)?`<a href="#/quan-tri"${cur("/quan-tri")}>Quản trị</a>`:""}</nav>
    <div class="tools">
     <a class="btn primary sm upload-top" href="#/tai-len">Tải lên</a>

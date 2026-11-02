@@ -1,0 +1,25 @@
+# robots.txt for hustdocu.id.vn
+User-agent: *
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon*.png
+Allow: /apple-touch-icon.png
+Allow: /icons/
+Allow: /manifest.webmanifest
+Disallow: /api/
+
+User-agent: Googlebot
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon*.png
+Allow: /apple-touch-icon.png
+Allow: /icons/
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon*.png
+Allow: /apple-touch-icon.png
+Allow: /icons/
+
+Sitemap: https://www.hustdocu.id.vn/
