@@ -25,6 +25,7 @@ $staticPages = [
     ['loc' => $domain . '/?p=/vinh-danh', 'changefreq' => 'weekly', 'priority' => '0.7'],
     ['loc' => $domain . '/?p=/dieu-khoan', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $domain . '/?p=/quyen-rieng-tu', 'changefreq' => 'monthly', 'priority' => '0.5'],
+    ['loc' => $domain . '/?p=/minh-bach-ai', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $domain . '/?p=/go-tai-lieu', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $domain . '/?p=/minh-bach', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $domain . '/?p=/cong-tac-vien', 'changefreq' => 'monthly', 'priority' => '0.6'],

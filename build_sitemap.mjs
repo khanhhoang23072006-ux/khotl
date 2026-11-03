@@ -55,6 +55,7 @@ async function generate() {
     { loc: `${DOMAIN}/?p=/vinh-danh`, changefreq: 'weekly', priority: '0.7' },
     { loc: `${DOMAIN}/?p=/dieu-khoan`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${DOMAIN}/?p=/quyen-rieng-tu`, changefreq: 'monthly', priority: '0.5' },
+    { loc: `${DOMAIN}/?p=/minh-bach-ai`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${DOMAIN}/?p=/go-tai-lieu`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${DOMAIN}/?p=/minh-bach`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${DOMAIN}/?p=/cong-tac-vien`, changefreq: 'monthly', priority: '0.6' }

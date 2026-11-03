@@ -795,6 +795,11 @@ footer.site .wrap>p.small{line-height:1.6}
  .mh-sub{font-size:19px}
 }
 @media (max-width:374px){.logo b{font-size:19px}.logo{padding-right:4px}.tools .icon-btn{width:30px}.tools .btn.sm{padding:0 8px}.mh-title{font-size:44px}}
+
+.cookie-banner{position:fixed;bottom:20px;right:20px;max-width:380px;background:var(--sheet);border:2px solid var(--line);box-shadow:4px 4px 0 var(--line);padding:14px 16px;z-index:9999;font-size:13px;line-height:1.4}
+.cookie-banner b{font-size:14px}
+.cookie-banner .actions{display:flex;gap:8px;margin-top:8px;justify-content:flex-end}
+@media (max-width:600px){.cookie-banner{left:12px;right:12px;bottom:70px;max-width:none}}
 </style>
 </head>
 <body>
@@ -804,7 +809,7 @@ footer.site .wrap>p.small{line-height:1.6}
 <footer class="site"><div class="wrap" style="padding-block:28px">
   <div class="foot">
     <div class="brand"><b>HUSTDOCU</b><p>Sinh viên Bách khoa chia sẻ cho nhau, có kiểm duyệt.</p></div>
-    <div><span class="l">Quy định</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Quyền riêng tư</a></div>
+    <div><span class="l">Quy định & Pháp lý</span><a href="#/dieu-khoan">Điều khoản sử dụng</a><a href="#/quyen-rieng-tu">Bảo vệ dữ liệu cá nhân</a><a href="#/minh-bach-ai">Minh bạch AI</a></div>
     <div><span class="l">Bản quyền, kiểm duyệt</span><a href="#/go-tai-lieu">Yêu cầu gỡ tài liệu</a><a href="#/minh-bach">Báo cáo minh bạch</a><a href="#/cong-tac-vien">Cộng tác viên kiểm duyệt</a></div>
     <div><span class="l">Tiện ích</span><a href="#/extension">Extension trình duyệt</a></div>
   </div>
@@ -2408,8 +2413,8 @@ function mountRegister(body,next,nextQuery){
           </div>
         </div>
         <label class="check" style="margin-top:2px">
-          <input type="checkbox" id="reg-agree" checked required>
-          <span>Tôi đồng ý với <a href="#/dieu-khoan" target="_blank">Điều khoản sử dụng</a> và Quy chế HUSTDOCU.</span>
+          <input type="checkbox" id="reg-agree" required>
+          <span>Tôi đã đọc và đồng ý với <a href="#/dieu-khoan" target="_blank">Điều khoản sử dụng</a> và <a href="#/quyen-rieng-tu" target="_blank">Chính sách bảo vệ dữ liệu cá nhân</a> (theo Luật 91/2025/QH15).</span>
         </label>
         ${err?`<div class="err" role="alert">${err}</div>`:""}
         <button class="btn primary lg" type="submit"${loading?" disabled":""} style="margin-top:4px">
@@ -2748,7 +2753,7 @@ function uploadForm(mode,init){const isCreate=mode==="create";return `<form clas
    <div class="field"><label for="de">Mô tả</label><textarea class="textarea" id="de" name="description" maxlength="2000" placeholder="Mô tả tóm tắt tài liệu...">${esc(init.description||"")}</textarea></div>
    <div class="field"><label for="tg">Thẻ</label><input class="input" id="tg" name="tags" value="${esc((init.tags||[]).join(", "))}"><span class="hint">Cách nhau bằng dấu phẩy, tối đa 10 thẻ.</span></div>
    <label class="check"><input type="checkbox" name="anonymous"${init.anonymous?" checked":""}><span>Ẩn tên tôi với người xem<br><span class="tiny muted">Kiểm duyệt viên vẫn thấy người đăng.</span></span></label>
-   <label class="check"><input type="checkbox" name="copyright"><span>Tôi xác nhận có quyền chia sẻ tài liệu này và đồng ý với <a href="#/dieu-khoan">Điều khoản bản quyền</a>.</span></label>
+   <label class="check"><input type="checkbox" name="copyright" required><span>Tôi xác nhận là tác giả hoặc có quyền chia sẻ tài liệu này phục vụ mục đích học tập phi thương mại theo Luật Sở hữu trí tuệ; đồng ý với <a href="#/dieu-khoan" target="_blank">Điều khoản sử dụng</a> và <a href="#/quyen-rieng-tu" target="_blank">Chính sách bảo vệ dữ liệu cá nhân</a>.</span></label>
   </fieldset>
   <p class="note red" data-err role="alert" hidden></p>
   <div class="stack" style="gap:8px">
@@ -3141,9 +3146,107 @@ views["/quan-tri/nhat-ky"]=()=>{const u=me();if(!u)return needLogin("/quan-tri/n
   return {html:`<div class="wrap" style="padding-block:20px">${adminTabs("l")}${S.audit.length?`<table class="t"><thead><tr><th>Thời gian</th><th>Người làm</th><th>Hành động</th><th>Chi tiết</th></tr></thead><tbody>${S.audit.map(a=>`<tr><td>${fmtTime(a.t)}</td><td>${esc(a.by)}</td><td class="head">${esc(a.action)}</td><td>${esc(a.detail)}</td></tr>`).join("")}</tbody></table>`:empty("Chưa có thao tác quản trị nào.")}<p class="small muted">Bản thật lưu nhật ký vào bảng chỉ cho thêm (có trigger chặn sửa, xóa).</p></div>`}};
 
 /* ----- Trang quy định, gỡ bản quyền ----- */
-function legal(title,sections){return {html:pageHead(title,"Cập nhật ngày 24/10/2026")+`<div class="wrap" style="max-width:800px;padding-block:24px"><ol class="tb" style="grid-template-columns:56px 1fr;list-style:none;margin:0;padding:0">${sections.map(([t,b],i)=>`<li style="display:contents"><span class="code" style="display:flex;justify-content:center;padding-top:12px;font-size:24px;background:var(--sheet)">${i+1}</span><div style="padding:12px 16px;background:var(--sheet)"><h2 class="h2">${t}</h2>${b.map(p=>`<p style="margin:8px 0 0">${p}</p>`).join("")}</div></li>`).join("")}</ol></div>`}}
-views["/dieu-khoan"]=()=>legal("Điều khoản sử dụng",[["HUSTDOCU là gì",["HUSTDOCU là nơi sinh viên Đại học Bách khoa Hà Nội chia sẻ tài liệu phục vụ học tập: đề thi, slide, bài giải, ghi chú, đề cương.","Đây là dự án của sinh viên, không phải kênh chính thức của Nhà trường."]],["Tài khoản",["Chỉ email do trường cấp được đăng ký. Bạn chịu trách nhiệm về hoạt động trên tài khoản của mình và không chia sẻ mã đăng nhập cho người khác."]],["Quyền chia sẻ và bản quyền",["Khi tải tài liệu lên, bạn xác nhận mình là tác giả hoặc có quyền chia sẻ tài liệu đó cho mục đích học tập, phi thương mại.","Không đăng giáo trình, sách đang bán, tài liệu nội bộ được đánh dấu không phát tán, hoặc nội dung của người khác khi chưa được đồng ý.","Chủ sở hữu bản quyền có thể yêu cầu gỡ tài liệu qua trang Yêu cầu gỡ tài liệu."]],["Kiểm duyệt",["Mọi tài liệu đều qua kiểm tra tự động (định dạng, trùng lặp, mã độc, nội dung) rồi đến kiểm duyệt viên trước khi công khai. Kiểm duyệt viên có thể từ chối, yêu cầu sửa hoặc gỡ tài liệu vi phạm và sẽ nêu lý do."]],["Hành vi bị cấm",["Đăng mã độc, nội dung quảng cáo, nội dung xúc phạm, thông tin cá nhân của người khác; gian lận lượt tải hoặc điểm uy tín; dùng công cụ tự động thu thập dữ liệu hàng loạt.","Vi phạm có thể dẫn tới gỡ tài liệu, trừ điểm uy tín, khóa chức năng tải lên hoặc khóa tài khoản."]],["Giới hạn trách nhiệm",["Tài liệu do người dùng đóng góp có thể có sai sót. Hãy đối chiếu với giáo trình và giảng viên. Không dùng kho để gian lận trong thi cử."]]]);
-views["/quyen-rieng-tu"]=()=>legal("Quyền riêng tư",[["Chúng tôi lưu gì",["Email trường, họ tên, Viện, khóa, mã số sinh viên (nếu bạn nhập), tài liệu bạn đăng, lịch sử tìm kiếm và lượt tải của bạn.","Địa chỉ IP chỉ được lưu ở dạng băm để chống lạm dụng."]],["Ai thấy thông tin của bạn",["Người xem thấy tên hiển thị của người đăng, trừ khi bạn chọn ẩn danh. Kiểm duyệt viên luôn thấy người đăng để xử lý vi phạm.","Chúng tôi không bán hay chia sẻ dữ liệu cho bên thứ ba."]],["Email",["Chúng tôi gửi mã đăng nhập và thông báo kết quả kiểm duyệt tới email trường của bạn."]],["Quyền của bạn",["Bạn có thể sửa hồ sơ bất cứ lúc nào. Muốn xóa tài khoản hoặc tải bản sao dữ liệu của mình, hãy liên hệ quản trị viên."]],["hệ thống này",["hệ thống chạy hoàn toàn trên trình duyệt của bạn: dữ liệu và file tải lên chỉ lưu trên máy bạn (localStorage, IndexedDB), không gửi đi đâu."]]]);
+function legal(title,sections,subtitle){return {html:pageHead(title,subtitle||"Cập nhật ngày 04/11/2026 · Tuân thủ pháp luật Việt Nam (Luật 91/2025, 122/2025, 116/2025, 134/2025)")+`<div class="wrap" style="max-width:860px;padding-block:24px"><ol class="tb" style="grid-template-columns:56px 1fr;list-style:none;margin:0;padding:0">${sections.map(([t,b],i)=>`<li style="display:contents"><span class="code" style="display:flex;justify-content:center;padding-top:12px;font-size:24px;background:var(--sheet)">${i+1}</span><div style="padding:16px 20px;background:var(--sheet)"><h2 class="h2" style="margin:0 0 10px">${t}</h2>${b.map(p=>`<p style="margin:8px 0 0;line-height:1.6">${p}</p>`).join("")}</div></li>`).join("")}</ol></div>`}}
+views["/dieu-khoan"]=()=>legal("Điều khoản sử dụng",[
+  ["1. Bản chất pháp lý & Tuyên bố miễn trừ trách nhiệm",[
+    "HUSTDOCU là nền tảng chia sẻ học thuật phi lợi nhuận do cộng đồng sinh viên Đại học Bách khoa Hà Nội phát triển vì mục đích hỗ trợ học tập, ôn thi và nghiên cứu khoa học. HUSTDOCU không phải là kênh phát ngôn chính thức của Ban Giám hiệu hay các phòng ban chức năng của Đại học Bách khoa Hà Nội.",
+    "Mọi tài liệu, đề thi, slide và bài giảng do sinh viên tự nguyện chia sẻ mang tính chất tham khảo học thuật. Sinh viên có trách nhiệm tự đối chiếu với đề cương học phần, tài liệu giảng dạy chính thức và hướng dẫn của giảng viên trực tiếp giảng dạy."
+  ]],
+  ["2. Tài khoản & Trách nhiệm bảo mật của người dùng",[
+    "Hệ thống xác thực người dùng qua mã OTP gửi tới email do trường cấp hoặc email cá nhân đã đăng ký. Bạn có nghĩa vụ tự bảo quản mật khẩu, mã đăng nhập và chịu hoàn toàn trách nhiệm đối với các hoạt động phát sinh từ tài khoản của mình.",
+    "Nghiêm cấm chia sẻ tài khoản cho người ngoài nhằm mục đích trục lợi, mua bán tài liệu học tập hoặc gian lận hạn mức tải tài liệu hàng ngày."
+  ]],
+  ["3. Quyền sở hữu trí tuệ & Cam kết khi chia sẻ tài liệu",[
+    "Khi tải tài liệu lên HUSTDOCU, người dùng cam kết là tác giả (bài ghi chép cá nhân, slide tóm tắt, lời giải bài tập) hoặc có quyền chia sẻ hợp pháp tài liệu đó cho mục đích học tập phi thương mại theo <b>Luật Sở hữu trí tuệ 2005 (sửa đổi, bổ sung 2022)</b>.",
+    "<b>Danh mục tài liệu nghiêm cấm tải lên:</b>",
+    "• Giáo trình, sách xuất bản đang lưu hành thương mại của các nhà xuất bản khi chưa được phép của tác giả/chủ sở hữu.",
+    "• Tài liệu nội bộ, thông tin đóng dấu MẬT hoặc văn bản quy định không phổ biến ra ngoài của Nhà trường.",
+    "• Đề thi chính thức thuộc danh mục bảo mật chưa được Nhà trường cho phép công bố.",
+    "Bản quyền tài liệu thuộc về tác giả gốc và người đóng góp. Người tải tài liệu chỉ được sử dụng cho mục đích cá nhân, không được thương mại hóa dưới mọi hình thức."
+  ]],
+  ["4. Quy trình tiếp nhận & gỡ bỏ tài liệu vi phạm (Notice & Takedown)",[
+    "Thực hiện theo Luật Sở hữu trí tuệ 2022 và Luật Giao dịch điện tử số 20/2023/QH15, nếu tác giả, giảng viên hoặc chủ sở hữu bản quyền phát hiện tài liệu vi phạm bản quyền hoặc quyền cá nhân trên kho, xin vui lòng gửi yêu cầu qua trang <a href=\"#/go-tai-lieu\"><b>Yêu cầu gỡ tài liệu</b></a> hoặc email trực tiếp tới <a href=\"mailto:admin@hustdocu.id.vn\"><b>admin@hustdocu.id.vn</b></a>.",
+    "Ban Quản trị cam kết kiểm tra và tạm ẩn/gỡ bỏ tài liệu bị khiếu nại xác thực trong vòng <b>24 – 48 giờ</b> kể từ khi tiếp nhận yêu cầu hợp lệ."
+  ]],
+  ["5. Kiểm duyệt tài liệu & Biện pháp chế tài",[
+    "Mọi tài liệu tải lên đều phải vượt qua hệ thống kiểm tra tự động (định dạng, trùng lặp, mã độc, chất lượng nội dung) trước khi kiểm duyệt viên phê duyệt công khai.",
+    "Kiểm duyệt viên có quyền từ chối, yêu cầu đính chính hoặc gỡ bỏ các tài liệu không đạt tiêu chuẩn học thuật hoặc có dấu hiệu vi phạm pháp luật."
+  ]],
+  ["6. Hành vi nghiêm cấm theo Luật An ninh mạng 116/2025/QH15",[
+    "Người dùng nghiêm cấm thực hiện các hành vi quy định tại Điều 8 Luật An ninh mạng số 116/2025/QH15:",
+    "• Đăng tải mã độc, virus, phần mềm gián điệp, script can thiệp hệ thống.",
+    "• Sử dụng công cụ tự động (bot, crawler, script) để cào dữ liệu hàng loạt hoặc làm gián đoạn hạ tầng máy chủ.",
+    "• Đăng tải thông tin sai sự thật, xuyên tạc, chống phá Nhà nước, hoặc xúc phạm danh dự, nhân phẩm của cá nhân, tổ chức.",
+    "• Gian lận lượt tải, điểm thưởng uy tín hoặc can thiệp trái phép vào cơ sở dữ liệu.",
+    "Tùy theo mức độ, tài khoản vi phạm sẽ bị đình chỉ tạm thời, khóa vĩnh viễn hoặc chuyển cơ quan chức năng xử lý theo quy định pháp luật."
+  ]],
+  ["7. Liêm chính học thuật & Quy chế thi cử",[
+    "HUSTDOCU tôn vinh tinh thần liêm chính học thuật của sinh viên Đại học Bách khoa Hà Nội. Nghiêm cấm sử dụng tài liệu trong kho để gian lận trong kiểm tra, thi cử hoặc sao chép nguyên văn đồ án, bài tập lớn. Sinh viên vi phạm sẽ tự chịu trách nhiệm theo Quy chế đào tạo của Nhà trường."
+  ]]
+]);
+
+views["/quyen-rieng-tu"]=()=>legal("Chính sách bảo vệ dữ liệu cá nhân",[
+  ["1. Căn cứ pháp lý & Đơn vị kiểm soát dữ liệu",[
+    "Chính sách này được xây dựng và tuân thủ chặt chẽ theo <b>Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15</b> (có hiệu lực từ ngày 01/01/2026), <b>Nghị định số 356/2025/NĐ-CP</b> quy định chi tiết một số điều và biện pháp thi hành Luật Bảo vệ dữ liệu cá nhân (thay thế Nghị định 13/2023/NĐ-CP), và <b>Nghị định số 330/2026/NĐ-CP</b> về xử phạt vi phạm an ninh mạng và dữ liệu cá nhân.",
+    "<b>Bên kiểm soát và xử lý dữ liệu:</b> Dự án HUSTDOCU – Nền tảng chia sẻ học thuật sinh viên Đại học Bách khoa Hà Nội (phi lợi nhuận).",
+    "<b>Bộ phận tiếp nhận yêu cầu về dữ liệu cá nhân:</b> Ban Quản trị HUSTDOCU · Email: <a href=\"mailto:admin@hustdocu.id.vn\"><b>admin@hustdocu.id.vn</b></a> · Địa chỉ: Đại học Bách khoa Hà Nội, số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội."
+  ]],
+  ["2. Danh mục dữ liệu thu thập & Mục đích xử lý (Điều 9 Luật 91/2025)",[
+    "Chúng tôi chỉ thu thập các dữ liệu cá nhân thực sự cần thiết, đúng mục đích đã thông báo, tuyệt đối không lạm dụng:",
+    "• <b>Email sinh viên (@sis.hust.edu.vn, @hust.edu.vn hoặc Gmail cá nhân):</b> Dùng để gửi mã xác thực OTP đăng nhập an toàn, gửi thông báo kết quả kiểm duyệt tài liệu và cảnh báo bảo mật.",
+    "• <b>Họ tên, Viện/Trường, Khóa học, Mã sinh viên (tùy chọn):</b> Dùng để cá nhân hóa gợi ý tài liệu học phần và ghi nhận điểm uy tín người đóng góp (bạn luôn có quyền chọn chế độ đăng ẩn danh với cộng đồng).",
+    "• <b>Tài liệu học tập bạn tải lên:</b> Phục vụ mục đích lưu trữ và chia sẻ học tập phi thương mại giữa sinh viên.",
+    "• <b>Dữ liệu hoạt động học tập (Lịch sử tìm kiếm, danh sách lưu, số lượt tải):</b> Lưu trữ cục bộ trên thiết bị của bạn (LocalStorage & IndexedDB) để phục vụ tiện ích cá nhân và bộ đếm tải hàng ngày.",
+    "• <b>Địa chỉ IP và chuỗi User-Agent trình duyệt:</b> Chỉ được lưu trữ dưới dạng băm một chiều (SHA-256 hash) để phòng chống tấn công mạng, ngăn chặn cào dữ liệu tự động theo Luật An ninh mạng 116/2025/QH15."
+  ]],
+  ["3. Sự đồng ý của chủ thể dữ liệu (Consent Flow)",[
+    "Căn cứ khoản 4 Điều 9 Luật 91/2025/QH15, sự đồng ý của bạn là hoàn toàn tự nguyện, trên cơ sở được thông báo đầy đủ. Hệ thống <b>tuyệt đối không sử dụng ô chọn sẵn (pre-ticked checkbox)</b>.",
+    "Khi đăng ký tài khoản, đăng nhập hoặc đóng góp tài liệu, bạn chủ động bấm xác nhận đồng ý với Điều khoản sử dụng và Chính sách bảo vệ dữ liệu cá nhân. Bạn có toàn quyền từ chối cung cấp các thông tin không bắt buộc mà vẫn tra cứu và xem tài liệu công khai bình thường."
+  ]],
+  ["4. Quyền của Chủ thể dữ liệu (Điều 9 & Điều 10 Luật 91/2025)",[
+    "Sinh viên và người dùng tham gia HUSTDOCU có đầy đủ các quyền luật định:",
+    "• <b>Quyền được biết & Quyền đồng ý:</b> Được thông báo minh bạch về mọi hoạt động xử lý dữ liệu trước khi cung cấp.",
+    "• <b>Quyền truy cập & Chỉnh sửa:</b> Bạn có thể xem và cập nhật thông tin hồ sơ của mình bất kỳ lúc nào.",
+    "• <b>Quyền rút lại sự đồng ý & Xóa dữ liệu (Quyền được lãng quên):</b> Bạn có quyền yêu cầu xóa toàn bộ tài khoản và các dữ liệu liên quan khỏi hệ thống.",
+    "• <b>Quyền nhận bản sao dữ liệu:</b> Bạn có quyền yêu cầu cung cấp bản sao dữ liệu cá nhân mà hệ thống đang lưu trữ.",
+    "• <b>Quyền phản ánh & Khiếu nại:</b> Bạn có quyền khiếu nại tới Ban Quản trị nếu phát hiện dữ liệu bị sử dụng sai mục đích.",
+    "⏰ <b>Thời hạn phản hồi & xử lý:</b> Ban Quản trị cam kết hoàn thành xử lý mọi yêu cầu hợp lệ về quyền dữ liệu cá nhân trong thời hạn tối đa <b>72 giờ</b> kể từ khi nhận được yêu cầu qua email <a href=\"mailto:admin@hustdocu.id.vn\">admin@hustdocu.id.vn</a> (Tuân thủ Điều 5 Nghị định 356/2025/NĐ-CP)."
+  ]],
+  ["5. Lưu trữ dữ liệu & Không chuyển giao xuyên biên giới",[
+    "• <b>Vị trí lưu trữ:</b> 100% cơ sở dữ liệu và tệp tin được lưu trữ trên hệ thống máy chủ đặt tại lãnh thổ Việt Nam (123Host Vietnam, trung tâm dữ liệu tại Hà Nội / TP.HCM), tuân thủ Điều 20 Luật 91/2025/QH15 và Luật An ninh mạng 116/2025/QH15.",
+    "• <b>Cam kết không thương mại hóa:</b> Chúng tôi cam kết tuyệt đối không bán, cho thuê hoặc chuyển giao dữ liệu cá nhân của sinh viên cho bất kỳ bên thứ ba, nhà môi giới dữ liệu hay mạng lưới quảng cáo nào."
+  ]],
+  ["6. Biện pháp kỹ thuật bảo vệ dữ liệu cá nhân",[
+    "Hệ thống áp dụng các biện pháp an ninh mạng kỹ thuật toàn diện:",
+    "• Mã hóa đường truyền bằng giao thức bảo mật SSL/TLS (HTTPS) trên toàn bộ kết nối.",
+    "• Phân quyền kiểm duyệt viên nhiều tầng (RBAC - Role-Based Access Control).",
+    "• Địa chỉ IP được băm mã hóa một chiều (SHA-256), không thể khôi phục ngược.",
+    "• Tự động quét kiểm tra định dạng và mã độc trong mọi tập tin trước khi lưu trữ và chia sẻ."
+  ]]
+]);
+
+views["/minh-bach-ai"]=()=>legal("Chính sách minh bạch Trí tuệ nhân tạo (AI)",[
+  ["1. Căn cứ pháp lý & Phạm vi áp dụng",[
+    "Chính sách này được xây dựng theo <b>Luật Trí tuệ nhân tạo số 134/2025/QH15</b> (thông qua ngày 10/12/2025, có hiệu lực từ 01/03/2026) và <b>Nghị định số 142/2026/NĐ-CP</b> hướng dẫn Luật Trí tuệ nhân tạo (Điều 18 về thông báo và gắn nhãn nhận biết nội dung do AI tạo ra).",
+    "Áp dụng cho toàn bộ các tính năng ứng dụng công nghệ Trí tuệ nhân tạo trên HUSTDOCU, bao gồm Trợ lý AI Bách khoa và hệ thống hỗ trợ trích dẫn tài liệu học tập."
+  ]],
+  ["2. Xác định vai trò của HUSTDOCU",[
+    "Theo Luật 134/2025/QH15, HUSTDOCU đóng vai trò là <b>Bên triển khai hệ thống AI (Deployer)</b>: ứng dụng công nghệ mô hình ngôn ngữ lớn (LLM) để hỗ trợ sinh viên tra cứu và tóm tắt kiến thức từ các tài liệu học tập sẵn có trong kho."
+  ]],
+  ["3. Nhận diện tương tác AI (Điều 11 khoản 1 Luật 134/2025)",[
+    "• Người dùng luôn được thông báo rõ ràng rằng mình đang tương tác với hệ thống Trí tuệ nhân tạo tự động, không phải là nhân sự tư vấn hay giảng viên của Nhà trường.",
+    "• Giao diện Trợ lý AI được gắn nhãn nhận diện đặc thù và tên gọi minh bạch: 'Trợ lý AI Bách khoa'."
+  ]],
+  ["4. Nhãn nhận biết nội dung do AI tạo ra (AI-Generated Content)",[
+    "• Mọi phản hồi, phân tích, trích dẫn do hệ thống AI sinh ra đều được gắn nhãn nhận biết rõ ràng: <b>'Nội dung do AI tạo ra'</b> kèm thông tin nguồn gốc tài liệu đối chiếu (tên tài liệu, số trang).",
+    "• Thông tin do AI cung cấp chỉ mang tính chất tham khảo học tập cá nhân. Sinh viên không được sử dụng nguyên văn câu trả lời AI để nộp bài thi hoặc báo cáo nghiên cứu mà không có sự kiểm chứng độc lập."
+  ]],
+  ["5. Quyền kiểm soát & Xóa lịch sử trò chuyện AI",[
+    "• Sinh viên có quyền bật/tắt chế độ sử dụng AI bất kỳ lúc nào.",
+    "• Hệ thống cung cấp nút <b>'Xóa lịch sử'</b> cho phép người dùng chủ động xóa vĩnh viễn toàn bộ nội dung các phiên hỏi đáp AI đã lưu trữ."
+  ]]
+]);
+
 views["/go-tai-lieu"]=()=>({html:pageHead("Yêu cầu gỡ tài liệu","",'<p style="margin:0;max-width:640px">Nếu bạn là tác giả hoặc chủ sở hữu bản quyền của một tài liệu trên kho và không muốn tài liệu được chia sẻ, hãy gửi yêu cầu. Không cần tài khoản.</p>')+`<div class="wrap" style="max-width:800px;padding-block:24px" data-tk><form class="stack" data-form="takedown" novalidate style="border:2px solid var(--line);background:var(--sheet);padding:16px"><div class="row" style="align-items:flex-start;flex-wrap:wrap"><div class="field" style="flex:1;min-width:220px"><label for="tn">Họ và tên <span class="req">*</span></label><input class="input" id="tn" name="fullName" autocomplete="name"></div><div class="field" style="flex:1;min-width:220px"><label for="tm">Email liên hệ <span class="req">*</span></label><input class="input" id="tm" name="email" type="email" autocomplete="email"></div></div><div class="field"><label for="tu">Đường dẫn tài liệu <span class="req">*</span></label><input class="input" id="tu" name="url" value="${esc(params().get("url")||"")}"><span class="hint">Dán đường dẫn trang tài liệu, có dạng …#/tai-lieu/ten-tai-lieu</span></div><div class="field"><label for="tdd">Mô tả <span class="req">*</span></label><textarea class="textarea" id="tdd" name="details" style="min-height:140px"></textarea><span class="hint">Bạn là ai với tài liệu này, và vì sao cần gỡ (ít nhất 20 ký tự).</span></div><label class="check"><input type="checkbox" name="decl"><span>Tôi cam đoan thông tin trên là đúng và tôi là chủ sở hữu hoặc được ủy quyền.</span></label><p class="err" data-err hidden></p><button class="btn primary lg" type="submit">Gửi yêu cầu</button></form><p class="small muted">Kiểm duyệt viên xem xét yêu cầu, gỡ tài liệu nếu yêu cầu hợp lệ và thông báo cho người đăng.</p></div>`,
  mount(root){root.querySelector('[data-form="takedown"]').addEventListener("submit",(e)=>{e.preventDefault();const fd=new FormData(e.target),err=e.target.querySelector("[data-err]");const fail=(m)=>{err.textContent=m;err.hidden=false};
   if(String(fd.get("fullName")).trim().length<2)return fail("Nhập họ và tên.");if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(fd.get("email")).trim()))return fail("Email không hợp lệ.");const m=String(fd.get("url")).match(/tai-lieu\/([a-z0-9-]+)/i);const d=m&&S.docs.find(x=>x.slug===m[1].toLowerCase());if(!d)return fail("Không tìm thấy tài liệu theo đường dẫn này.");if(String(fd.get("details")).trim().length<20)return fail("Mô tả ít nhất 20 ký tự.");if(!fd.get("decl"))return fail("Cần xác nhận cam kết.");
@@ -3388,7 +3491,12 @@ function mountDocAi(root,d,u){const sec=root.querySelector("#tro-ly");if(!sec||!
   sec.querySelector('[data-ai="quiz"]').addEventListener("click",async()=>{busy("Đang tạo câu hỏi…");const qs=await makeQuiz(d);if(!qs.length){out.innerHTML='<p class="note">Không tạo được câu hỏi cho tài liệu này.</p>';return}out.innerHTML=quizHtml(qs);mountQuiz(out,qs)});
   sec.querySelector("[data-ai-ask]").addEventListener("submit",async(e)=>{e.preventDefault();const q=sec.querySelector("#aiq").value.trim();if(q.length<3)return;busy("Đang tìm trong tài liệu…");const r=await askAI(u,q,{doc:d.id,k:4});save();out.innerHTML=`<div class="ai-box"><p class="tiny muted" style="margin:0 0 4px">Bạn hỏi: ${esc(q)}</p>${cite(r.text,r.srcs)}${sourcesHtml(r.srcs)}</div>`})}
 views["/tro-ly"]=()=>{const u=me();if(!u)return needLogin("/tro-ly");const hp=params().get("hp")||"";const st=aiSettings();S.aiChats=S.aiChats||{};const hist=S.aiChats[u.email]||[];
-  return {html:`<div class="wrap" style="padding-block:20px;max-width:960px"><div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Trợ lý AI</h1><p class="small muted" style="margin:4px 0 0">Hỏi về nội dung tài liệu trong kho. Mỗi câu trả lời kèm nguồn để bạn kiểm tra.</p></div><span class="tiny muted">Hôm nay đã hỏi ${aiUsage(u)}/${AI_DAILY}</span></div>
+  return {html:`<div class="wrap" style="padding-block:20px;max-width:960px"><div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Trợ lý AI Bách khoa</h1>
+<div class="row" style="gap:6px;margin:4px 0 6px;flex-wrap:wrap">
+  <span class="badge" style="font-size:11px;background:var(--sheet);border:1px solid var(--line)">🤖 Hệ thống Trí tuệ nhân tạo (AI Assistant)</span>
+  <span class="badge" style="font-size:11px;background:var(--sheet);border:1px solid var(--line)"><a href="#/minh-bach-ai" style="color:inherit">Điều 11 Luật AI 134/2025/QH15</a></span>
+</div>
+<p class="small muted" style="margin:2px 0 0;max-width:620px">Hỏi đáp nội dung tài liệu trong kho. <b>Lưu ý minh bạch:</b> Phản hồi do AI tạo tự động chỉ mang tính chất tham khảo học tập, không thay thế tài liệu giảng dạy chính thức hay ý kiến giảng viên.</p></div><span class="tiny muted">Hôm nay đã hỏi ${aiUsage(u)}/${AI_DAILY}</span></div>
    <div class="ai-thread stack" data-thread>${hist.length?hist.map(h=>`<div class="ai-q"><b class="head small">Bạn${h.hp?` (trong ${h.hp})`:""}</b><div>${esc(h.q)}</div></div><div class="ai-box">${cite(h.text,h.srcs.map(s=>({doc:S.docs.find(d=>d.id===s.doc)||{slug:"",title:"(đã gỡ)",course:""},page:s.page})))}${sourcesHtml(h.srcs.map(s=>({doc:S.docs.find(d=>d.id===s.doc)||{slug:"",title:"(đã gỡ)",course:""},page:s.page})))}<p class="tiny muted" style="margin:6px 0 0">${h.mode==="claude"?"Claude":"Trích dẫn trên trình duyệt"}, ${fmtTime(h.t)}</p></div>`).join(""):`<div class="empty">Thử hỏi: <a href="#" data-ex>Cây AVL quay như thế nào?</a>, <a href="#" data-ex>tóm tắt kiến thức tích phân suy rộng</a>, <a href="#" data-ex>tầng mạng trong IT3080 gồm gì</a></div>`}</div>
    <form class="stack" data-ask style="border:2px solid var(--line);background:var(--sheet);padding:12px;margin-top:12px;gap:8px"><div class="row" style="flex-wrap:nowrap"><label for="askq" class="sr">Câu hỏi</label><textarea class="textarea" id="askq" style="min-height:48px" maxlength="500" placeholder="Hỏi bất cứ điều gì về tài liệu trong kho…"></textarea><button class="btn primary" type="submit" style="align-self:stretch;height:auto">Hỏi</button></div>
     <div class="row small"><label for="askhp" class="muted">Phạm vi</label><select class="select" id="askhp" style="width:auto;height:36px"><option value="">Toàn kho</option>${S.courses.filter(c=>courseDocCount(c.code)).map(c=>`<option value="${c.code}"${c.code===hp?" selected":""}>${c.code} ${esc(c.name)}</option>`).join("")}</select>${hist.length?'<button class="btn ghost sm" type="button" data-clear>Xóa lịch sử</button>':""}</div></form>
@@ -8989,7 +9097,7 @@ views.notfound=()=>({html:`<div class="wrap nf"><div class="art-panel">${mangaAr
 
 /* ===================== Bộ định tuyến ===================== */
 const ROUTES=Object.keys(views).filter(k=>k.startsWith("/")).map(k=>({k,re:new RegExp("^"+k.replace(/:[a-z]+/g,"([^/]+)")+"$"),names:(k.match(/:[a-z]+/g)||[]).map(n=>n.slice(1))})).sort((a,b)=>b.k.length-a.k.length);
-const TITLES={"/extension":"Extension","/quan-tri/extension":"Quản trị extension","/tro-ly":"Trợ lý AI","/chat":"Chat","/da-luu":"Đã lưu","/bang-xep-hang":"Bảng xếp hạng","/":"HUSTDOCU","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/dang-ky":"Đăng ký tài khoản","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
+const TITLES={"/extension":"Extension","/quan-tri/extension":"Quản trị extension","/tro-ly":"Trợ lý AI","/chat":"Chat","/da-luu":"Đã lưu","/bang-xep-hang":"Bảng xếp hạng","/":"HUSTDOCU","/tim-kiem":"Tìm kiếm","/vien":"Viện","/dang-nhap":"Đăng nhập","/dang-ky":"Đăng ký tài khoản","/tai-len":"Tải tài liệu lên","/tai-lieu-cua-toi":"Tài liệu của tôi","/thong-bao":"Thông báo","/kiem-duyet":"Kiểm duyệt","/quan-tri/hoc-phan":"Quản trị","/dieu-khoan":"Điều khoản sử dụng","/quyen-rieng-tu":"Quyền riêng tư","/minh-bach-ai":"Minh bạch AI","/go-tai-lieu":"Yêu cầu gỡ tài liệu"};
 let lastPath=null;
 function render(){
   const path=currentPath();let view=views.notfound,args={};
@@ -9053,6 +9161,39 @@ window.addEventListener("focus",()=>syncAllWithServer(true));
 setInterval(()=>syncAllWithServer(false),5000);
 loadFeed(false);
 setInterval(()=>loadFeed(false), 30 * 60 * 1000);
+
+
+function checkCookieConsent(){
+  try{
+    if(!localStorage.getItem("khotl-consent")){
+      const el=document.getElementById("cookie-banner");
+      if(el) el.hidden=false;
+    }
+  }catch{}
+}
+function acceptCookieConsent(){
+  try{
+    localStorage.setItem("khotl-consent","1");
+    const el=document.getElementById("cookie-banner");
+    if(el) el.hidden=true;
+  }catch{}
+}
+setTimeout(checkCookieConsent, 600);
+
 </script>
+
+<div id="cookie-banner" class="cookie-banner" hidden>
+  <div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px">
+    <b>🔒 Quyền riêng tư & Bộ nhớ lưu trữ</b>
+    <button class="icon-btn" onclick="acceptCookieConsent()" style="width:24px;height:24px;min-width:24px" title="Đóng">✕</button>
+  </div>
+  <p style="margin:6px 0 8px;font-size:13px;line-height:1.45">
+    HUSTDOCU sử dụng bộ nhớ trình duyệt (LocalStorage & Session) để duy trì phiên đăng nhập, tùy chọn giao diện và đếm lượt tải học tập theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15.
+  </p>
+  <div class="actions">
+    <a href="#/quyen-rieng-tu" class="small muted" style="margin-right:auto;align-self:center">Xem chính sách</a>
+    <button class="btn sm ink" type="button" onclick="acceptCookieConsent()">Đã hiểu & Đồng ý</button>
+  </div>
+</div>
 </body>
 </html>
