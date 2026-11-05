@@ -1,8 +1,18 @@
 {
  "source": "https://ctt.hust.edu.vn",
- "fetchedAt": "2026-10-28T02:17:29.202Z",
+ "fetchedAt": "2026-11-05T10:13:29.065Z",
  "errors": [],
  "items": [
+  {
+   "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51644",
+   "title": "[CTSV] Thông báo về việc lùi thời gian xét cấp học bổng KKHT Học kỳ 2026.1",
+   "date": "2026-11-05",
+   "source": "Thông báo đại học",
+   "tags": [
+    "hocbong"
+   ],
+   "firstSeen": "2026-11-05T10:13:29.065Z"
+  },
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30246",
    "title": "[DTDH] LỊCH THI GIỮA KỲ - CUỐI KỲ HỌC KỲ 20261 2/11/2026",
