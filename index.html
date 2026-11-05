@@ -1504,6 +1504,31 @@ function snippet(d,terms){if(!terms.length)return"";const text=docContent(d).fla
 
 /* ===================== Giao diện chung ===================== */
 const icon={
+ check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+ x:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+ star:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+ starFill:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z" fill="currentColor"/></svg>',
+ alert:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 4L2.8 19.5h18.4zM12 10v4.5M12 17.2v.3"/></svg>',
+ lock:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></svg>',
+ folder:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H9l2 2.5h8.5A1.5 1.5 0 0 1 21 9v9.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>',
+ hourglass:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9"/></svg>',
+ chevLeft:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+ chevRight:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+ chevUp:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg>',
+ chevDown:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>',
+ arrowLeft:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
+ reply:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M5 5v6a4 4 0 0 0 4 4h10M15 11l4 4-4 4"/></svg>',
+ bookmark:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M6 3.5h12v17l-6-4.5-6 4.5z"/></svg>',
+ bookmarkCheck:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M6 3.5h12v17l-6-4.5-6 4.5z"/><path d="M9 9.5l2 2 4-4"/></svg>',
+ maximize:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+ square:'<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" style="display:inline-block;vertical-align:-3px"><rect x="3" y="3" width="18" height="18" fill="currentColor" stroke="var(--line,#111)" stroke-width="2"/></svg>',
+ dot:'<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true" style="display:inline-block;vertical-align:2px;margin-right:6px;flex:none"><rect width="8" height="8" fill="currentColor"/></svg>',
+ bot:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><rect x="4" y="8" width="16" height="11" rx="2"/><path d="M12 4v4M9 13v1M15 13v1M2 12v3M22 12v3"/></svg>',
+ thumbUp:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M7 10v10H4V10zM7 10l4-7a2 2 0 0 1 2.8 2.3L13 9h5.8a2 2 0 0 1 2 2.4l-1.5 7A2 2 0 0 1 17.3 20H7"/></svg>',
+ heart:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 20s-7.5-4.6-8.8-9.4A4.5 4.5 0 0 1 12 7.3a4.5 4.5 0 0 1 8.8 3.3C19.5 15.4 12 20 12 20z"/></svg>',
+ laugh:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 9.5l1.5 1L8 11.5M16 9.5l-1.5 1 1.5 1M7.5 14h9a4.5 4.5 0 0 1-9 0z"/></svg>',
+ wow:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9.5v.5M15 9.5v.5"/><ellipse cx="12" cy="15.5" rx="2" ry="2.5"/></svg>',
+ thanks:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 3C10.3 5 9.5 8 9.5 12v4.5L6 20M12 3c1.7 2 2.5 5 2.5 9v4.5L18 20M12 7v13"/></svg>',
  puzzle:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M9 3h4v2a2 2 0 1 0 4 0V3h4v6h-2a2 2 0 1 0 0 4h2v8h-6v-2a2 2 0 1 0-4 0v2H3v-6h2a2 2 0 1 0 0-4H3V3z"/></svg>',
  upload:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M12 16V4M6 9l6-6 6 6M4 21h16"/></svg>',
  trash:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3"/></svg>',
@@ -1831,7 +1856,7 @@ function courseEditForm(c){
    <p class="err" data-err hidden></p>
    <div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
      <div class="row" style="gap:8px"><button class="btn primary" type="submit">Lưu thay đổi</button><a class="btn" href="#/hoc-phan/${c.code}">Hủy</a></div>
-     <button class="btn sm" type="button" data-del-current-course="${c.code}" style="border-color:var(--stamp);color:var(--stamp);background:transparent">🗑️ Xóa học phần này</button>
+     <button class="btn sm" type="button" data-del-current-course="${c.code}" style="border-color:var(--stamp);color:var(--stamp);background:transparent">${icon.trash} Xóa học phần này</button>
    </div>
    <p class="tiny muted" style="margin:0">Mã học phần không đổi được vì tài liệu, lịch học, đánh giá đều gắn theo mã. Mọi thay đổi được đồng bộ lên máy chủ và ghi vào nhật ký.</p></form>`;
 }
@@ -2011,7 +2036,7 @@ views["/hoc-phan/:code"]=({code})=>{
    ${list.map(d=>docRow(d,[],{course:false})).join("")||empty("Học phần này chưa có tài liệu nào được duyệt.",`<a href="#/tai-len?hp=${c.code}"><b>Đóng góp tài liệu</b></a>`)}
    <section class="stack" style="margin-top:24px" id="danh-gia"><div class="sechead"><h2 class="h2">Đánh giá học phần (${reviews.length})</h2></div>
     ${me()?`<form class="stack" data-form="review" style="border:2px solid var(--line);background:var(--sheet);padding:12px"><p class="head small" style="margin:0">${myReview?"Sửa đánh giá của bạn":"Bạn đã học môn này? Chia sẻ cho khóa sau"}</p>
-     <div class="row" style="gap:16px;align-items:flex-start">${[["difficulty","Độ khó"],["workload","Khối lượng bài tập"]].map(([k,l])=>`<div class="field"><span class="head small">${l}</span><div class="stars" role="radiogroup" aria-label="${l}" data-scale="${k}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="${(myReview?.[k]||0)===n}" aria-label="${n}/5" data-v="${n}" class="${(myReview?.[k]||0)>=n?"on":""}">■</button>`).join("")}</div></div>`).join("")}</div>
+     <div class="row" style="gap:16px;align-items:flex-start">${[["difficulty","Độ khó"],["workload","Khối lượng bài tập"]].map(([k,l])=>`<div class="field"><span class="head small">${l}</span><div class="stars" role="radiogroup" aria-label="${l}" data-scale="${k}">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="${(myReview?.[k]||0)===n}" aria-label="${n}/5" data-v="${n}" class="${(myReview?.[k]||0)>=n?"on":""}">${icon.square}</button>`).join("")}</div></div>`).join("")}</div>
      <div class="field"><label for="rvt">Nhận xét</label><textarea class="textarea" id="rvt" maxlength="1000" style="min-height:72px" placeholder="Môn học thế nào, nên ôn ra sao…">${esc(myReview?.text||"")}</textarea></div><div><button class="btn ink" type="submit">${myReview?"Cập nhật đánh giá":"Gửi đánh giá"}</button></div></form>`:`<p class="note"><a href="#/dang-nhap?next=${encodeURIComponent("/hoc-phan/"+c.code)}"><b>Đăng nhập</b></a> để đánh giá độ khó học phần.</p>`}
     ${reviews.length?`<div style="border:2px solid var(--line);background:var(--sheet);padding:0 12px">${reviews.map(r=>{const by=userBy(r.by);return `<div class="cmt"><span class="avatar av-sm">${esc(initials(displayName(by)))}</span><div><div class="meta">${userLink(by)}, kỳ ${esc(r.term||"–")}, ${timeAgo(r.t)}</div><div class="small"><b class="head">Độ khó ${r.difficulty}/5</b>, khối lượng ${r.workload}/5</div><div class="body">${esc(r.text)}</div></div></div>`}).join("")}</div>`:""}
    </section>
@@ -2149,7 +2174,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
       <button type="button" data-zoom="-1" aria-label="Thu nhỏ" title="Thu nhỏ">−</button>
       <button type="button" data-zoom="0" aria-label="Vừa chiều ngang" title="100%" style="width:auto;padding:0 8px;font-size:13px" data-zoom-label>100%</button>
       <button type="button" data-zoom="1" aria-label="Phóng to" title="Phóng to">+</button>
-      <button type="button" data-viewer-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình" style="font-size:15px">⛶</button>
+      <button type="button" data-viewer-fullscreen aria-label="Toàn màn hình" title="Toàn màn hình" style="font-size:15px">${icon.maximize}</button>
     </span>
   </div>`;
 
@@ -2173,7 +2198,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button type="button" class="btn primary" data-action="${dlAction}" data-id="${d.id}" style="height:44px;padding:0 18px;font-size:14px;display:inline-flex;align-items:center;gap:6px">${icon.down} <span>${u?`Tải xuống (${fmtSize(d.sizeKb)})`:"Đăng nhập để tải"}</span></button>
-        <button type="button" class="btn${isSaved(u,d)?" ink":""}" data-save aria-pressed="${isSaved(u,d)}" style="height:44px">${isSaved(u,d)?"✓ Đã lưu":"★ Lưu tài liệu"}</button>
+        <button type="button" class="btn${isSaved(u,d)?" ink":""}" data-save aria-pressed="${isSaved(u,d)}" style="height:44px">${isSaved(u,d)?`${icon.bookmarkCheck} Đã lưu`:`${icon.bookmark} Lưu tài liệu`}</button>
       </div>
     </div>
   </div>`;
@@ -2202,7 +2227,7 @@ views["/tai-lieu/:slug"]=({slug})=>{
       </div>
       ${u?crButton(u,d):`<button class="btn primary lg block" type="button" data-action="download" data-id="${d.id}">${icon.down}Đăng nhập để tải xuống</button>`}
      </div>
-     ${d.status==="APPROVED"?`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:8px 12px"><span class="tiny muted" style="display:block">${u&&u.email!==d.uploader?(myRating(u,d)?"Điểm bạn chấm":"Chấm điểm tài liệu"):"Điểm trung bình"}</span>${u&&u.email!==d.uploader?`<div class="stars" role="radiogroup" aria-label="Chấm điểm">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="${myRating(u,d)===n}" aria-label="${n} sao" data-rate="${n}" class="${myRating(u,d)>=n?"on":""}">★</button>`).join("")}</div>`:`<b class="code" style="font-size:24px">${rating(d)}</b>`}</div><button type="button" class="btn${isSaved(u,d)?" ink":""}" style="border:0;height:auto" data-save aria-pressed="${isSaved(u,d)}">${isSaved(u,d)?"Đã lưu":"Lưu"}</button></div>`:""}
+     ${d.status==="APPROVED"?`<div class="tb" style="grid-template-columns:1fr auto"><div style="padding:8px 12px"><span class="tiny muted" style="display:block">${u&&u.email!==d.uploader?(myRating(u,d)?"Điểm bạn chấm":"Chấm điểm tài liệu"):"Điểm trung bình"}</span>${u&&u.email!==d.uploader?`<div class="stars" role="radiogroup" aria-label="Chấm điểm">${[1,2,3,4,5].map(n=>`<button type="button" role="radio" aria-checked="${myRating(u,d)===n}" aria-label="${n} sao" data-rate="${n}" class="${myRating(u,d)>=n?"on":""}">${icon.starFill}</button>`).join("")}</div>`:`<b class="code" style="font-size:24px">${rating(d)}</b>`}</div><button type="button" class="btn${isSaved(u,d)?" ink":""}" style="border:0;height:auto" data-save aria-pressed="${isSaved(u,d)}">${isSaved(u,d)?"Đã lưu":"Lưu"}</button></div>`:""}
      ${d.description?`<section style="border:2px solid var(--line);background:var(--sheet);padding:8px 12px"><h2 class="tiny muted" style="font-weight:400">Mô tả</h2><p style="margin:0;white-space:pre-line;font-size:14px">${esc(d.description)}</p></section>`:""}${typeof adSlot==="function"?adSlot("doc"):""}
      ${d.tags?.length?`<ul class="chips" aria-label="Thẻ">${d.tags.map(t=>`<li><a href="#/tim-kiem?q=${encodeURIComponent(t)}">${esc(t)}</a></li>`).join("")}</ul>`:""}
      ${u&&access==="public"?`<details style="border:2px solid var(--line);background:var(--sheet)"><summary class="head" style="height:44px;display:flex;align-items:center;padding:0 12px;cursor:pointer;font-size:14px">Báo cáo vi phạm</summary><form class="stack" data-form="report" style="padding:12px;border-top:1px solid var(--line)"><div class="field"><label for="rr">Lý do</label><select class="select" id="rr" name="reason">${Object.entries(REPORT_REASONS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></div><div class="field"><label for="rd">Chi tiết</label><textarea class="textarea" id="rd" name="details" placeholder="Ví dụ: trang nào có vấn đề, tài liệu đúng phải thuộc học phần nào."></textarea></div><button class="btn ink" type="submit">Gửi báo cáo</button></form></details>`:""}
@@ -2789,22 +2814,22 @@ function mountUpload(root,{mode,doc,onDone}){
       const it=fileList[0];if(!tiInput.value)tiInput.value=it.title;
       box.innerHTML=`<div class="tb" style="grid-template-columns:1fr auto;margin-bottom:8px">
         <div style="padding:10px 14px"><div class="row" style="gap:8px"><span class="badge">${it.file.name.split(".").pop().toUpperCase()}</span><b style="font-size:14px">${esc(it.file.name)}</b><span class="tiny muted">${fmtSize(it.file.size/1024)}</span></div><div data-file-status="${it.id}" style="margin-top:4px"></div></div>
-        <div style="display:flex;align-items:center;padding:0 12px"><button class="btn sm ghost" style="color:var(--stamp)" type="button" data-del-file="${it.id}">✕ Bỏ file</button></div>
-      </div>${overQuota?`<p class="note red" style="margin:4px 0 12px">⚠️ Bạn chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bớt file.</p>`:""}`;
+        <div style="display:flex;align-items:center;padding:0 12px"><button class="btn sm ghost" style="color:var(--stamp)" type="button" data-del-file="${it.id}">${icon.x} Bỏ file</button></div>
+      </div>${overQuota?`<p class="note red" style="margin:4px 0 12px">${icon.alert} Bạn chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bớt file.</p>`:""}`;
     }else{
       if(singleTitleWrap)singleTitleWrap.style.display="none";
       box.innerHTML=`<div class="tb" style="margin-bottom:8px">
         <div style="padding:10px 14px;background:var(--wash);border-bottom:2px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-          <b style="font-size:14px">📁 Đã chọn ${fileList.length} file (Tổng: ${fmtSize(totalBytes/1024)})</b>
+          <b style="font-size:14px">${icon.folder} Đã chọn ${fileList.length} file (Tổng: ${fmtSize(totalBytes/1024)})</b>
           <div class="row" style="gap:6px"><button class="btn sm" type="button" data-pick-more>+ Thêm file khác</button><button class="btn sm ghost" type="button" data-clear-files>Xóa tất cả</button></div>
         </div>
-        ${overQuota?`<div style="padding:8px 14px"><p class="note red" style="margin:0">⚠️ Bạn đã chọn ${fileList.length} file nhưng chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bỏ bớt ${fileList.length-q.left} file trước khi gửi.</p></div>`:""}
+        ${overQuota?`<div style="padding:8px 14px"><p class="note red" style="margin:0">${icon.alert} Bạn đã chọn ${fileList.length} file nhưng chỉ còn ${q.left} lượt tải hôm nay (hạn mức ${q.limit}/ngày). Vui lòng bỏ bớt ${fileList.length-q.left} file trước khi gửi.</p></div>`:""}
         <div style="display:flex;flex-direction:column">
           ${fileList.map((it,idx)=>`
             <div style="padding:10px 14px;border-bottom:${idx===fileList.length-1?"none":"1px solid var(--wash)"};display:flex;flex-direction:column;gap:8px">
               <div class="row" style="justify-content:space-between;align-items:center">
                 <div class="row" style="gap:8px;min-width:0"><span class="badge">${it.file.name.split(".").pop().toUpperCase()}</span><span style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px">${esc(it.file.name)}</span><span class="tiny muted">${fmtSize(it.file.size/1024)}</span></div>
-                <button class="btn sm ghost" style="color:var(--stamp);padding:2px 6px" type="button" data-del-file="${it.id}">✕ Bỏ file</button>
+                <button class="btn sm ghost" style="color:var(--stamp);padding:2px 6px" type="button" data-del-file="${it.id}">${icon.x} Bỏ file</button>
               </div>
               <div class="row" style="gap:10px;align-items:center">
                 <div style="flex:2"><input class="input sm" data-file-title="${it.id}" value="${esc(it.title)}" placeholder="Tiêu đề tài liệu này (bắt buộc)"></div>
@@ -2887,7 +2912,7 @@ function mountUpload(root,{mode,doc,onDone}){
       if(progressTxt)progressTxt.textContent=`Đang xử lý ${i+1}/${total}: ${it.file.name}...`;
       if(progressPct)progressPct.textContent=`${percent}%`;if(progressBar)progressBar.style.width=`${percent}%`;
       const stEl=box.querySelector(`[data-file-status="${it.id}"]`);
-      if(stEl)stEl.innerHTML=`<span class="tiny muted">⏳ Đang kiểm tra định dạng & SHA-256...</span>`;
+      if(stEl)stEl.innerHTML=`<span class="tiny muted">${icon.hourglass} Đang kiểm tra định dạng & SHA-256...</span>`;
       const fileType=it.type||commonMeta.defaultType;
       const fileMeta={title:it.title,description:commonMeta.description,tags:commonMeta.tags,course:commonMeta.course,type:fileType,term:commonMeta.term,anonymous:commonMeta.anonymous};
       const d=(mode==="edit"&&doc)?doc:{id:"u"+uid(),slug:slugify(it.title)+"-"+uid().slice(0,4),uploaded:true,uploader:u.email,downloads:0,views:0,ratingCount:0,ratingSum:0,publishedAt:null,createdAt:Date.now()+i*10,logs:[]};
@@ -2898,14 +2923,14 @@ function mountUpload(root,{mode,doc,onDone}){
       if(r.reject){
         d.status="REJECTED";d.reviewNote=r.reject;d.logs.unshift({t:Date.now(),a:"AUTO_REJECTED",reason:r.reject});
         notify(u.email,"DOCUMENT_REJECTED",d,{reason:r.reject,link:"#/tai-lieu-cua-toi"});apiPost("docs.php?action=save",{doc:d}).catch(()=>{});
-        if(stEl)stEl.innerHTML=`<span class="tiny" style="color:var(--stamp)">❌ Bị từ chối: ${esc(r.reject)}</span>`;
+        if(stEl)stEl.innerHTML=`<span class="tiny" style="color:var(--stamp)">${icon.x} Bị từ chối: ${esc(r.reject)}</span>`;
       }else{
         d.status="PENDING_REVIEW";d.reviewNote=null;d.logs.unshift({t:Date.now(),a:"AUTO_CHECK_PASSED",meta:`Điểm rủi ro ${d.risk}`});
         await fileDB.put(d.id,it.file);
         if(isMod(u))staffPublish(d,u);
         if(typeof modAfterUpload==="function")await modAfterUpload(d,it.file,u);
         try{const ufd=new FormData();ufd.append("file",it.file);ufd.append("doc",JSON.stringify(d));await fetch(API_BASE+"/api/docs.php?action=upload_file",{method:"POST",body:ufd})}catch(uploadErr){console.warn("Upload failed:",uploadErr)}
-        if(stEl)stEl.innerHTML=`<span class="tiny" style="color:#0a0">✅ Đã kiểm tra (${d.status==="APPROVED"?"Đã duyệt":"Chờ duyệt"})</span>`;
+        if(stEl)stEl.innerHTML=`<span class="tiny" style="color:#0a0">${icon.check} Đã kiểm tra (${d.status==="APPROVED"?"Đã duyệt":"Chờ duyệt"})</span>`;
       }
       if(mode==="edit")d.logs.unshift({t:Date.now(),a:"NOTE",by:u.email,reason:"Người đăng gửi lại kèm file mới"});
       save();results.push({doc:d,checks:r,success:!r.reject,file:it.file});
@@ -3164,9 +3189,9 @@ views["/dieu-khoan"]=()=>legal("Điều khoản sử dụng",[
   ["3. Quyền sở hữu trí tuệ & Cam kết khi chia sẻ tài liệu",[
     "Khi tải tài liệu lên HUSTDOCU, người dùng cam kết là tác giả (bài ghi chép cá nhân, slide tóm tắt, lời giải bài tập) hoặc có quyền chia sẻ hợp pháp tài liệu đó cho mục đích học tập phi thương mại theo <b>Luật Sở hữu trí tuệ 2005 (sửa đổi, bổ sung 2022)</b>.",
     "<b>Danh mục tài liệu nghiêm cấm tải lên:</b>",
-    "• Giáo trình, sách xuất bản đang lưu hành thương mại của các nhà xuất bản khi chưa được phép của tác giả/chủ sở hữu.",
-    "• Tài liệu nội bộ, thông tin đóng dấu MẬT hoặc văn bản quy định không phổ biến ra ngoài của Nhà trường.",
-    "• Đề thi chính thức thuộc danh mục bảo mật chưa được Nhà trường cho phép công bố.",
+    icon.dot+"Giáo trình, sách xuất bản đang lưu hành thương mại của các nhà xuất bản khi chưa được phép của tác giả/chủ sở hữu.",
+    icon.dot+"Tài liệu nội bộ, thông tin đóng dấu MẬT hoặc văn bản quy định không phổ biến ra ngoài của Nhà trường.",
+    icon.dot+"Đề thi chính thức thuộc danh mục bảo mật chưa được Nhà trường cho phép công bố.",
     "Bản quyền tài liệu thuộc về tác giả gốc và người đóng góp. Người tải tài liệu chỉ được sử dụng cho mục đích cá nhân, không được thương mại hóa dưới mọi hình thức."
   ]],
   ["4. Quy trình tiếp nhận & gỡ bỏ tài liệu vi phạm (Notice & Takedown)",[
@@ -3179,10 +3204,10 @@ views["/dieu-khoan"]=()=>legal("Điều khoản sử dụng",[
   ]],
   ["6. Hành vi nghiêm cấm theo Luật An ninh mạng 116/2025/QH15",[
     "Người dùng nghiêm cấm thực hiện các hành vi quy định tại Điều 8 Luật An ninh mạng số 116/2025/QH15:",
-    "• Đăng tải mã độc, virus, phần mềm gián điệp, script can thiệp hệ thống.",
-    "• Sử dụng công cụ tự động (bot, crawler, script) để cào dữ liệu hàng loạt hoặc làm gián đoạn hạ tầng máy chủ.",
-    "• Đăng tải thông tin sai sự thật, xuyên tạc, chống phá Nhà nước, hoặc xúc phạm danh dự, nhân phẩm của cá nhân, tổ chức.",
-    "• Gian lận lượt tải, điểm thưởng uy tín hoặc can thiệp trái phép vào cơ sở dữ liệu.",
+    icon.dot+"Đăng tải mã độc, virus, phần mềm gián điệp, script can thiệp hệ thống.",
+    icon.dot+"Sử dụng công cụ tự động (bot, crawler, script) để cào dữ liệu hàng loạt hoặc làm gián đoạn hạ tầng máy chủ.",
+    icon.dot+"Đăng tải thông tin sai sự thật, xuyên tạc, chống phá Nhà nước, hoặc xúc phạm danh dự, nhân phẩm của cá nhân, tổ chức.",
+    icon.dot+"Gian lận lượt tải, điểm thưởng uy tín hoặc can thiệp trái phép vào cơ sở dữ liệu.",
     "Tùy theo mức độ, tài khoản vi phạm sẽ bị đình chỉ tạm thời, khóa vĩnh viễn hoặc chuyển cơ quan chức năng xử lý theo quy định pháp luật."
   ]],
   ["7. Liêm chính học thuật & Quy chế thi cử",[
@@ -3198,11 +3223,11 @@ views["/quyen-rieng-tu"]=()=>legal("Chính sách bảo vệ dữ liệu cá nhâ
   ]],
   ["2. Danh mục dữ liệu thu thập & Mục đích xử lý (Điều 9 Luật 91/2025)",[
     "Chúng tôi chỉ thu thập các dữ liệu cá nhân thực sự cần thiết, đúng mục đích đã thông báo, tuyệt đối không lạm dụng:",
-    "• <b>Email sinh viên (@sis.hust.edu.vn, @hust.edu.vn hoặc Gmail cá nhân):</b> Dùng để gửi mã xác thực OTP đăng nhập an toàn, gửi thông báo kết quả kiểm duyệt tài liệu và cảnh báo bảo mật.",
-    "• <b>Họ tên, Viện/Trường, Khóa học, Mã sinh viên (tùy chọn):</b> Dùng để cá nhân hóa gợi ý tài liệu học phần và ghi nhận điểm uy tín người đóng góp (bạn luôn có quyền chọn chế độ đăng ẩn danh với cộng đồng).",
-    "• <b>Tài liệu học tập bạn tải lên:</b> Phục vụ mục đích lưu trữ và chia sẻ học tập phi thương mại giữa sinh viên.",
-    "• <b>Dữ liệu hoạt động học tập (Lịch sử tìm kiếm, danh sách lưu, số lượt tải):</b> Lưu trữ cục bộ trên thiết bị của bạn (LocalStorage & IndexedDB) để phục vụ tiện ích cá nhân và bộ đếm tải hàng ngày.",
-    "• <b>Địa chỉ IP và chuỗi User-Agent trình duyệt:</b> Chỉ được lưu trữ dưới dạng băm một chiều (SHA-256 hash) để phòng chống tấn công mạng, ngăn chặn cào dữ liệu tự động theo Luật An ninh mạng 116/2025/QH15."
+    icon.dot+"<b>Email sinh viên (@sis.hust.edu.vn, @hust.edu.vn hoặc Gmail cá nhân):</b> Dùng để gửi mã xác thực OTP đăng nhập an toàn, gửi thông báo kết quả kiểm duyệt tài liệu và cảnh báo bảo mật.",
+    icon.dot+"<b>Họ tên, Viện/Trường, Khóa học, Mã sinh viên (tùy chọn):</b> Dùng để cá nhân hóa gợi ý tài liệu học phần và ghi nhận điểm uy tín người đóng góp (bạn luôn có quyền chọn chế độ đăng ẩn danh với cộng đồng).",
+    icon.dot+"<b>Tài liệu học tập bạn tải lên:</b> Phục vụ mục đích lưu trữ và chia sẻ học tập phi thương mại giữa sinh viên.",
+    icon.dot+"<b>Dữ liệu hoạt động học tập (Lịch sử tìm kiếm, danh sách lưu, số lượt tải):</b> Lưu trữ cục bộ trên thiết bị của bạn (LocalStorage & IndexedDB) để phục vụ tiện ích cá nhân và bộ đếm tải hàng ngày.",
+    icon.dot+"<b>Địa chỉ IP và chuỗi User-Agent trình duyệt:</b> Chỉ được lưu trữ dưới dạng băm một chiều (SHA-256 hash) để phòng chống tấn công mạng, ngăn chặn cào dữ liệu tự động theo Luật An ninh mạng 116/2025/QH15."
   ]],
   ["3. Sự đồng ý của chủ thể dữ liệu (Consent Flow)",[
     "Căn cứ khoản 4 Điều 9 Luật 91/2025/QH15, sự đồng ý của bạn là hoàn toàn tự nguyện, trên cơ sở được thông báo đầy đủ. Hệ thống <b>tuyệt đối không sử dụng ô chọn sẵn (pre-ticked checkbox)</b>.",
@@ -3210,23 +3235,23 @@ views["/quyen-rieng-tu"]=()=>legal("Chính sách bảo vệ dữ liệu cá nhâ
   ]],
   ["4. Quyền của Chủ thể dữ liệu (Điều 9 & Điều 10 Luật 91/2025)",[
     "Sinh viên và người dùng tham gia HUSTDOCU có đầy đủ các quyền luật định:",
-    "• <b>Quyền được biết & Quyền đồng ý:</b> Được thông báo minh bạch về mọi hoạt động xử lý dữ liệu trước khi cung cấp.",
-    "• <b>Quyền truy cập & Chỉnh sửa:</b> Bạn có thể xem và cập nhật thông tin hồ sơ của mình bất kỳ lúc nào.",
-    "• <b>Quyền rút lại sự đồng ý & Xóa dữ liệu (Quyền được lãng quên):</b> Bạn có quyền yêu cầu xóa toàn bộ tài khoản và các dữ liệu liên quan khỏi hệ thống.",
-    "• <b>Quyền nhận bản sao dữ liệu:</b> Bạn có quyền yêu cầu cung cấp bản sao dữ liệu cá nhân mà hệ thống đang lưu trữ.",
-    "• <b>Quyền phản ánh & Khiếu nại:</b> Bạn có quyền khiếu nại tới Ban Quản trị nếu phát hiện dữ liệu bị sử dụng sai mục đích.",
-    "⏰ <b>Thời hạn phản hồi & xử lý:</b> Ban Quản trị cam kết hoàn thành xử lý mọi yêu cầu hợp lệ về quyền dữ liệu cá nhân trong thời hạn tối đa <b>72 giờ</b> kể từ khi nhận được yêu cầu qua email <a href=\"mailto:admin@hustdocu.id.vn\">admin@hustdocu.id.vn</a> (Tuân thủ Điều 5 Nghị định 356/2025/NĐ-CP)."
+    icon.dot+"<b>Quyền được biết & Quyền đồng ý:</b> Được thông báo minh bạch về mọi hoạt động xử lý dữ liệu trước khi cung cấp.",
+    icon.dot+"<b>Quyền truy cập & Chỉnh sửa:</b> Bạn có thể xem và cập nhật thông tin hồ sơ của mình bất kỳ lúc nào.",
+    icon.dot+"<b>Quyền rút lại sự đồng ý & Xóa dữ liệu (Quyền được lãng quên):</b> Bạn có quyền yêu cầu xóa toàn bộ tài khoản và các dữ liệu liên quan khỏi hệ thống.",
+    icon.dot+"<b>Quyền nhận bản sao dữ liệu:</b> Bạn có quyền yêu cầu cung cấp bản sao dữ liệu cá nhân mà hệ thống đang lưu trữ.",
+    icon.dot+"<b>Quyền phản ánh & Khiếu nại:</b> Bạn có quyền khiếu nại tới Ban Quản trị nếu phát hiện dữ liệu bị sử dụng sai mục đích.",
+    icon.clock+" <b>Thời hạn phản hồi & xử lý:</b> Ban Quản trị cam kết hoàn thành xử lý mọi yêu cầu hợp lệ về quyền dữ liệu cá nhân trong thời hạn tối đa <b>72 giờ</b> kể từ khi nhận được yêu cầu qua email <a href=\"mailto:admin@hustdocu.id.vn\">admin@hustdocu.id.vn</a> (Tuân thủ Điều 5 Nghị định 356/2025/NĐ-CP)."
   ]],
   ["5. Lưu trữ dữ liệu & Không chuyển giao xuyên biên giới",[
-    "• <b>Vị trí lưu trữ:</b> 100% cơ sở dữ liệu và tệp tin được lưu trữ trên hệ thống máy chủ đặt tại lãnh thổ Việt Nam (123Host Vietnam, trung tâm dữ liệu tại Hà Nội / TP.HCM), tuân thủ Điều 20 Luật 91/2025/QH15 và Luật An ninh mạng 116/2025/QH15.",
-    "• <b>Cam kết không thương mại hóa:</b> Chúng tôi cam kết tuyệt đối không bán, cho thuê hoặc chuyển giao dữ liệu cá nhân của sinh viên cho bất kỳ bên thứ ba, nhà môi giới dữ liệu hay mạng lưới quảng cáo nào."
+    icon.dot+"<b>Vị trí lưu trữ:</b> 100% cơ sở dữ liệu và tệp tin được lưu trữ trên hệ thống máy chủ đặt tại lãnh thổ Việt Nam (123Host Vietnam, trung tâm dữ liệu tại Hà Nội / TP.HCM), tuân thủ Điều 20 Luật 91/2025/QH15 và Luật An ninh mạng 116/2025/QH15.",
+    icon.dot+"<b>Cam kết không thương mại hóa:</b> Chúng tôi cam kết tuyệt đối không bán, cho thuê hoặc chuyển giao dữ liệu cá nhân của sinh viên cho bất kỳ bên thứ ba, nhà môi giới dữ liệu hay mạng lưới quảng cáo nào."
   ]],
   ["6. Biện pháp kỹ thuật bảo vệ dữ liệu cá nhân",[
     "Hệ thống áp dụng các biện pháp an ninh mạng kỹ thuật toàn diện:",
-    "• Mã hóa đường truyền bằng giao thức bảo mật SSL/TLS (HTTPS) trên toàn bộ kết nối.",
-    "• Phân quyền kiểm duyệt viên nhiều tầng (RBAC - Role-Based Access Control).",
-    "• Địa chỉ IP được băm mã hóa một chiều (SHA-256), không thể khôi phục ngược.",
-    "• Tự động quét kiểm tra định dạng và mã độc trong mọi tập tin trước khi lưu trữ và chia sẻ."
+    icon.dot+"Mã hóa đường truyền bằng giao thức bảo mật SSL/TLS (HTTPS) trên toàn bộ kết nối.",
+    icon.dot+"Phân quyền kiểm duyệt viên nhiều tầng (RBAC - Role-Based Access Control).",
+    icon.dot+"Địa chỉ IP được băm mã hóa một chiều (SHA-256), không thể khôi phục ngược.",
+    icon.dot+"Tự động quét kiểm tra định dạng và mã độc trong mọi tập tin trước khi lưu trữ và chia sẻ."
   ]]
 ]);
 
@@ -3239,16 +3264,16 @@ views["/minh-bach-ai"]=()=>legal("Chính sách minh bạch Trí tuệ nhân tạ
     "Theo Luật 134/2025/QH15, HUSTDOCU đóng vai trò là <b>Bên triển khai hệ thống AI (Deployer)</b>: ứng dụng công nghệ mô hình ngôn ngữ lớn (LLM) để hỗ trợ sinh viên tra cứu và tóm tắt kiến thức từ các tài liệu học tập sẵn có trong kho."
   ]],
   ["3. Nhận diện tương tác AI (Điều 11 khoản 1 Luật 134/2025)",[
-    "• Người dùng luôn được thông báo rõ ràng rằng mình đang tương tác với hệ thống Trí tuệ nhân tạo tự động, không phải là nhân sự tư vấn hay giảng viên của Nhà trường.",
-    "• Giao diện Trợ lý AI được gắn nhãn nhận diện đặc thù và tên gọi minh bạch: 'Trợ lý AI Bách khoa'."
+    icon.dot+"Người dùng luôn được thông báo rõ ràng rằng mình đang tương tác với hệ thống Trí tuệ nhân tạo tự động, không phải là nhân sự tư vấn hay giảng viên của Nhà trường.",
+    icon.dot+"Giao diện Trợ lý AI được gắn nhãn nhận diện đặc thù và tên gọi minh bạch: 'Trợ lý AI Bách khoa'."
   ]],
   ["4. Nhãn nhận biết nội dung do AI tạo ra (AI-Generated Content)",[
-    "• Mọi phản hồi, phân tích, trích dẫn do hệ thống AI sinh ra đều được gắn nhãn nhận biết rõ ràng: <b>'Nội dung do AI tạo ra'</b> kèm thông tin nguồn gốc tài liệu đối chiếu (tên tài liệu, số trang).",
-    "• Thông tin do AI cung cấp chỉ mang tính chất tham khảo học tập cá nhân. Sinh viên không được sử dụng nguyên văn câu trả lời AI để nộp bài thi hoặc báo cáo nghiên cứu mà không có sự kiểm chứng độc lập."
+    icon.dot+"Mọi phản hồi, phân tích, trích dẫn do hệ thống AI sinh ra đều được gắn nhãn nhận biết rõ ràng: <b>'Nội dung do AI tạo ra'</b> kèm thông tin nguồn gốc tài liệu đối chiếu (tên tài liệu, số trang).",
+    icon.dot+"Thông tin do AI cung cấp chỉ mang tính chất tham khảo học tập cá nhân. Sinh viên không được sử dụng nguyên văn câu trả lời AI để nộp bài thi hoặc báo cáo nghiên cứu mà không có sự kiểm chứng độc lập."
   ]],
   ["5. Quyền kiểm soát & Xóa lịch sử trò chuyện AI",[
-    "• Sinh viên có quyền bật/tắt chế độ sử dụng AI bất kỳ lúc nào.",
-    "• Hệ thống cung cấp nút <b>'Xóa lịch sử'</b> cho phép người dùng chủ động xóa vĩnh viễn toàn bộ nội dung các phiên hỏi đáp AI đã lưu trữ."
+    icon.dot+"Sinh viên có quyền bật/tắt chế độ sử dụng AI bất kỳ lúc nào.",
+    icon.dot+"Hệ thống cung cấp nút <b>'Xóa lịch sử'</b> cho phép người dùng chủ động xóa vĩnh viễn toàn bộ nội dung các phiên hỏi đáp AI đã lưu trữ."
   ]]
 ]);
 
@@ -3275,8 +3300,11 @@ views["/u/:username"]=({username})=>{const p=S.users.find(u=>u.username===userna
    </div>`}};
 /* ===================== Giai đoạn 3: chat ===================== */
 const CHAT_ICON='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h16v12H9l-5 4z"/></svg>';
-const REACTIONS=["👍","❤️","😂","😮","🙏"];
-const CANNED={q:["Mình nghĩ bạn xem lại slide chương 3, có ví dụ y hệt.","Câu này mình từng hỏi thầy, đáp án là phương án B nha.","Có trong đề cuối kỳ 20241 đó, tìm trên kho là thấy.","Tối nay nhóm mình ôn lúc 9h, bạn vào nhóm học tập không?"],a:["Chuẩn luôn 👍","Cảm ơn bạn nhé!","Mình cũng đang ôn phần này.","Hay đó, mình lưu lại."]};
+const REACTIONS=["👍","❤️","😂","😮","🙏"]; // khoá lưu trong dữ liệu (giữ để tương thích), hiển thị bằng icon SVG
+const RX_ICON={"👍":["thumbUp","Thích"],"❤️":["heart","Yêu thích"],"😂":["laugh","Haha"],"😮":["wow","Wow"],"🙏":["thanks","Cảm ơn"]};
+const rxIcon=(e)=>RX_ICON[e]?icon[RX_ICON[e][0]]:esc(e);
+const rxName=(e)=>RX_ICON[e]?RX_ICON[e][1]:e;
+const CANNED={q:["Mình nghĩ bạn xem lại slide chương 3, có ví dụ y hệt.","Câu này mình từng hỏi thầy, đáp án là phương án B nha.","Có trong đề cuối kỳ 20241 đó, tìm trên kho là thấy.","Tối nay nhóm mình ôn lúc 9h, bạn vào nhóm học tập không?"],a:["Chuẩn luôn!","Cảm ơn bạn nhé!","Mình cũng đang ôn phần này.","Hay đó, mình lưu lại."]};
 function seedChat(st){
   st.rooms=[{id:"g",type:"GLOBAL",name:"Toàn trường"}];
   DATA.faculties.forEach(f=>st.rooms.push({id:"f:"+f.code,type:"FACULTY",name:f.shortName,faculty:f.code}));
@@ -3317,10 +3345,10 @@ function msgHtml(m,u,room,prev){const by=userBy(m.by);const mod=isMod(u);const s
   const isDel=m.status==="DELETED"||m.status==="DELETED_BY_MOD";
   return `<div class="msg${same?" same":""}${m.by===u.email?" me":""}" id="msg-${m.id}">${same?'<span></span>':`<span class="avatar av-sm">${esc(initials(displayName(by)))}</span>`}<div style="min-width:0">
    ${same?"":`<div class="meta">${userLink(by)}${hasRole(by,"MODERATOR")||hasRole(by,"ADMIN")?' <span class="badge" style="height:18px;font-size:10px;padding:0 4px">kiểm duyệt</span>':""} <span>${fmtTime(m.t)}</span></div>`}
-   ${rep?`<div class="quote">↳ ${esc(displayName(userBy(rep.by)))}: ${esc((rep.status==="DELETED"||rep.status==="DELETED_BY_MOD")?"tin nhắn đã bị gỡ":rep.text.slice(0,90))}</div>`:""}
+   ${rep?`<div class="quote">${icon.reply} ${esc(displayName(userBy(rep.by)))}: ${esc((rep.status==="DELETED"||rep.status==="DELETED_BY_MOD")?"tin nhắn đã bị gỡ":rep.text.slice(0,90))}</div>`:""}
    ${!isDel?`<div class="text">${linkify(m.text)}</div>`:`<div class="text muted" style="font-style:italic">Tin nhắn đã bị ${m.status==="DELETED_BY_MOD"?"kiểm duyệt viên ":"người gửi "}gỡ.</div>`}
-   ${!isDel&&rx.length?`<div class="rx">${rx.map(([e,l])=>`<button type="button" data-react="${m.id}" data-e="${e}" class="${l.includes(u.email)?"on":""}" aria-label="${e} ${l.length}">${e} ${l.length}</button>`).join("")}</div>`:""}
-   ${!isDel?`<div class="tools">${REACTIONS.map(e=>`<button type="button" data-react="${m.id}" data-e="${e}" aria-label="Thả ${e}">${e}</button>`).join("")}<button type="button" data-replyto="${m.id}">Trả lời</button>${m.by===u.email?`<button type="button" data-delmsg="${m.id}">Gỡ</button>`:`<button type="button" data-repmsg="${m.id}">Báo cáo</button>${room.type!=="DM"?`<button type="button" data-dm="${m.by}">Nhắn riêng</button>`:""}`}${mod&&m.by!==u.email&&room.type!=="DM"?`<button type="button" data-moddel="${m.id}">Gỡ (KDV)</button><button type="button" data-mute="${m.by}" data-room="${room.id}">Cấm chat 1 giờ</button>`:""}</div>`:""}
+   ${!isDel&&rx.length?`<div class="rx">${rx.map(([e,l])=>`<button type="button" data-react="${m.id}" data-e="${e}" class="${l.includes(u.email)?"on":""}" aria-label="${rxName(e)} ${l.length}" title="${rxName(e)}">${rxIcon(e)} ${l.length}</button>`).join("")}</div>`:""}
+   ${!isDel?`<div class="tools">${REACTIONS.map(e=>`<button type="button" data-react="${m.id}" data-e="${e}" aria-label="Thả ${rxName(e)}" title="${rxName(e)}">${rxIcon(e)}</button>`).join("")}<button type="button" data-replyto="${m.id}">Trả lời</button>${m.by===u.email?`<button type="button" data-delmsg="${m.id}">Gỡ</button>`:`<button type="button" data-repmsg="${m.id}">Báo cáo</button>${room.type!=="DM"?`<button type="button" data-dm="${m.by}">Nhắn riêng</button>`:""}`}${mod&&m.by!==u.email&&room.type!=="DM"?`<button type="button" data-moddel="${m.id}">Gỡ (KDV)</button><button type="button" data-mute="${m.by}" data-room="${room.id}">Cấm chat 1 giờ</button>`:""}</div>`:""}
   </div></div>`}
 let chatDraft={};let chatReply=null;
 function chatView(roomId){
@@ -3338,10 +3366,10 @@ function chatView(roomId){
   if(room){const msgs=S.messages.filter(m=>m.room===room.id).sort((a,b)=>a.t-b.t).slice(-200);const grp=room.type==="GROUP"&&S.groups.find(g=>g.id===room.group);const mute=activeMute(u,room.id);
    const sub=room.type==="COURSE"?`<a href="#/hoc-phan/${room.course}" class="small">Trang học phần</a>`:grp?`<span class="small muted">${grp.members.length} thành viên, mã mời <b class="head">${grp.code}</b></span>`:room.type==="DM"?`<a href="#/u/${esc(userBy(room.other)?.username||"")}" class="small">Trang cá nhân</a>`:room.type==="FACULTY"?'<span class="small muted">Sinh viên cùng Viện</span>':'<span class="small muted">Mọi sinh viên</span>';
    const typing=S.typing&&S.typing.room===room.id&&S.typing.until>Date.now()?`${esc(displayName(userBy(S.typing.by)))} đang soạn tin…`:"";
-   pane=`<section class="pane"><header class="pane-head"><a href="#/chat" class="btn ghost sm back" aria-label="Về danh sách phòng">←</a><div style="min-width:0;flex:1"><h1 class="head" style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(room.name)}</h1>${sub}</div>${room.type==="DM"?`<button class="btn sm" type="button" data-block="${room.other}">${(S.blocks[u.email]||[]).includes(room.other)?"Bỏ chặn":"Chặn"}</button>`:""}${grp&&grp.owner!==u.email?'<button class="btn sm" type="button" data-leave>Rời nhóm</button>':""}</header>
+   pane=`<section class="pane"><header class="pane-head"><a href="#/chat" class="btn ghost sm back" aria-label="Về danh sách phòng">${icon.arrowLeft}</a><div style="min-width:0;flex:1"><h1 class="head" style="font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(room.name)}</h1>${sub}</div>${room.type==="DM"?`<button class="btn sm" type="button" data-block="${room.other}">${(S.blocks[u.email]||[]).includes(room.other)?"Bỏ chặn":"Chặn"}</button>`:""}${grp&&grp.owner!==u.email?'<button class="btn sm" type="button" data-leave>Rời nhóm</button>':""}</header>
     <div class="msgs" data-msgs>${msgs.length?msgs.map((m,i)=>msgHtml(m,u,room,msgs[i-1])).join(""):`<p class="small muted" style="text-align:center;margin:24px">Chưa có tin nhắn. Hãy là người mở lời!</p>`}</div>
     <div class="typing tiny muted" aria-live="polite">${typing}</div>
-    ${mute?`<p class="note red" style="margin:8px">Bạn đang bị cấm chat đến ${fmtTime(mute.until)}. Lý do: ${esc(mute.reason)}</p>`:`<form class="composer" data-send>${chatReply?`<div class="quote" style="grid-column:1/-1">↳ Trả lời ${esc(displayName(userBy(S.messages.find(x=>x.id===chatReply)?.by)))} <button type="button" class="btn ghost sm" data-cancelreply>Bỏ</button></div>`:""}<label for="ct" class="sr">Tin nhắn</label><textarea id="ct" class="textarea" rows="1" maxlength="1000" placeholder="Nhắn tin, gõ @tên để nhắc ai đó">${esc(chatDraft[room.id]||"")}</textarea><button class="btn primary" type="submit">Gửi</button></form>`}</section>`}
+    ${mute?`<p class="note red" style="margin:8px">Bạn đang bị cấm chat đến ${fmtTime(mute.until)}. Lý do: ${esc(mute.reason)}</p>`:`<form class="composer" data-send>${chatReply?`<div class="quote" style="grid-column:1/-1">${icon.reply} Trả lời ${esc(displayName(userBy(S.messages.find(x=>x.id===chatReply)?.by)))} <button type="button" class="btn ghost sm" data-cancelreply>Bỏ</button></div>`:""}<label for="ct" class="sr">Tin nhắn</label><textarea id="ct" class="textarea" rows="1" maxlength="1000" placeholder="Nhắn tin, gõ @tên để nhắc ai đó">${esc(chatDraft[room.id]||"")}</textarea><button class="btn primary" type="submit">Gửi</button></form>`}</section>`}
   return {html:`<div class="chat">${list}${pane}</div>`,mount(root){mountChat(root,u,room)}};
 }
 function renderChatOnly(){
@@ -3498,7 +3526,7 @@ function mountDocAi(root,d,u){const sec=root.querySelector("#tro-ly");if(!sec||!
 views["/tro-ly"]=()=>{const u=me();if(!u)return needLogin("/tro-ly");const hp=params().get("hp")||"";const st=aiSettings();S.aiChats=S.aiChats||{};const hist=S.aiChats[u.email]||[];
   return {html:`<div class="wrap" style="padding-block:20px;max-width:960px"><div class="row" style="justify-content:space-between;align-items:flex-end;margin-bottom:12px"><div><h1 class="code" style="font-size:40px;line-height:1">Trợ lý AI Bách khoa</h1>
 <div class="row" style="gap:6px;margin:4px 0 6px;flex-wrap:wrap">
-  <span class="badge" style="font-size:11px;background:var(--sheet);border:1px solid var(--line)">🤖 Hệ thống Trí tuệ nhân tạo (AI Assistant)</span>
+  <span class="badge" style="font-size:11px;background:var(--sheet);border:1px solid var(--line)">${icon.bot} Hệ thống Trí tuệ nhân tạo (AI Assistant)</span>
   <span class="badge" style="font-size:11px;background:var(--sheet);border:1px solid var(--line)"><a href="#/minh-bach-ai" style="color:inherit">Điều 11 Luật AI 134/2025/QH15</a></span>
 </div>
 <p class="small muted" style="margin:2px 0 0;max-width:620px">Hỏi đáp nội dung tài liệu trong kho. <b>Lưu ý minh bạch:</b> Phản hồi do AI tạo tự động chỉ mang tính chất tham khảo học tập, không thay thế tài liệu giảng dạy chính thức hay ý kiến giảng viên.</p></div><span class="tiny muted">Hôm nay đã hỏi ${aiUsage(u)}/${AI_DAILY}</span></div>
@@ -4168,7 +4196,7 @@ views["/lich"] = () => {
     `<div class="wrap stack" style="padding-block:20px;gap:24px">
     ${examPanel(u)}
     ${deadlines.length ? `<section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Hạn nộp sắp tới</h2><ul class="tb" style="list-style:none;margin:0;padding:0">${deadlines.map((o) => `<li style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 12px;flex-wrap:wrap"><span style="min-width:0"><b style="font-weight:600">${esc(o.e.title)}</b><span class="tiny muted" style="display:block">${fmtDay(o.day)} ${hm(o.e.end)}, ${countdown(o.at)}</span></span><button class="btn sm" type="button" data-done="${o.e.id}">Đã xong</button></li>`).join("")}</ul></section>` : ""}
-    <section class="stack" style="gap:8px"><div class="row" style="justify-content:space-between;align-items:center"><h2 class="h2" style="margin:0">Tuần ${fmtDay(ws).split(", ")[1]} - ${fmtDay(ws + 6 * D6).split(", ")[1]}</h2><div class="row" style="gap:6px"><a class="btn sm" href="#/lich?tuan=${off - 1}" aria-label="Tuần trước">‹</a><a class="btn sm" href="#/lich">Tuần này</a><a class="btn sm" href="#/lich?tuan=${off + 1}" aria-label="Tuần sau">›</a></div></div>
+    <section class="stack" style="gap:8px"><div class="row" style="justify-content:space-between;align-items:center"><h2 class="h2" style="margin:0">Tuần ${fmtDay(ws).split(", ")[1]} - ${fmtDay(ws + 6 * D6).split(", ")[1]}</h2><div class="row" style="gap:6px"><a class="btn sm" href="#/lich?tuan=${off - 1}" aria-label="Tuần trước">${icon.chevLeft}</a><a class="btn sm" href="#/lich">Tuần này</a><a class="btn sm" href="#/lich?tuan=${off + 1}" aria-label="Tuần sau">${icon.chevRight}</a></div></div>
      <div class="wk-desktop">${weekGrid(blocks)}</div>
      <div class="wk-agenda">${Array.from({ length: 7 }, (_, i) => {
        const list = occ.filter((o) => dayStart(o.day) === ws + i * D6);
@@ -4964,7 +4992,7 @@ views["/xep-lich"] = () => {
       <p class="small" data-offbusy hidden style="margin:0">Đang đọc file…</p>
       <div class="field"><label for="off-paste">Hoặc dán bảng</label><textarea class="textarea" id="off-paste" style="min-height:60px"></textarea></div><div><button class="btn sm" type="button" data-offpaste>Đọc bảng</button></div></section>
      <section class="stack" style="border:2px solid var(--line);background:var(--sheet);padding:16px;gap:10px"><h2 class="h2" style="margin:0">2. Học phần muốn đăng ký</h2>
-      <div class="row" style="gap:6px">${plan.courses.map((c) => `<span class="why" style="font-size:13px;padding:4px 8px;border:2px solid var(--line);color:var(--ink)">${c} ${esc(courseLabel(c, list))} <button type="button" data-rm="${c}" aria-label="Bỏ ${c}" style="all:unset;cursor:pointer;margin-left:6px;font-weight:700">×</button></span>`).join("") || '<span class="small muted">Chưa chọn học phần nào.</span>'}</div>
+      <div class="row" style="gap:6px">${plan.courses.map((c) => `<span class="why" style="font-size:13px;padding:4px 8px;border:2px solid var(--line);color:var(--ink)">${c} ${esc(courseLabel(c, list))} <button type="button" data-rm="${c}" aria-label="Bỏ ${c}" style="all:unset;cursor:pointer;margin-left:6px;font-weight:700;display:inline-flex">${icon.x}</button></span>`).join("") || '<span class="small muted">Chưa chọn học phần nào.</span>'}</div>
       <form class="row" data-form="addc" style="gap:6px;flex-wrap:nowrap"><label class="sr" for="addc">Thêm học phần</label><input class="input" id="addc" list="addc-list" placeholder="Mã học phần, ví dụ IT3080" autocomplete="off"><datalist id="addc-list"></datalist><button class="btn ink" type="submit">Thêm</button></form>
       ${suggest.length ? `<p class="small" style="margin:0">Học phần bạn đang theo dõi có lớp mở: ${suggest.map((c) => `<b>${c}</b>`).join(", ")}. <button class="btn sm" type="button" data-sug>Thêm tất cả</button></p>` : ""}
       <p class="tiny muted" style="margin:0">${plan.courses.length} học phần, ${credits} tín chỉ.</p></section>
@@ -6708,7 +6736,7 @@ function acceptedCount(email) {
   return qList.filter((q) => q && q.accepted && aList.find((a) => a && a.id === q.accepted)?.by === email).length;
 }
 BADGES.push(
-  { id: "gold-doc", ic: "★", name: "Tài liệu vàng", desc: "Có tài liệu đạt 4,5 sao trở lên với ít nhất 10 lượt chấm", rare: true, ok: (u) => S.docs.some((d) => d.uploader === u.email && d.status === "APPROVED" && d.ratingCount >= 10 && d.ratingSum / d.ratingCount >= 4.5) },
+  { id: "gold-doc", ic: icon.star, name: "Tài liệu vàng", desc: "Có tài liệu đạt 4,5 sao trở lên với ít nhất 10 lượt chấm", rare: true, ok: (u) => S.docs.some((d) => d.uploader === u.email && d.status === "APPROVED" && d.ratingCount >= 10 && d.ratingSum / d.ratingCount >= 4.5) },
   { id: "k-dl", ic: "1K", name: "Ngàn lượt tải", desc: "Có tài liệu đạt 1.000 lượt tải", rare: true, ok: (u) => S.docs.some((d) => d.uploader === u.email && d.status === "APPROVED" && d.downloads >= 1000) },
   { id: "pioneer", ic: "KP", name: "Khai phá", desc: "Tài liệu đầu tiên được duyệt của một học phần", rare: true, ok: (u) => S.courses.some((c) => { const first = S.docs.filter((d) => d.course === c.code && d.status === "APPROVED" && d.publishedAt).sort((a, b) => a.publishedAt - b.publishedAt)[0]; return first?.uploader === u.email; }) },
   { id: "solver", ic: "GĐ", name: "Người giải đáp", desc: "10 câu trả lời được chọn là hay nhất", rare: true, ok: (u) => acceptedCount(u.email) >= 10 },
@@ -6985,7 +7013,7 @@ function voteBox(kind, item, u) {
   if (!item) return "";
   if (!item.votes || typeof item.votes !== "object") item.votes = {};
   const mine = u && u.email ? item.votes[u.email] || 0 : 0;
-  return `<div class="stack" style="gap:2px;align-items:center;min-width:44px"><button class="icon-btn" type="button" data-vote="${kind}|${item.id}|1" aria-label="Bình chọn hữu ích" aria-pressed="${mine === 1}" style="${mine === 1 ? "color:var(--stamp)" : ""}">▲</button><b class="code" style="font-size:22px">${voteSum(item.votes)}</b><button class="icon-btn" type="button" data-vote="${kind}|${item.id}|-1" aria-label="Bình chọn không hữu ích" aria-pressed="${mine === -1}" style="${mine === -1 ? "color:var(--stamp)" : ""}">▼</button></div>`;
+  return `<div class="stack" style="gap:2px;align-items:center;min-width:44px"><button class="icon-btn" type="button" data-vote="${kind}|${item.id}|1" aria-label="Bình chọn hữu ích" aria-pressed="${mine === 1}" style="${mine === 1 ? "color:var(--stamp)" : ""}">${icon.chevUp}</button><b class="code" style="font-size:22px">${voteSum(item.votes)}</b><button class="icon-btn" type="button" data-vote="${kind}|${item.id}|-1" aria-label="Bình chọn không hữu ích" aria-pressed="${mine === -1}" style="${mine === -1 ? "color:var(--stamp)" : ""}">${icon.chevDown}</button></div>`;
 }
 views["/hoi-dap/:id"] = ({ id }) => {
   const u = me();
@@ -7320,9 +7348,9 @@ function adHomeCarousel() {
           ${isAdmin(u)?`<a class="btn sm ink" href="#/quan-tri/quang-cao" style="font-size:11px;padding:2px 8px;height:24px;line-height:20px;display:inline-flex;align-items:center;gap:4px">Quản lý quảng cáo</a>`:""}
         </div>
         <div class="row" style="gap:6px;align-items:center">
-          <button type="button" class="btn sm" data-ad-prev aria-label="Quảng cáo trước" title="Quảng cáo trước" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">‹</button>
+          <button type="button" class="btn sm" data-ad-prev aria-label="Quảng cáo trước" title="Quảng cáo trước" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">${icon.chevLeft}</button>
           <span class="tiny muted" data-ad-counter style="font-weight:600;min-width:44px;text-align:center">1 / ${list.length}</span>
-          <button type="button" class="btn sm" data-ad-next aria-label="Quảng cáo tiếp" title="Quảng cáo tiếp theo" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">›</button>
+          <button type="button" class="btn sm" data-ad-next aria-label="Quảng cáo tiếp" title="Quảng cáo tiếp theo" style="width:34px;height:34px;padding:0;font-size:18px;display:inline-flex;align-items:center;justify-content:center">${icon.chevRight}</button>
         </div>
       </div>
 
@@ -7891,7 +7919,7 @@ async function checkAdminToken(){
 }
 const extDownloadUrl=(it)=>`${API_BASE}/api/extensions.php?action=download&id=${encodeURIComponent(it.id)}`;
 function extGuideHtml(){return `<ol class="small" style="margin:0;padding-left:20px;line-height:1.7">
-  <li>Bấm <b>Tải về</b> để lấy file <code>.zip</code>, rồi <b>giải nén</b> ra một thư mục (chuột phải → Extract All / Giải nén tất cả).</li>
+  <li>Bấm <b>Tải về</b> để lấy file <code>.zip</code>, rồi <b>giải nén</b> ra một thư mục (chuột phải ${icon.arrowRight} Extract All / Giải nén tất cả).</li>
   <li>Mở trình duyệt Chrome, Edge hoặc Cốc Cốc, gõ vào thanh địa chỉ <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>).</li>
   <li>Bật <b>Chế độ dành cho nhà phát triển</b> (Developer mode) ở góc trên bên phải.</li>
   <li>Bấm <b>Tải tiện ích đã giải nén</b> (Load unpacked) và chọn thư mục vừa giải nén, đúng thư mục có file <code>manifest.json</code>.</li>
@@ -8600,7 +8628,7 @@ views["/cong-tac-vien"] = () => {
       pageHead("Cộng tác viên kiểm duyệt", "Chương trình sinh viên tình nguyện", "") +
       `<div class="wrap stack" style="max-width:860px;padding-block:24px;gap:20px">
       <section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Cộng tác viên làm gì</h2><ul style="margin:0;padding-left:20px;line-height:1.7"><li>Xem tài liệu chờ duyệt <b>rủi ro thấp</b> thuộc Viện mình, đề xuất Duyệt, Yêu cầu sửa hoặc Từ chối.</li><li>Đề xuất không có hiệu lực ngay: kiểm duyệt viên xem và quyết định. Khi bật cài đặt, hai cộng tác viên cùng đề xuất duyệt một tài liệu rủi ro thấp, không có cờ AI thì tài liệu được tự duyệt.</li><li>Không thấy tài liệu có dấu hiệu bản quyền cao, không gỡ tài liệu, không xử lý báo cáo hay yêu cầu gỡ bỏ.</li><li>Chất lượng được đo bằng tỉ lệ đề xuất trùng quyết định cuối. Dưới 60% (sau 10 đề xuất) thì tạm dừng quyền; từ 90% (sau 30 đề xuất) được ưu tiên xét làm kiểm duyệt viên.</li></ul></section>
-      ${!u ? `<p class="note" style="margin:0"><a href="#/dang-nhap?next=%2Fcong-tac-vien">Đăng nhập</a> để đăng ký.</p>` : ctv ? `<section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Bạn là cộng tác viên${u.ctvPaused ? " (đang tạm dừng)" : ""}</h2><div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"><div class="cell"><span class="l">Đề xuất</span><span class="v code" style="font-size:28px">${s.total}</span></div><div class="cell"><span class="l">Đã có kết quả</span><span class="v code" style="font-size:28px">${s.resolved}</span></div><div class="cell"><span class="l">Tỉ lệ đúng</span><span class="v code" style="font-size:28px;color:${s.rate >= 0.9 ? "var(--stamp)" : "var(--ink)"}">${Math.round(s.rate * 100)}%</span></div><div class="cell"><span class="l">Đang chờ</span><span class="v code" style="font-size:28px">${ctvQueue(u).length}</span></div></div>${u.ctvPaused ? "" : '<div><a class="btn primary" href="#/ctv">Mở hàng chờ cộng tác viên</a></div>'}</section>` : mine ? `<p class="note" style="margin:0">Đã gửi đơn ngày ${fmtDate(mine.t)}, đang chờ kiểm duyệt viên xét.</p>` : `<section class="stack" style="gap:10px;border:2px solid var(--line);background:var(--sheet);padding:16px"><h2 class="h2" style="margin:0">Đăng ký</h2><ul class="tb" style="list-style:none;margin:0;padding:0">${req.map(([ok, l]) => `<li style="padding:6px 12px">${ok ? "✓" : "✗"} ${l}</li>`).join("")}</ul>${okAll ? `<form class="stack" data-form="apply" style="gap:10px"><div class="field"><label for="ap-m">Vì sao bạn muốn tham gia</label><textarea class="textarea" id="ap-m" maxlength="600" style="min-height:72px"></textarea></div><div class="field"><label for="ap-h">Số giờ mỗi tuần có thể dành</label><select class="select" id="ap-h" style="width:auto"><option>1</option><option selected>2</option><option>3</option><option>5</option></select></div><label class="check"><input type="checkbox" id="ap-ok"><span>Tôi đã đọc quy định kiểm duyệt và cam kết giữ kín thông tin người đăng.</span></label><div><button class="btn primary" type="submit">Gửi đơn</button></div></form>` : '<p class="small muted" style="margin:0">Bạn chưa đủ điều kiện. Đóng góp thêm tài liệu chất lượng rồi quay lại nhé.</p>'}</section>`}</div>`,
+      ${!u ? `<p class="note" style="margin:0"><a href="#/dang-nhap?next=%2Fcong-tac-vien">Đăng nhập</a> để đăng ký.</p>` : ctv ? `<section class="stack" style="gap:8px"><h2 class="h2" style="margin:0">Bạn là cộng tác viên${u.ctvPaused ? " (đang tạm dừng)" : ""}</h2><div class="tb" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))"><div class="cell"><span class="l">Đề xuất</span><span class="v code" style="font-size:28px">${s.total}</span></div><div class="cell"><span class="l">Đã có kết quả</span><span class="v code" style="font-size:28px">${s.resolved}</span></div><div class="cell"><span class="l">Tỉ lệ đúng</span><span class="v code" style="font-size:28px;color:${s.rate >= 0.9 ? "var(--stamp)" : "var(--ink)"}">${Math.round(s.rate * 100)}%</span></div><div class="cell"><span class="l">Đang chờ</span><span class="v code" style="font-size:28px">${ctvQueue(u).length}</span></div></div>${u.ctvPaused ? "" : '<div><a class="btn primary" href="#/ctv">Mở hàng chờ cộng tác viên</a></div>'}</section>` : mine ? `<p class="note" style="margin:0">Đã gửi đơn ngày ${fmtDate(mine.t)}, đang chờ kiểm duyệt viên xét.</p>` : `<section class="stack" style="gap:10px;border:2px solid var(--line);background:var(--sheet);padding:16px"><h2 class="h2" style="margin:0">Đăng ký</h2><ul class="tb" style="list-style:none;margin:0;padding:0">${req.map(([ok, l]) => `<li style="padding:6px 12px">${ok ? icon.check : icon.x} ${l}</li>`).join("")}</ul>${okAll ? `<form class="stack" data-form="apply" style="gap:10px"><div class="field"><label for="ap-m">Vì sao bạn muốn tham gia</label><textarea class="textarea" id="ap-m" maxlength="600" style="min-height:72px"></textarea></div><div class="field"><label for="ap-h">Số giờ mỗi tuần có thể dành</label><select class="select" id="ap-h" style="width:auto"><option>1</option><option selected>2</option><option>3</option><option>5</option></select></div><label class="check"><input type="checkbox" id="ap-ok"><span>Tôi đã đọc quy định kiểm duyệt và cam kết giữ kín thông tin người đăng.</span></label><div><button class="btn primary" type="submit">Gửi đơn</button></div></form>` : '<p class="small muted" style="margin:0">Bạn chưa đủ điều kiện. Đóng góp thêm tài liệu chất lượng rồi quay lại nhé.</p>'}</section>`}</div>`,
     mount(root) {
       root.querySelector('[data-form="apply"]')?.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -9189,8 +9217,8 @@ setTimeout(checkCookieConsent, 600);
 
 <div id="cookie-banner" class="cookie-banner" hidden>
   <div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px">
-    <b>🔒 Quyền riêng tư & Bộ nhớ lưu trữ</b>
-    <button class="icon-btn" onclick="acceptCookieConsent()" style="width:24px;height:24px;min-width:24px" title="Đóng">✕</button>
+    <b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3M12 15v2"/></svg> Quyền riêng tư & Bộ nhớ lưu trữ</b>
+    <button class="icon-btn" onclick="acceptCookieConsent()" style="width:24px;height:24px;min-width:24px" title="Đóng" aria-label="Đóng"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <p style="margin:6px 0 8px;font-size:13px;line-height:1.45">
     HUSTDOCU sử dụng bộ nhớ trình duyệt (LocalStorage & Session) để duy trì phiên đăng nhập, tùy chọn giao diện và đếm lượt tải học tập theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15.
