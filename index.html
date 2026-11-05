@@ -1539,7 +1539,7 @@ const icon={
  calendar:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-1px;margin-right:3px" aria-hidden="true"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>',
 };
 /* ===================== Minh họa nét manga (vẽ tay bằng SVG, nguyên bản) =====================
-   Hai nhân vật: bạn nữ tóc dài (Thu) và bạn nam đeo kính (Nam). Nét đen trên nền trắng, điểm đỏ.
+   Hai nhân vật: bạn nữ tóc dài (Thu) và bạn nam đeo kính (Nam), mặc áo polo đỏ Bách Khoa. Nét đen trên nền trắng, điểm đỏ.
    Dùng: mangaArt("girl-hero" | "boy-hero" | "girl-empty" | "boy-404" | "girl-wave", nhãn) */
 const MG={ink:"#111",red:"#D7263D",hi:"#FFE14D"};
 function mgSpeed(cx,cy,n=26,r1=60,r2=700,w=1.5,op=.5){let d="";for(let i=0;i<n;i++){const a=(i/n)*Math.PI*2+((i*37)%7)*.02;const r=r1+((i*53)%5)*14;d+=`M${(cx+Math.cos(a)*r).toFixed(1)} ${(cy+Math.sin(a)*r).toFixed(1)}L${(cx+Math.cos(a)*r2).toFixed(1)} ${(cy+Math.sin(a)*r2).toFixed(1)}`}return `<path d="${d}" stroke="${MG.ink}" stroke-width="${w}" opacity="${op}"/>`}
@@ -1561,16 +1561,21 @@ function mgFace(){return `<path d="M176 300 L178 344 C190 352 210 352 222 344 L2
   <path d="M124 196 C124 128 162 98 200 98 C238 98 276 128 276 196 C276 262 244 306 200 314 C156 306 124 262 124 196 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3"/>`}
 function mgBlush(){return `<path d="M138 256 l10 -6M148 260 l10 -6M242 260 l10 -6M252 256 l10 -6" stroke="${MG.red}" stroke-width="2.6" stroke-linecap="round"/>`}
 function mgSweat(x,y){return `<path d="M${x} ${y} C${x-10} ${y+18} ${x-8} ${y+30} ${x} ${y+30} C${x+8} ${y+30} ${x+10} ${y+18} ${x} ${y} Z" fill="#fff" stroke="${MG.ink}" stroke-width="2.6"/>`}
-function mgUniform(tie){return `<path d="M88 452 C92 380 130 346 200 338 C270 346 308 380 312 452 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M150 352 L200 404 L250 352" fill="none" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
-  ${tie?`<path d="M200 380 L190 394 L200 452 L210 394 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/><path d="M190 372 L200 382 L210 372 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>`
-  :`<path d="M176 364 L200 388 L224 364 L216 398 L200 388 L184 398 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>`}
-  <path d="M110 420 L118 452M290 420 L282 452" stroke="${MG.ink}" stroke-width="2.4"/>`}
+/* Áo Bách Khoa: polo đỏ, cổ bẻ trắng, nẹp hai cúc, ngực trái in chữ "BK" (vẽ nguyên bản, không dùng logo trường).
+   mgUniform vẽ thân áo (dưới mặt), mgCollar vẽ cổ áo (đè lên chân cổ). */
+function mgUniform(){return `<path d="M88 452 C92 380 130 346 200 338 C270 346 308 380 312 452 Z" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M110 420 L118 452M290 420 L282 452" stroke="${MG.ink}" stroke-width="2.4"/>
+  <path d="M193 358 V412 H207 V358" fill="${MG.red}" stroke="${MG.ink}" stroke-width="2.6" stroke-linejoin="round"/>
+  <g fill="#fff" stroke="${MG.ink}" stroke-width="2"><circle cx="200" cy="374" r="3"/><circle cx="200" cy="394" r="3"/></g>
+  <g transform="rotate(-4 146 402)"><rect x="124" y="388" width="44" height="28" rx="3" fill="#fff" stroke="${MG.ink}" stroke-width="2.6"/><text x="146" y="410" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="21" letter-spacing="1" fill="${MG.red}">BK</text></g>`}
+function mgCollar(){return `<path d="M178 334 L146 350 L164 390 L199 358 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M222 334 L254 350 L236 390 L201 358 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M150 358 L162 384M250 358 L238 384" stroke="${MG.red}" stroke-width="2.4" stroke-linecap="round"/>`}
 /** Bạn nữ: tóc dài đen có vệt sáng, kẹp tóc ngôi sao. */
 function mangaGirl({eyes="normal",mouth="smile",blush=true,sweat=false,brows="up"}={}){
   return `<g>
   <path d="M112 214 C100 290 112 360 92 430 C130 410 144 330 142 270 Z M288 214 C300 290 288 360 308 430 C270 410 256 330 258 270 Z" fill="${MG.ink}"/>
-  ${mgUniform(false)}${mgFace()}
+  ${mgUniform()}${mgFace()}${mgCollar()}
   ${mgEyes(eyes)}
   ${eyes!=="happy"?`<path d="M140 202 C150 188 176 186 188 200M212 200 C224 186 250 188 260 202" stroke="${MG.ink}" stroke-width="4" fill="none" stroke-linecap="round"/>`:""}
   ${brows==="worry"?`<path d="M146 178 L182 188M218 188 L254 178" stroke="${MG.ink}" stroke-width="3.5" stroke-linecap="round"/>`:`<path d="M146 186 L184 182M216 182 L254 186" stroke="${MG.ink}" stroke-width="3.5" stroke-linecap="round"/>`}
@@ -1580,10 +1585,10 @@ function mangaGirl({eyes="normal",mouth="smile",blush=true,sweat=false,brows="up
   <path d="M262 104 l4 9 10 1.5 -7 7 1.8 10 -8.8 -4.6 -8.8 4.6 1.8 -10 -7 -7 10 -1.5z" fill="${MG.hi}" stroke="${MG.ink}" stroke-width="2.4" stroke-linejoin="round"/>
   ${sweat?mgSweat(286,170):""}
   </g>`}
-/** Bạn nam: tóc ngắn dựng, kính tròn, cà vạt đỏ. */
+/** Bạn nam: tóc ngắn dựng, kính tròn, áo Bách Khoa. */
 function mangaBoy({eyes="normal",mouth="smile",glare=false,sweat=false,brows="up"}={}){
   return `<g>
-  ${mgUniform(true)}${mgFace()}
+  ${mgUniform()}${mgFace()}${mgCollar()}
   ${glare?"":mgEyes(eyes)}
   <g fill="${glare?"#fff":"none"}" stroke="${MG.ink}" stroke-width="3.2"><circle cx="162" cy="220" r="27"/><circle cx="238" cy="220" r="27"/></g>
   <path d="M189 218 Q200 212 211 218M135 214 L124 208M265 214 L276 208" stroke="${MG.ink}" stroke-width="3.2" fill="none"/>
@@ -1601,7 +1606,7 @@ function mangaArt(kind,label=""){
     ${mangaGirl({eyes:"normal",mouth:"grin"})}
     <g transform="translate(296 318) rotate(-26)"><rect width="16" height="118" fill="${MG.hi}" stroke="${MG.ink}" stroke-width="3"/><path d="M0 118 L8 138 L16 118 Z" fill="#fff" stroke="${MG.ink}" stroke-width="3" stroke-linejoin="round"/><rect width="16" height="14" fill="${MG.red}" stroke="${MG.ink}" stroke-width="3"/></g>
     <ellipse cx="290" cy="404" rx="24" ry="18" fill="#fff" stroke="${MG.ink}" stroke-width="3" transform="rotate(-14 290 404)"/></svg>`;
-  if(kind==="boy-hero")return `<svg viewBox="20 110 380 230" preserveAspectRatio="xMidYMid slice" ${a11y}>
+  if(kind==="boy-hero")return `<svg viewBox="20 130 380 260" preserveAspectRatio="xMidYMid slice" ${a11y}>
     <g stroke="${MG.ink}" stroke-width="1.2" opacity=".35">${Array.from({length:22},(_,i)=>`<path d="M${40+i*16} 60 V320"/>`).join("")}</g>
     ${mangaBoy({glare:true,mouth:"grin"})}
     <g transform="translate(262 228) rotate(8)"><rect width="100" height="128" fill="#fff" stroke="${MG.ink}" stroke-width="3"/><text x="50" y="34" text-anchor="middle" font-family="Anton,Impact,sans-serif" font-size="26" fill="${MG.red}">ĐỀ</text><path d="M16 52h68M16 66h68M16 80h48M16 94h60" stroke="${MG.ink}" stroke-width="3"/></g>
@@ -1704,7 +1709,7 @@ views["/"]=()=>{
         <div class="hot"><span>Môn hot</span>${core.slice(0,4).map(c=>`<a href="#/hoc-phan/${c.code}"><b>${c.code}</b>${esc(c.name)}</a>`).join("")}</div>
       </div>
       <div class="mh-art">
-        <div class="art-panel big">${mangaArt("girl-hero","Bạn nữ sinh viên Bách khoa cầm bút chì, quyết tâm ôn thi")}
+        <div class="art-panel big">${mangaArt("girl-hero","Bạn nữ sinh viên Bách khoa mặc áo Bách Khoa, cầm bút chì, quyết tâm ôn thi")}
           <div class="bubble" style="top:16px;right:16px;max-width:170px">Qua môn này<br>là được!</div>
           <span class="sfx" style="left:16px;bottom:14px">QUYẾT!</span></div>
         <div class="art-panels">
