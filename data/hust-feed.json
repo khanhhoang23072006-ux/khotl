@@ -1,7 +1,11 @@
 {
  "source": "https://ctt.hust.edu.vn",
- "fetchedAt": "2026-11-11T04:18:02.803Z",
- "errors": [],
+ "fetchedAt": "2026-11-16T18:45:15.307Z",
+ "errors": [
+  "The operation was aborted due to timeout",
+  "The operation was aborted due to timeout",
+  "fetch failed"
+ ],
  "items": [
   {
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayKehoach?kehoach=30247",
@@ -73,7 +77,7 @@
    "url": "https://ctt.hust.edu.vn/DisplayWeb/DisplayBaiViet?baiviet=51639",
    "title": "[ĐTĐH] Quyết định mức học phí các chương trình đào tạo đại học chính quy, KSCS, ĐT thường xuyên và Sau đại học năm học 2026-2027",
    "date": "2026-10-06",
-   "source": "Quy định đại học",
+   "source": "Thông báo đại học",
    "tags": [
     "ctdt",
     "hocphi"
