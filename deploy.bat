@@ -28,6 +28,7 @@ set "FTP=ftp://%FTP_HOST%%FTP_DIR%"
 set "FAIL=0"
 
 call :up ".htaccess" ".htaccess"
+call :up "ads.txt" "ads.txt"
 call :up "index.html" "index.html"
 call :up "sw.js" "sw.js"
 call :up "manifest.webmanifest" "manifest.webmanifest"
