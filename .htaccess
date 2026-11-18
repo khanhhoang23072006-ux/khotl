@@ -1,5 +1,12 @@
 # Bảo mật cho hosting Apache (hustdocu.id.vn). deploy.bat tải file này lên thư mục gốc web.
 
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Đồng bộ tên miền chính thức về bản không www (https://hustdocu.id.vn)
+  RewriteCond %{HTTP_HOST} ^www\.hustdocu\.id\.vn$ [NC]
+  RewriteRule ^(.*)$ https://hustdocu.id.vn/$1 [R=301,L]
+</IfModule>
+
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "DENY"

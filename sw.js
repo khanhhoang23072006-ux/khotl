@@ -1,5 +1,5 @@
 // Service worker HUSTDOCU: trang chính luôn lấy mạng trực tiếp, mất mạng thì dùng bản đã lưu.
-const CACHE = "hustdocu-v36";
+const CACHE = "hustdocu-v37";
 const CORE = [
   "./",
   "./index.html",

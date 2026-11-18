@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/xml; charset=utf-8');
 
-$domain = 'https://www.hustdocu.id.vn';
+$domain = 'https://hustdocu.id.vn';
 $today = date('Y-m-d');
 
 $staticPages = [
@@ -23,6 +23,7 @@ $staticPages = [
     ['loc' => $domain . '/?p=/khong-gian', 'changefreq' => 'weekly', 'priority' => '0.7'],
     ['loc' => $domain . '/?p=/thong-bao-truong', 'changefreq' => 'daily', 'priority' => '0.8'],
     ['loc' => $domain . '/?p=/vinh-danh', 'changefreq' => 'weekly', 'priority' => '0.7'],
+    ['loc' => $domain . '/?p=/gioi-thieu', 'changefreq' => 'monthly', 'priority' => '0.6'],
     ['loc' => $domain . '/?p=/dieu-khoan', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $domain . '/?p=/quyen-rieng-tu', 'changefreq' => 'monthly', 'priority' => '0.5'],
     ['loc' => $domain . '/?p=/minh-bach-ai', 'changefreq' => 'monthly', 'priority' => '0.5'],
@@ -32,7 +33,7 @@ $staticPages = [
 ];
 
 // Load faculties & courses from index.html if possible or hardcoded fallback
-$faculties = ['soict', 'smee', 'seee', 'sce', 'sme', 'sbft', 'sfl', 'sem', 'fms', 'sep'];
+$faculties = ['soict', 'seee', 'sme', 'scls', 'smse', 'sem', 'fami', 'fep', 'sofl', 'fps'];
 $facultyPages = array_map(function($f) use ($domain) {
     return ['loc' => $domain . '/?p=/vien/' . $f, 'changefreq' => 'weekly', 'priority' => '0.8'];
 }, $faculties);

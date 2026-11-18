@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 
-const ROOT_DIR = 'C:/Users/Asus/.gemini/antigravity-ide/scratch/khotl';
+const ROOT_DIR = process.cwd();
 const INDEX_HTML_PATH = path.join(ROOT_DIR, 'index.html');
-const DOMAIN = 'https://www.hustdocu.id.vn';
+const DOMAIN = 'https://hustdocu.id.vn';
 
 async function generate() {
   console.log('1. Reading faculties and courses from index.html...');
@@ -53,6 +53,7 @@ async function generate() {
     { loc: `${DOMAIN}/?p=/khong-gian`, changefreq: 'weekly', priority: '0.7' },
     { loc: `${DOMAIN}/?p=/thong-bao-truong`, changefreq: 'daily', priority: '0.8' },
     { loc: `${DOMAIN}/?p=/vinh-danh`, changefreq: 'weekly', priority: '0.7' },
+    { loc: `${DOMAIN}/?p=/gioi-thieu`, changefreq: 'monthly', priority: '0.6' },
     { loc: `${DOMAIN}/?p=/dieu-khoan`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${DOMAIN}/?p=/quyen-rieng-tu`, changefreq: 'monthly', priority: '0.5' },
     { loc: `${DOMAIN}/?p=/minh-bach-ai`, changefreq: 'monthly', priority: '0.5' },
